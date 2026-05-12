@@ -1,0 +1,482 @@
+openapi: 3.0.3
+info:
+  title: InnovatEPAM Portal API
+  version: 0.1.0
+  description: |
+    REST contract for InnovatEPAM Portal Phase 1 MVP. Every non-2xx
+    response conforms to the constitutional error envelope (see
+    `Error` schema). Authentication is cookie-based via NextAuth's
+    `next-auth.session-token`; CSRF protection is supplied by the
+    framework's double-submit cookie. Endpoints listed below are
+    implemented as Next.js App Router route handlers under
+    `src/app/api/`.
+
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+
+tags:
+  - name: auth
+  - name: ideas
+  - name: attachments
+  - name: categories
+  - name: users
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [auth]
+      summary: Register a new account (default role EMPLOYEE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserSummary' }
+        '400':
+          $ref: '#/components/responses/BadRequest'   # USER_PASSWORD_POLICY, IDEA_*_REQUIRED variants
+        '409':
+          $ref: '#/components/responses/Conflict'     # USER_EMAIL_TAKEN
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/auth/[...nextauth]:
+    description: Managed by NextAuth (login/callback/logout). Login
+      failures return 401 with `AUTH_INVALID_CREDENTIALS` via the
+      shared envelope.
+
+  /api/ideas:
+    get:
+      tags: [ideas]
+      summary: List ideas (scope depends on caller role)
+      description: |
+        - EMPLOYEE: their own ideas, sorted by `updatedAt DESC`.
+        - EVALUATOR / ADMIN: all ideas they can review (status
+          SUBMITTED or UNDER_REVIEW), sorted by `createdAt ASC`.
+      parameters:
+        - in: query
+          name: scope
+          schema: { type: string, enum: [mine, queue] }
+          required: false
+          description: Override the role-default scope. Mismatched
+            scope/role pairs return 403 `AUTH_FORBIDDEN_ROLE`.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/IdeaSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [ideas]
+      summary: Submit a new idea (EMPLOYEE+)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateIdeaRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Idea' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          $ref: '#/components/responses/Conflict'   # CATEGORY_NAME_TAKEN
+
+  /api/ideas/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+    get:
+      tags: [ideas]
+      summary: Get idea detail (author or reviewer/admin only)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdeaDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/ideas/{id}/transitions:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+    post:
+      tags: [ideas]
+      summary: Apply a status transition (start-review / approve / reject / implement)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransitionRequest' }
+      responses:
+        '200':
+          description: OK — returns the updated idea
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Idea' }
+        '400': { $ref: '#/components/responses/BadRequest' }       # IDEA_COMMENT_REQUIRED
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }        # AUTH_FORBIDDEN_ROLE, IDEA_SELF_EVALUATION_FORBIDDEN
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: |
+            State-machine, category-pending, or concurrency conflict
+            (`IDEA_INVALID_TRANSITION`, `IDEA_CATEGORY_PENDING`,
+            `IDEA_ALREADY_DECIDED`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/ideas/{id}/attachment:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+    get:
+      tags: [attachments]
+      summary: Download the idea's attachment (author or reviewer/admin)
+      responses:
+        '200':
+          description: Streaming file download
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }   # ATTACHMENT_NOT_FOUND or IDEA_NOT_FOUND
+
+  /api/attachments:
+    post:
+      tags: [attachments]
+      summary: Upload a single file (called from the idea form)
+      description: |
+        `multipart/form-data` with one field `file`. Returns the
+        attachment id; the client then includes it in
+        `POST /api/ideas`. Files in `.staging/` are swept on app
+        startup if no idea references them.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Staged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AttachmentRef' }
+        '400': { $ref: '#/components/responses/BadRequest' }       # ATTACHMENT_TYPE_NOT_ALLOWED
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '413':
+          description: Payload too large (`ATTACHMENT_TOO_LARGE`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /api/categories:
+    get:
+      tags: [categories]
+      summary: List categories
+      parameters:
+        - in: query
+          name: state
+          schema: { type: string, enum: [ACTIVE, PROPOSED, REJECTED, all] }
+          description: Default `ACTIVE` for non-admins; admins may pass `all`.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Category' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/categories/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [categories]
+      summary: Approve or reject a PROPOSED category (ADMIN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryDecisionRequest' }
+      responses:
+        '200':
+          description: OK — returns the updated category
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: |
+            `CATEGORY_NOT_PENDING` (already decided) or
+            `CATEGORY_PROTECTED` (attempt to reject `Other`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/users/{id}/role:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [users]
+      summary: Change a user's role (ADMIN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoleChangeRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`AUTH_LAST_ADMIN_DEMOTION`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+
+  parameters:
+    IdeaId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Unauthorized:
+      description: '`AUTH_SESSION_EXPIRED` or no session'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: '`AUTH_FORBIDDEN_ROLE` or `IDEA_SELF_EVALUATION_FORBIDDEN`'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Validation failure
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: '`RATE_LIMITED`'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: One of the values in `src/lib/errors/codes.ts`.
+              example: IDEA_TITLE_REQUIRED
+            message:
+              type: string
+              description: Developer-facing English; UI MUST resolve `code` instead.
+              example: Title is required.
+            details:
+              type: object
+              additionalProperties: true
+              description: Structured details (e.g., `{ field: "title" }`).
+
+    Role:
+      type: string
+      enum: [EMPLOYEE, EVALUATOR, ADMIN]
+
+    IdeaStatus:
+      type: string
+      enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED]
+
+    CategoryState:
+      type: string
+      enum: [ACTIVE, PROPOSED, REJECTED]
+
+    UserSummary:
+      type: object
+      required: [id, email, displayName, role]
+      properties:
+        id:           { type: string, format: uuid }
+        email:        { type: string, format: email }
+        displayName:  { type: string }
+        role:         { $ref: '#/components/schemas/Role' }
+
+    Category:
+      type: object
+      required: [id, name, state, createdAt, isProtected]
+      properties:
+        id:           { type: string, format: uuid }
+        name:         { type: string }
+        state:        { $ref: '#/components/schemas/CategoryState' }
+        proposedById: { type: string, format: uuid, nullable: true }
+        decidedById:  { type: string, format: uuid, nullable: true }
+        decidedAt:    { type: integer, nullable: true, description: Unix ms }
+        createdAt:    { type: integer, description: Unix ms }
+        isProtected:  { type: boolean }
+
+    AttachmentRef:
+      type: object
+      required: [id, originalName, mimeType, sizeBytes]
+      properties:
+        id:           { type: string, format: uuid }
+        originalName: { type: string }
+        mimeType:     { type: string }
+        sizeBytes:    { type: integer }
+
+    IdeaSummary:
+      type: object
+      required: [id, title, status, category, authorId, createdAt, updatedAt]
+      properties:
+        id:         { type: string, format: uuid }
+        title:      { type: string }
+        status:     { $ref: '#/components/schemas/IdeaStatus' }
+        category:   { $ref: '#/components/schemas/Category' }
+        authorId:   { type: string, format: uuid }
+        hasAttachment: { type: boolean }
+        createdAt:  { type: integer }
+        updatedAt:  { type: integer }
+
+    Idea:
+      allOf:
+        - $ref: '#/components/schemas/IdeaSummary'
+        - type: object
+          required: [description]
+          properties:
+            description:  { type: string }
+            attachment:   { $ref: '#/components/schemas/AttachmentRef', nullable: true }
+
+    StatusTransitionRecord:
+      type: object
+      required: [id, ideaId, actorId, fromState, toState, recordedAt]
+      properties:
+        id:         { type: string, format: uuid }
+        ideaId:     { type: string, format: uuid }
+        actorId:    { type: string, format: uuid }
+        fromState:  { $ref: '#/components/schemas/IdeaStatus' }
+        toState:    { $ref: '#/components/schemas/IdeaStatus' }
+        comment:    { type: string, nullable: true }
+        recordedAt: { type: integer }
+
+    IdeaDetail:
+      allOf:
+        - $ref: '#/components/schemas/Idea'
+        - type: object
+          required: [history]
+          properties:
+            history:
+              type: array
+              items: { $ref: '#/components/schemas/StatusTransitionRecord' }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email:       { type: string, format: email }
+        password:    { type: string, minLength: 8 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+
+    CreateIdeaRequest:
+      type: object
+      required: [title, description]
+      properties:
+        title:       { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+        categoryId:
+          type: string
+          format: uuid
+          description: One of an ACTIVE category. Mutually exclusive with `proposedCategoryName`.
+        proposedCategoryName:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: Propose a new category. Mutually exclusive with `categoryId`.
+        attachmentId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Returned by `POST /api/attachments`.
+      oneOf:
+        - required: [categoryId]
+        - required: [proposedCategoryName]
+
+    TransitionAction:
+      type: string
+      enum: [START_REVIEW, APPROVE, REJECT, IMPLEMENT]
+
+    TransitionRequest:
+      type: object
+      required: [action]
+      properties:
+        action:  { $ref: '#/components/schemas/TransitionAction' }
+        comment:
+          type: string
+          minLength: 1
+          description: Required for `APPROVE` and `REJECT`; optional otherwise.
+
+    CategoryDecisionRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [APPROVE, REJECT]
+
+    RoleChangeRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: '#/components/schemas/Role' }

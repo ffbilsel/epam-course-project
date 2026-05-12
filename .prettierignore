@@ -1,0 +1,13 @@
+node_modules/
+.next/
+data/
+drizzle/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+specs/
+.specify/
+.github/
+content/
+project/
