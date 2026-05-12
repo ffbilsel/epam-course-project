@@ -1,0 +1,17 @@
+# Default to LF line endings in the repo for everything text.
+# Windows checkouts will still see LF, which keeps Prettier and ESLint
+# behaviour identical between local dev and CI (Ubuntu).
+* text=auto eol=lf
+
+# Binary assets (so git does not try to normalise).
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.pdf   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.db    binary
+*.sqlite binary

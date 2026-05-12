@@ -17,9 +17,15 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    command: "npm run dev",
+    command: process.env["CI"] ? "npm start" : "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env["CI"],
     timeout: 120_000,
+    env: {
+      NEXTAUTH_SECRET: process.env["NEXTAUTH_SECRET"] ?? "ci-test-secret",
+      NEXTAUTH_URL: process.env["NEXTAUTH_URL"] ?? "http://localhost:3000",
+      DATABASE_URL: process.env["DATABASE_URL"] ?? "file:./data/innovatepam.db",
+      BOOTSTRAP_ADMIN_EMAIL: process.env["BOOTSTRAP_ADMIN_EMAIL"] ?? "admin@innovatepam.test",
+    },
   },
 });
