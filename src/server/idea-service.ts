@@ -9,6 +9,7 @@ import {
   findCategoryByLowerName,
   insertProposedCategory,
   findOtherCategoryId,
+  parseSchemaJson,
 } from "@/db/repositories/category-repo";
 import {
   insertIdea,
@@ -17,6 +18,7 @@ import {
   listPendingIdeas,
   updateIdeaStatus,
   relinkCategory,
+  readAnswers,
 } from "@/db/repositories/idea-repo";
 import { findAttachmentById, commitAttachmentToIdea } from "@/db/repositories/attachment-repo";
 import { insertTransition, listTransitionsByIdea } from "@/db/repositories/transition-repo";
@@ -24,6 +26,8 @@ import { evaluateTransition, type TransitionAction } from "@/server/idea-state-m
 import { logSecurityEvent } from "@/server/infra/logger";
 import type { CreateIdeaInput } from "@/lib/validation/idea";
 import type { Role } from "@/db/schema";
+import { validateAnswers, orderAnswersForDisplay } from "@/server/category-answers";
+import type { IdeaStructuredAnswer } from "@/lib/validation/category-fields";
 
 const UPLOAD_ROOT = join(process.cwd(), "data", "uploads");
 
@@ -55,6 +59,12 @@ export interface IdeaDetail {
   createdAt: number;
   updatedAt: number;
   attachment: { id: string; originalName: string; sizeBytes: number; mimeType: string } | null;
+  /**
+   * Phase 2: structured answers attached to the idea, ordered for
+   * display (known fields first per the live schema, then orphans).
+   * Empty for pre-Phase-2 ideas.
+   */
+  answers: IdeaStructuredAnswer[];
 }
 
 async function loadDetail(ideaId: string): Promise<IdeaDetail> {
@@ -65,6 +75,9 @@ async function loadDetail(ideaId: string): Promise<IdeaDetail> {
   const att = await (
     await import("@/db/repositories/attachment-repo")
   ).findAttachmentByIdeaId(idea.id);
+  const rawAnswers = await readAnswers(idea.id);
+  const fields = parseSchemaJson(cat.fieldSchema);
+  const answers = orderAnswersForDisplay(rawAnswers, fields);
   return {
     id: idea.id,
     authorId: idea.authorId,
@@ -84,12 +97,23 @@ async function loadDetail(ideaId: string): Promise<IdeaDetail> {
           mimeType: att.mimeType,
         }
       : null,
+    answers,
   };
 }
 
 /**
  * Creates a new idea, optionally proposing a new category and/or
  * linking a previously-staged attachment. Runs in a single tx.
+ *
+ * Phase 2: when the chosen category is `ACTIVE` and has a non-empty
+ * `field_schema`, validates the supplied `input.answers` against it
+ * via {@link validateAnswers} and persists the resulting
+ * `IdeaStructuredAnswer[]` (with `labelSnapshot` per FR-008) on
+ * `ideas.category_answers`. For a `PROPOSED` category (newly
+ * proposed by this user) answer validation is skipped — that
+ * category has no schema yet and no admin has approved one.
+ * A `REJECTED` category is already short-circuited by
+ * {@link resolveCategoryId} before answer validation can run.
  */
 export async function createIdea(
   input: CreateIdeaInput,
@@ -99,6 +123,10 @@ export async function createIdea(
   const now = deps.clock.now().getTime();
   const categoryId = await resolveCategoryId(input, authorId, now, deps);
   const staged = await resolveStagedAttachment(input.attachmentId ?? null, authorId);
+
+  const category = await findCategoryById(categoryId);
+  const fields = category?.state === "ACTIVE" ? parseSchemaJson(category.fieldSchema) : [];
+  const answers = fields.length > 0 ? validateAnswers(fields, input.answers ?? {}) : [];
 
   const ideaId = deps.ids.next();
   await insertIdea({
@@ -110,6 +138,7 @@ export async function createIdea(
     status: "SUBMITTED",
     createdAt: now,
     updatedAt: now,
+    answers,
   });
 
   if (staged) {

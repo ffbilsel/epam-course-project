@@ -51,7 +51,7 @@ async function makeIdea(): Promise<string> {
   const cat = await db
     .select()
     .from(categories)
-    .where(sql`${categories.state} = 'ACTIVE'`)
+    .where(sql`${categories.name} = 'Other'`)
     .limit(1);
   const idea = await createIdea(
     { title: "x", description: "y", categoryId: cat[0]!.id },

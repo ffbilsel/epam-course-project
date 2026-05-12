@@ -1,12 +1,26 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { ideas, type IdeaStatus } from "@/db/schema";
+import {
+  IdeaCategoryAnswersList,
+  type IdeaStructuredAnswer,
+} from "@/lib/validation/category-fields";
+import { AppError } from "@/lib/errors/AppError";
 
 /**
- * Inserts a new Idea row.
+ * Inserts a new Idea row. Accepts an already-validated structured
+ * answer list (see `validateAnswers`) and serialises it to JSON.
  */
-export async function insertIdea(row: typeof ideas.$inferInsert): Promise<void> {
-  await db.insert(ideas).values(row);
+export async function insertIdea(
+  row: Omit<typeof ideas.$inferInsert, "categoryAnswers"> & {
+    answers?: readonly IdeaStructuredAnswer[];
+  },
+): Promise<void> {
+  const { answers, ...rest } = row;
+  await db.insert(ideas).values({
+    ...rest,
+    categoryAnswers: JSON.stringify(answers ?? []),
+  });
 }
 
 /**
@@ -61,4 +75,39 @@ export async function relinkCategory(
     .update(ideas)
     .set({ categoryId: toCategoryId, updatedAt })
     .where(and(eq(ideas.categoryId, fromCategoryId)));
+}
+
+/**
+ * Reads the structured answers attached to an idea, parsed and
+ * validated via the at-rest Zod list schema. Returns `[]` for
+ * pre-Phase-2 rows that still store `'[]'`.
+ */
+export async function readAnswers(id: string): Promise<IdeaStructuredAnswer[]> {
+  const r = await db
+    .select({ categoryAnswers: ideas.categoryAnswers })
+    .from(ideas)
+    .where(eq(ideas.id, id))
+    .limit(1);
+  const row = r[0];
+  if (!row) throw AppError.notFound("IDEA_NOT_FOUND");
+  return parseAnswersJson(row.categoryAnswers);
+}
+
+/**
+ * Parses raw JSON from `ideas.category_answers`. Silent-degrades
+ * empty payloads; throws `IDEA_ANSWER_INVALID` on a corrupt payload.
+ */
+export function parseAnswersJson(raw: string | null | undefined): IdeaStructuredAnswer[] {
+  if (!raw || raw === "[]") return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new AppError("IDEA_ANSWER_INVALID");
+  }
+  const result = IdeaCategoryAnswersList.safeParse(parsed);
+  if (!result.success) {
+    throw new AppError("IDEA_ANSWER_INVALID");
+  }
+  return result.data;
 }

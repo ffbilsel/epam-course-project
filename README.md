@@ -26,6 +26,13 @@ runnable from a clean checkout.
   [ADR-0006](specs/001-innovatepam-portal-mvp/adr/0006-validation-and-errors.md)
 - **shadcn/ui + Tailwind tokens (no hex literals)** —
   [ADR-0007](specs/001-innovatepam-portal-mvp/adr/0007-ui-and-design-system.md)
+- **Smart submission forms (Phase 2)** — admin-defined per-category
+  field schemas with runtime Zod validation and label snapshots.
+  See ADRs
+  [0009](specs/002-smart-forms/adr/0009-category-schema-storage.md),
+  [0010](specs/002-smart-forms/adr/0010-answer-storage-and-label-snapshot.md),
+  [0011](specs/002-smart-forms/adr/0011-dynamic-zod-validation.md), and
+  [0012](specs/002-smart-forms/adr/0012-field-type-taxonomy.md).
 
 ## Quick start
 

@@ -25,10 +25,12 @@ beforeEach(async () => {
 });
 
 async function activeCategoryId(): Promise<string> {
+  // Use the protected "Other" category — it always has an empty schema,
+  // so legacy tests can omit structured `answers` payloads.
   const rows = await db
     .select()
     .from(categories)
-    .where(sql`${categories.state} = 'ACTIVE'`)
+    .where(sql`${categories.name} = 'Other'`)
     .limit(1);
   return rows[0]!.id;
 }

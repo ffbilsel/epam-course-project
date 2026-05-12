@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TransitionDialog } from "@/components/ideas/transition-dialog";
+import { CategoryDetailsPanel } from "@/components/ideas/category-details-panel";
 import { auth } from "@/server/auth-options";
 import { getIdeaDetail, listIdeaTransitions } from "@/server/idea-service";
 import { formatDateTime } from "@/lib/format/date";
@@ -66,6 +67,8 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
           </CardHeader>
           <CardContent className="whitespace-pre-wrap text-sm">{detail.description}</CardContent>
         </Card>
+
+        <CategoryDetailsPanel answers={detail.answers} categoryName={detail.categoryName} />
 
         {detail.attachment && (
           <Card>

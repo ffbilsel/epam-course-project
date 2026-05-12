@@ -23,7 +23,9 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       NEXTAUTH_SECRET: process.env["NEXTAUTH_SECRET"] ?? "ci-test-secret",
+      AUTH_SECRET: process.env["AUTH_SECRET"] ?? process.env["NEXTAUTH_SECRET"] ?? "ci-test-secret",
       NEXTAUTH_URL: process.env["NEXTAUTH_URL"] ?? "http://localhost:3000",
+      AUTH_URL: process.env["AUTH_URL"] ?? process.env["NEXTAUTH_URL"] ?? "http://localhost:3000",
       DATABASE_URL: process.env["DATABASE_URL"] ?? "file:./data/innovatepam.db",
       BOOTSTRAP_ADMIN_EMAIL: process.env["BOOTSTRAP_ADMIN_EMAIL"] ?? "admin@innovatepam.test",
     },
