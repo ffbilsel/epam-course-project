@@ -36,6 +36,7 @@ export interface SecurityEvent {
     | "logout"
     | "role_change"
     | "category_decision"
+    | "category_schema_update"
     | "idea_transition"
     | "internal_error";
   userId: string | null;

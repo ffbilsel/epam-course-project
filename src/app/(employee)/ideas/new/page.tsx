@@ -2,17 +2,21 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { IdeaForm } from "@/components/forms/idea-form";
 import { auth } from "@/server/auth-options";
-import { listCategories } from "@/db/repositories/category-repo";
+import { listCategories, parseSchemaJson } from "@/db/repositories/category-repo";
 
 /**
  * Submit-idea page — fetches active categories server-side and hands
- * them to the client form.
+ * them (with their structured-field schemas) to the client form.
  */
 export default async function NewIdeaPage(): Promise<JSX.Element> {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/ideas/new");
   const cats = await listCategories("ACTIVE");
-  const options = cats.map((c) => ({ id: c.id, name: c.name }));
+  const options = cats.map((c) => ({
+    id: c.id,
+    name: c.name,
+    fieldSchema: parseSchemaJson(c.fieldSchema),
+  }));
   return (
     <>
       <Header />

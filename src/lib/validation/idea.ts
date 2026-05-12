@@ -17,6 +17,7 @@ export const CreateIdeaSchema = z
     categoryId: z.string().uuid().optional(),
     proposedCategoryName: z.string().trim().min(1).max(40).optional(),
     attachmentId: z.string().uuid().nullable().optional(),
+    answers: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
   })
   .refine((v) => Boolean(v.categoryId) !== Boolean(v.proposedCategoryName), {
     message: "IDEA_CATEGORY_INVALID",

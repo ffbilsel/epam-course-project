@@ -101,6 +101,7 @@ export const categories = sqliteTable(
     decidedAt: integer("decided_at"),
     createdAt: integer("created_at").notNull(),
     isProtected: integer("is_protected").notNull().default(0),
+    fieldSchema: text("field_schema").notNull().default("[]"),
   },
   (t) => ({
     nameLower: uniqueIndex("uniq_categories_name_lower").on(sql`lower(${t.name})`),
@@ -127,6 +128,7 @@ export const ideas = sqliteTable(
     status: text("status", { enum: IDEA_STATUSES }).notNull().default("SUBMITTED"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
+    categoryAnswers: text("category_answers").notNull().default("[]"),
   },
   (t) => ({
     authorUpdatedIdx: index("idx_ideas_author_updated").on(t.authorId, t.updatedAt),

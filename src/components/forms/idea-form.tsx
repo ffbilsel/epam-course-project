@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,8 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { errorMessages } from "@/lib/errors/error-messages";
 import type { ErrorCode } from "@/lib/errors/codes";
 import { useFormDraft } from "@/lib/hooks/use-form-draft";
+import {
+  buildAnswersZodSchema,
+  type CategoryFieldDefinition,
+} from "@/lib/validation/category-fields";
+import { DynamicFieldRenderer } from "@/components/forms/dynamic-field-renderer";
 
-const FormSchema = z
+const CoreSchema = z
   .object({
     title: z
       .string()
@@ -28,40 +33,92 @@ const FormSchema = z
       .max(2000, errorMessages.IDEA_DESCRIPTION_TOO_LONG),
     categoryChoice: z.string().min(1, errorMessages.IDEA_CATEGORY_INVALID),
     proposedCategoryName: z.string().trim().max(40).optional().or(z.literal("")),
+    answers: z.record(z.unknown()).default({}),
   })
   .refine(
     (v) => v.categoryChoice !== "__propose__" || (v.proposedCategoryName ?? "").trim().length > 0,
     { message: errorMessages.IDEA_CATEGORY_INVALID, path: ["proposedCategoryName"] },
   );
-type FormValues = z.infer<typeof FormSchema>;
+type FormValues = z.infer<typeof CoreSchema>;
+
+/** A category surface for the form, with its Phase 2 schema. */
+export interface CategoryWithSchema {
+  id: string;
+  name: string;
+  fieldSchema: CategoryFieldDefinition[];
+}
 
 /**
  * Client form for submitting a new idea. Stages an attachment first
- * (if any), then POSTs the idea with the returned attachment id.
+ * (if any), then POSTs the idea with the returned attachment id and
+ * any structured answers driven by the selected category schema
+ * (Phase 2 / FR-001..FR-004).
  */
 export function IdeaForm({
   categories,
 }: {
-  categories: Array<{ id: string; name: string }>;
+  categories: CategoryWithSchema[];
 }): JSX.Element {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const categoriesById = useMemo(
+    () => new Map(categories.map((c) => [c.id, c])),
+    [categories],
+  );
+
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-    getValues,
     reset,
+    setValue,
+    getValues,
   } = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: { title: "", description: "", categoryChoice: "", proposedCategoryName: "" },
+    resolver: zodResolver(
+      CoreSchema.superRefine((values, ctx) => {
+        const cat = categoriesById.get(values.categoryChoice);
+        if (!cat) return;
+        const result = buildAnswersZodSchema(cat.fieldSchema).safeParse(values.answers ?? {});
+        if (!result.success) {
+          for (const issue of result.error.issues) {
+            ctx.addIssue({
+              ...issue,
+              path: ["answers", ...issue.path],
+            });
+          }
+        }
+      }),
+    ),
+    defaultValues: {
+      title: "",
+      description: "",
+      categoryChoice: "",
+      proposedCategoryName: "",
+      answers: {},
+    },
   });
 
   const draft = useFormDraft<FormValues>("draft:idea-form", watch(), (next) => reset(next));
-
   const choice = watch("categoryChoice");
+  const currentCategory = categoriesById.get(choice);
+  const currentFields = currentCategory?.fieldSchema ?? [];
+
+  // FR-004: when the category changes, keep `answers[key]` values
+  // for any field key that still exists in the new schema; drop
+  // values whose key is no longer present.
+  useEffect(() => {
+    const prevAnswers = (getValues("answers") ?? {}) as Record<string, unknown>;
+    if (Object.keys(prevAnswers).length === 0) return;
+    const keep = new Set(currentFields.map((f) => f.key));
+    const next: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(prevAnswers)) {
+      if (keep.has(k)) next[k] = v;
+    }
+    setValue("answers", next, { shouldDirty: false, shouldValidate: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [choice]);
 
   async function onSubmit(values: FormValues): Promise<void> {
     setSubmitting(true);
@@ -79,20 +136,16 @@ export function IdeaForm({
         attachmentId = upJson.id;
       }
 
-      const body =
-        values.categoryChoice === "__propose__"
-          ? {
-              title: values.title,
-              description: values.description,
-              proposedCategoryName: values.proposedCategoryName,
-              attachmentId,
-            }
-          : {
-              title: values.title,
-              description: values.description,
-              categoryId: values.categoryChoice,
-              attachmentId,
-            };
+      const isPropose = values.categoryChoice === "__propose__";
+      const body = {
+        title: values.title,
+        description: values.description,
+        ...(isPropose
+          ? { proposedCategoryName: values.proposedCategoryName }
+          : { categoryId: values.categoryChoice }),
+        attachmentId,
+        ...(isPropose ? {} : { answers: values.answers ?? {} }),
+      };
 
       const res = await fetch("/api/ideas", {
         method: "POST",
@@ -113,6 +166,11 @@ export function IdeaForm({
       setSubmitting(false);
     }
   }
+
+  const answerErrors = (errors.answers ?? {}) as Record<
+    string,
+    { message?: string; type?: string } | undefined
+  >;
 
   return (
     <form
@@ -176,6 +234,25 @@ export function IdeaForm({
             Your idea will sit pending an Admin review of this category.
           </p>
         </div>
+      )}
+      {currentFields.length > 0 && (
+        <section
+          aria-labelledby="category-fields-heading"
+          className="space-y-4 rounded-md border border-input p-4"
+        >
+          <h2 id="category-fields-heading" className="text-sm font-medium">
+            {currentCategory?.name} details
+          </h2>
+          {currentFields.map((field) => (
+            <DynamicFieldRenderer
+              key={field.key}
+              field={field}
+              register={register as never}
+              watch={watch as never}
+              error={answerErrors[field.key] as never}
+            />
+          ))}
+        </section>
       )}
       <div className="space-y-2">
         <Label htmlFor="file">Attachment (optional, ≤ 25 MB)</Label>
