@@ -29,7 +29,7 @@ function nextLocalId(): string {
 }
 
 function withLocalIds(fields: readonly CategoryFieldDefinition[]): EditableField[] {
-  return fields.map((f) => ({ ...f, _id: nextLocalId() } as EditableField));
+  return fields.map((f) => ({ ...f, _id: nextLocalId() }) as EditableField);
 }
 
 function emptyField(type: CategoryFieldType): EditableField {
@@ -117,7 +117,10 @@ export function CategorySchemaEditor({
   return (
     <div className="space-y-4">
       {error && (
-        <p role="alert" className="rounded-md border border-destructive p-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-md border border-destructive p-2 text-sm text-destructive"
+        >
           {error}
         </p>
       )}

@@ -40,11 +40,7 @@ export default async function CategorySchemaPage({ params }: PageProps): Promise
           ← Back to categories
         </Link>
       </div>
-      <CategorySchemaEditor
-        categoryId={cat.id}
-        categoryName={cat.name}
-        initialFields={fields}
-      />
+      <CategorySchemaEditor categoryId={cat.id} categoryName={cat.name} initialFields={fields} />
     </main>
   );
 }

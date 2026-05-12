@@ -25,7 +25,10 @@ export function validateSchema(input: unknown): CategoryFieldDefinition[] {
 
 function mapZodIssueToCode(
   message: string | undefined,
-): "CATEGORY_SCHEMA_FIELD_DUPLICATE" | "CATEGORY_SCHEMA_OPTION_REQUIRED" | "CATEGORY_SCHEMA_INVALID" {
+):
+  | "CATEGORY_SCHEMA_FIELD_DUPLICATE"
+  | "CATEGORY_SCHEMA_OPTION_REQUIRED"
+  | "CATEGORY_SCHEMA_INVALID" {
   if (message === "CATEGORY_SCHEMA_FIELD_DUPLICATE") return "CATEGORY_SCHEMA_FIELD_DUPLICATE";
   if (message === "CATEGORY_SCHEMA_OPTION_REQUIRED") return "CATEGORY_SCHEMA_OPTION_REQUIRED";
   return "CATEGORY_SCHEMA_INVALID";

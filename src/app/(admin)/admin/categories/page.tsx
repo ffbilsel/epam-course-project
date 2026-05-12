@@ -24,10 +24,7 @@ export default async function AdminCategoriesPage(): Promise<JSX.Element> {
           {active.map((c) => (
             <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3">
               <span className="text-sm">{c.name}</span>
-              <Link
-                href={`/admin/categories/${c.id}/schema`}
-                className="text-sm underline"
-              >
+              <Link href={`/admin/categories/${c.id}/schema`} className="text-sm underline">
                 Edit schema
               </Link>
             </li>

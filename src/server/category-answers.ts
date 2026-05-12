@@ -45,7 +45,9 @@ function failField(key: string, code: ErrorCode): never {
 }
 
 function isMissing(value: unknown): boolean {
-  return value === undefined || value === null || (typeof value === "string" && value.trim() === "");
+  return (
+    value === undefined || value === null || (typeof value === "string" && value.trim() === "")
+  );
 }
 
 function validateOne(

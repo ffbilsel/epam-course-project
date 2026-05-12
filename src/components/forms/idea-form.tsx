@@ -54,18 +54,11 @@ export interface CategoryWithSchema {
  * any structured answers driven by the selected category schema
  * (Phase 2 / FR-001..FR-004).
  */
-export function IdeaForm({
-  categories,
-}: {
-  categories: CategoryWithSchema[];
-}): JSX.Element {
+export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): JSX.Element {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const categoriesById = useMemo(
-    () => new Map(categories.map((c) => [c.id, c])),
-    [categories],
-  );
+  const categoriesById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
   const {
     register,

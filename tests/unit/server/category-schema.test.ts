@@ -3,13 +3,14 @@ import { validateSchema, diffSchemas } from "@/server/category-schema";
 import { AppError } from "@/lib/errors/AppError";
 import type { CategoryFieldDefinition } from "@/lib/validation/category-fields";
 
-const baseField = (overrides: Partial<CategoryFieldDefinition> = {}): CategoryFieldDefinition => ({
-  type: "SHORT_TEXT",
-  key: "tool_name",
-  label: "Tool name",
-  required: false,
-  ...overrides,
-} as CategoryFieldDefinition);
+const baseField = (overrides: Partial<CategoryFieldDefinition> = {}): CategoryFieldDefinition =>
+  ({
+    type: "SHORT_TEXT",
+    key: "tool_name",
+    label: "Tool name",
+    required: false,
+    ...overrides,
+  }) as CategoryFieldDefinition;
 
 describe("validateSchema", () => {
   it("returns parsed fields on success", () => {

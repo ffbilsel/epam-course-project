@@ -74,10 +74,7 @@ const SingleChoiceOption = z.object({
 });
 const SingleChoiceField = BaseField.extend({
   type: z.literal("SINGLE_CHOICE"),
-  options: z
-    .array(SingleChoiceOption)
-    .min(1, "CATEGORY_SCHEMA_OPTION_REQUIRED")
-    .max(OPTIONS_MAX),
+  options: z.array(SingleChoiceOption).min(1, "CATEGORY_SCHEMA_OPTION_REQUIRED").max(OPTIONS_MAX),
 });
 const YesNoField = BaseField.extend({
   type: z.literal("YES_NO"),
@@ -145,42 +142,42 @@ function refineAnswer(
   a: { type: CategoryFieldType; value: unknown; valueLabelSnapshot?: string | undefined },
   ctx: z.RefinementCtx,
 ): void {
-    if (a.type === "SINGLE_CHOICE" && typeof a.value !== "string") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "IDEA_ANSWER_INVALID",
-        path: ["value"],
-      });
-    }
-    if (a.type === "SINGLE_CHOICE" && !a.valueLabelSnapshot) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "IDEA_ANSWER_INVALID",
-        path: ["valueLabelSnapshot"],
-      });
-    }
-    if (a.type === "NUMBER" && typeof a.value !== "number") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "IDEA_ANSWER_INVALID",
-        path: ["value"],
-      });
-    }
-    if (a.type === "YES_NO" && typeof a.value !== "boolean") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "IDEA_ANSWER_INVALID",
-        path: ["value"],
-      });
-    }
-    if ((a.type === "SHORT_TEXT" || a.type === "LONG_TEXT") && typeof a.value !== "string") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "IDEA_ANSWER_INVALID",
-        path: ["value"],
-      });
-    }
+  if (a.type === "SINGLE_CHOICE" && typeof a.value !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "IDEA_ANSWER_INVALID",
+      path: ["value"],
+    });
   }
+  if (a.type === "SINGLE_CHOICE" && !a.valueLabelSnapshot) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "IDEA_ANSWER_INVALID",
+      path: ["valueLabelSnapshot"],
+    });
+  }
+  if (a.type === "NUMBER" && typeof a.value !== "number") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "IDEA_ANSWER_INVALID",
+      path: ["value"],
+    });
+  }
+  if (a.type === "YES_NO" && typeof a.value !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "IDEA_ANSWER_INVALID",
+      path: ["value"],
+    });
+  }
+  if ((a.type === "SHORT_TEXT" || a.type === "LONG_TEXT") && typeof a.value !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "IDEA_ANSWER_INVALID",
+      path: ["value"],
+    });
+  }
+}
 /** Inferred TypeScript type for {@link IdeaStructuredAnswer}. */
 export type IdeaStructuredAnswer = z.infer<typeof IdeaStructuredAnswer>;
 
@@ -248,8 +245,8 @@ function buildNumberFieldSchema(field: {
   min?: number | undefined;
   max?: number | undefined;
 }): z.ZodTypeAny {
-  let n = z
-    .coerce.number({ invalid_type_error: "IDEA_ANSWER_INVALID" })
+  let n = z.coerce
+    .number({ invalid_type_error: "IDEA_ANSWER_INVALID" })
     .finite("IDEA_ANSWER_INVALID");
   if (field.min !== undefined) n = n.min(field.min, "IDEA_ANSWER_OUT_OF_RANGE");
   if (field.max !== undefined) n = n.max(field.max, "IDEA_ANSWER_OUT_OF_RANGE");
@@ -274,8 +271,8 @@ function buildSingleChoiceFieldSchema(field: {
     ? e
     : z
         .union([z.literal(""), e])
-          .optional()
-          .transform((v) => (v === "" ? undefined : v));
+        .optional()
+        .transform((v) => (v === "" ? undefined : v));
 }
 
 function buildYesNoFieldSchema(required: boolean): z.ZodTypeAny {

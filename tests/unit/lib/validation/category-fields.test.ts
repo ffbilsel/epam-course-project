@@ -92,9 +92,7 @@ describe("CategoryFieldSchema", () => {
   });
 
   it("rejects an oversized label", () => {
-    const r = CategoryFieldSchema.safeParse([
-      { ...validShortText, label: "x".repeat(200) },
-    ]);
+    const r = CategoryFieldSchema.safeParse([{ ...validShortText, label: "x".repeat(200) }]);
     expect(r.success).toBe(false);
   });
 
