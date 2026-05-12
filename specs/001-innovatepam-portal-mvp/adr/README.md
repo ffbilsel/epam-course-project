@@ -18,6 +18,7 @@ and future migrations can reference a single durable identifier
 | [ADR-0005](./0005-attachment-storage.md)      | Accepted | Local filesystem attachments with stage-then-commit |
 | [ADR-0006](./0006-validation-and-errors.md)   | Accepted | Zod-everywhere + central error-code registry |
 | [ADR-0007](./0007-ui-and-design-system.md)    | Accepted | Tailwind + shadcn/ui + sonner, RSC-first composition |
+| [ADR-0008](./0008-attachment-id-nullable.md)  | Accepted | Attachment row is created with `idea_id = NULL` to support stage-then-commit |
 
 ## Conventions
 

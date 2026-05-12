@@ -160,7 +160,7 @@ Any other transition → `IDEA_INVALID_TRANSITION` (HTTP 409).
 - A status transition writes both `Idea.status += updatedAt` AND a
   `StatusTransition` row in the same SQLite transaction.
 
-**Related FRs**: FR-007, FR-008–FR-013, FR-014–FR-016, FR-017–FR-024.
+**Related FRs**: FR-007, FR-008–FR-013, FR-014–FR-016, FR-017–FR-023.
 
 ---
 

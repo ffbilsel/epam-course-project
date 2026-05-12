@@ -27,10 +27,12 @@ Playwright with a 70% line-coverage floor on business logic.
 `noFallthroughCasesInSwitch`); Node.js `>=20 <21`.
 **Primary Dependencies**: Next.js 14 (App Router), React 18, Tailwind CSS,
 shadcn/ui (Radix primitives), Zod (validation), React Hook Form,
-NextAuth.js (Credentials provider) with `@auth/drizzle-adapter`,
-Drizzle ORM + `better-sqlite3`, `date-fns`, `lucide-react`,
-`class-variance-authority`, `sonner` (toasts), `argon2` (password
-hashing), `file-type` (magic-number sniffing).
+NextAuth.js `^5.0.0-beta.20` (Credentials provider) with
+`@auth/drizzle-adapter`, Drizzle ORM + `better-sqlite3`, `date-fns`,
+`lucide-react`, `class-variance-authority`, `sonner` (toasts),
+`argon2` (password hashing), `file-type` (magic-number sniffing),
+`pino` (structured logging — FR-028), `rate-limiter-flexible`
+(in-process rate limiting — FR-029).
 **Storage**: SQLite via `better-sqlite3` at `./data/innovatepam.db`
 (production) / temp file per suite (test). Attachments on local FS at
 `./data/uploads/<idea-id>/<attachment-id>__<original-name>`. Schema
@@ -48,18 +50,21 @@ the local SQLite; idea-list query (≤ 1 000 ideas, single-author scope)
 returns in < 100 ms; attachment download streams without buffering the
 whole file.
 **Constraints**: Single-tenant; local FS only (no S3); local SQLite
-only (no Postgres); no email sending in Phase 1; CSRF-protected
-state changes; OWASP Top-10 hygiene applied at the API boundary.
+only (no Postgres); no email sending in Phase 1; no external Redis or
+message broker (rate limiting is in-process via
+`rate-limiter-flexible`); CSRF-protected state changes via NextAuth's
+built-in CSRF token; OWASP Top-10 hygiene applied at the API boundary.
 **Scale/Scope**: ≤ 1 000 active users, ≤ 10 000 ideas total in Phase 1.
-~28 functional requirements, 4 user stories, 4 entities, ~15 API
-endpoints, ~8–10 pages.
+~29 functional requirements (FR-001…FR-029), 4 user stories, 4
+entities, ~16 API endpoints, ~8–10 pages.
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-The constitution at v1.2.0 has 7 principles and 9 quality gates. Each
-is evaluated below for this plan; **no violations require justification**.
+The constitution at **v1.4.0** has **10 principles** and **12 quality
+gates**. Each is evaluated below for this plan; **no violations require
+justification**.
 
 ### Principle compliance
 
@@ -72,6 +77,9 @@ is evaluated below for this plan; **no violations require justification**.
 | **V. Testing Principles** | Vitest projects (`unit`, `integration`) + Playwright (`e2e`); AAA layout; `beforeEach` isolation; repository fakes for unit tests; magic numbers traceable to spec FRs. |
 | **VI. UX (responsive, a11y, polish)** | Tailwind mobile-first; shadcn/ui (Radix) preserves a11y primitives; every screen wires explicit loading/empty/error/success states (`Suspense` + `error.tsx` + `loading.tsx` + `sonner`); `eslint-plugin-jsx-a11y` + `@axe-core/playwright` enforced. |
 | **VII. Consistency (UI, code, error codes)** | shadcn primitives only; `cva` variants; `lucide-react` only; `formatDate`/`formatDateTime` helpers; centralised `errorMessages` map; **error-code registry at `src/lib/errors/codes.ts`** with one entry per spec error path; **`AppError`** class with `code` + `httpStatus` + `details`; uniform `{ error: { code, message, details } }` envelope at every API route via a shared `withErrorHandler` wrapper. |
+| **VIII. Commit & Push Discipline** | SpecKit `.specify/extensions.yml` `auto_commit` map plus `.git/hooks/post-commit` push hook installed via `pwsh project/scripts/install-hooks.ps1` (T012). Each lifecycle step + each task lands as a Conventional Commit and is auto-pushed to `origin`. |
+| **IX. ADR-Backed Design Choices** | Every load-bearing choice in this plan has a MADR-formatted ADR under [./adr/](./adr/): rendering & framework (0001), storage & ORM (0002), authentication (0003), state machine (0004), attachment storage (0005), validation & errors (0006), UI & design system (0007). New design choices added in Phase 1 implementation MUST land an ADR in the same PR. |
+| **X. Feature Merge Discipline** | Feature branch `001-innovatepam-portal-mvp` merges to `main` exclusively via `git merge --no-ff` once Quality Gates 1–11 pass. Encoded as the final task T094. |
 
 ### Quality gates
 
@@ -86,6 +94,9 @@ is evaluated below for this plan; **no violations require justification**.
 | 7 | Constitution Check satisfied | This section. |
 | 8 | A11y/responsiveness | jsx-a11y in lint; axe in every Playwright spec; manual checklist in PR description; mobile-viewport smoke for each P1 story. |
 | 9 | Consistency | Error-code registry with per-code unit test; UI-token check (no hex/arbitrary Tailwind values outside `components/ui/`); error-envelope integration test. |
+| 10 | Commit & push discipline | SpecKit `auto_commit` hooks (`.specify/extensions.yml`) + `post-commit` push hook installed by T012; reviewed in PR template. |
+| 11 | ADR coverage | ADR-0001–0007 already accepted; PR template (T086) adds an ADR-coverage checkbox; CI grep ensures every Phase-1 design choice cited in plan/tasks links an ADR. |
+| 12 | Feature merge-back | Final task T094 performs the non-fast-forward merge to `main` after Gates 1–11 are green. |
 
 ### Excluded coverage paths (documented per V.2)
 
@@ -130,18 +141,19 @@ project/
 │   │   │   ├── login/page.tsx
 │   │   │   └── register/page.tsx
 │   │   ├── (employee)/
+│   │   │   ├── my-ideas/page.tsx          # My Ideas (FR-014)
 │   │   │   └── ideas/
-│   │   │       ├── page.tsx           # My Ideas
-│   │   │       ├── new/page.tsx       # Submit Idea
-│   │   │       └── [id]/page.tsx      # Idea detail (author view)
-│   │   ├── (review)/
-│   │   │   ├── queue/page.tsx         # Review queue (Evaluator/Admin)
-│   │   │   └── ideas/[id]/page.tsx    # Idea detail (reviewer view)
+│   │   │       ├── new/page.tsx           # Submit Idea
+│   │   │       └── [id]/page.tsx          # Idea detail (author + reviewer view)
+│   │   ├── (reviewer)/
+│   │   │   └── queue/page.tsx             # Review queue (Evaluator/Admin)
 │   │   ├── (admin)/
-│   │   │   ├── users/page.tsx         # Role management
-│   │   │   └── categories/page.tsx    # Approve/reject proposals
+│   │   │   └── admin/
+│   │   │       ├── users/page.tsx         # Role management
+│   │   │       └── categories/page.tsx    # Approve/reject proposals
 │   │   └── api/
 │   │       ├── auth/[...nextauth]/route.ts
+│   │       ├── auth/register/route.ts            # POST register (FR-001)
 │   │       ├── ideas/route.ts
 │   │       ├── ideas/[id]/route.ts
 │   │       ├── ideas/[id]/transitions/route.ts   # start-review/approve/reject/implement
@@ -157,29 +169,22 @@ project/
 │   │   ├── admin/                 # UserRoleSelect, CategoryProposalRow
 │   │   └── shared/                # Navbar, RoleGuard, FileUploader, EmptyState
 │   ├── server/                    # Business logic (covered by 70% floor)
-│   │   ├── auth/
-│   │   │   ├── auth-options.ts        # NextAuth config
-│   │   │   ├── password-policy.ts     # FR-002
-│   │   │   └── session.ts             # 24h sliding (FR-004)
-│   │   ├── ideas/
-│   │   │   ├── idea-service.ts        # CRUD + queries
-│   │   │   ├── idea-state-machine.ts  # FR-021 transitions
-│   │   │   ├── idea-validators.ts     # Zod schemas
-│   │   │   └── idea-permissions.ts    # FR-006, FR-022
-│   │   ├── attachments/
-│   │   │   ├── attachment-service.ts  # save/read/cleanup
-│   │   │   └── mime-sniff.ts          # FR-010 magic-number
-│   │   ├── categories/
-│   │   │   ├── category-service.ts    # propose/approve/reject
-│   │   │   └── category-bootstrap.ts  # FR-008a seed
-│   │   ├── users/
-│   │   │   ├── user-service.ts
-│   │   │   ├── role-service.ts        # FR-005a (last-admin guard)
-│   │   │   └── admin-bootstrap.ts     # FR-005b
+│   │   ├── auth-options.ts            # NextAuth config (T025)
+│   │   ├── password.ts                # argon2 hash/verify (FR-002)
+│   │   ├── role-guard.ts              # requireSession / requireRole (FR-006)
+│   │   ├── rate-limit.ts              # rate-limiter-flexible limiters (FR-029)
+│   │   ├── bootstrap.ts               # admin bootstrap + staging sweep (FR-005b, SC-007)
+│   │   ├── user-service.ts            # register, lookup
+│   │   ├── role-service.ts            # FR-005a (last-admin guard) + bootstrap promotion
+│   │   ├── idea-service.ts            # CRUD + queries + transitions (FR-007, FR-021)
+│   │   ├── idea-state-machine.ts      # pure transition table (FR-021)
+│   │   ├── attachment-service.ts      # stage/commit/cleanup (FR-009–FR-011, SC-007)
+│   │   ├── category-service.ts        # propose / approve / reject (FR-008b–c)
+│   │   ├── category-bootstrap.ts      # FR-008a seed
 │   │   └── infra/
-│   │       ├── clock.ts               # injectable Clock port
+│   │       ├── clock.ts               # injectable Clock port (Constitution V.6)
 │   │       ├── id-generator.ts        # injectable IdGen port
-│   │       └── logger.ts              # structured app log
+│   │       └── logger.ts              # pino structured logger (FR-028)
 │   ├── db/
 │   │   ├── schema.ts              # Drizzle schema (mirrors data-model.md)
 │   │   ├── client.ts              # better-sqlite3 + Drizzle instance

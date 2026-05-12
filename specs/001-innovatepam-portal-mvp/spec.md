@@ -25,7 +25,7 @@ accepted/rejected; admin accept/reject with comments)."
 The following decisions resolve every `[NEEDS CLARIFICATION]` marker
 from the initial draft and are now binding requirements (see FR-002,
 FR-004, FR-005, FR-005a, FR-005b, FR-008, FR-008a–d, FR-010, FR-018a,
-FR-019a, FR-024).
+FR-019a).
 
 - **Roles**: three distinct roles — Employee, Evaluator, Admin.
   Employee submits; Evaluator reviews + decides; Admin does everything
@@ -260,9 +260,11 @@ dedicated pages.
   with `IDEA_CATEGORY_INVALID`; the Employee is told to pick the
   existing one.
 - **Re-submitting the same form twice (double-click)**: only one idea
-  record is created.
-- **Last Admin attempts to demote self**: rejected with a dedicated
-  error code (e.g., `USER_LAST_ADMIN_DEMOTION`).
+  record is created. Phase 1 mechanism is **client-side submit-button
+  disable on first click**; no server-side idempotency-key contract is
+  required for Phase 1.
+- **Last Admin attempts to demote self**: rejected with the
+  `AUTH_LAST_ADMIN_DEMOTION` error code (HTTP 409).
 - **Bootstrap admin email matches an existing non-Admin**: at startup,
   that user is promoted to Admin; subsequent startups are no-ops.
 - **Session expires mid-form**: the next state-changing request is
@@ -413,10 +415,11 @@ dedicated pages.
   clear message ("Awaiting category approval").
 - **FR-023**: Once an idea is `APPROVED`, `REJECTED`, or `IMPLEMENTED`,
   it MUST NOT appear in the pending review queue.
-- **FR-024**: The Evaluator role is distinct from Admin in Phase 1.
-  Evaluators perform reviews and decisions; Admins additionally manage
-  users (FR-005a) and categories (FR-008c) and own the
-  `APPROVED → IMPLEMENTED` transition (FR-019a).
+
+> **Role boundary summary** *(non-normative; restates FR-005, FR-005a,
+> FR-008c, FR-019a)*: Evaluators perform reviews and decisions; Admins
+> additionally manage users, approve/reject categories, and own the
+> `APPROVED → IMPLEMENTED` transition.
 
 #### Cross-cutting
 
@@ -425,10 +428,25 @@ dedicated pages.
 - **FR-026**: The system MUST NOT enumerate accounts on login failure
   (generic error message regardless of which field is wrong).
 - **FR-027**: All destructive or state-changing operations (submit idea,
-  decide, logout) MUST be CSRF-protected.
+  decide, transition, logout, role change, category decision, attachment
+  upload) MUST be CSRF-protected. Mechanism: NextAuth's built-in CSRF
+  token (double-submit cookie). State-changing API routes MUST reject
+  requests missing or carrying an invalid CSRF token with HTTP 403.
 - **FR-028**: The system MUST log security-relevant events
-  (registration, login success/failure, logout, decision recorded) to the
-  application log with timestamp and user id.
+  (registration, login success, login failure, logout, role change,
+  category decision, idea status transition) as structured JSON to
+  stdout via **`pino`**. Each record MUST include `timestamp`, `event`,
+  `userId` (or `null`), `actorRole`, `ip`, and `requestId`. Records
+  MUST NOT contain passwords, password hashes, session tokens, CSRF
+  tokens, or full attachment bytes.
+- **FR-029**: The system MUST rate-limit unauthenticated authentication
+  endpoints and attachment uploads to mitigate brute-force and abuse.
+  Phase 1 thresholds: `POST /api/auth/[...nextauth]` (login) — 5
+  requests per 5 min per IP; `POST /api/auth/register` — 3 requests
+  per 1 h per IP; `POST /api/attachments` — 20 requests per 1 h per
+  authenticated user. Exceeding the limit MUST return
+  `RATE_LIMITED` (HTTP 429). Implementation MUST be in-process (no
+  external Redis in Phase 1).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -460,11 +478,17 @@ dedicated pages.
 
 ### Measurable Outcomes
 
-- **SC-001**: A registered Employee can complete the end-to-end "submit
-  idea with attachment" flow in under 2 minutes on first attempt without
-  consulting documentation.
-- **SC-002**: An Admin can decide on a `SUBMITTED` idea (open queue →
-  open detail → submit decision with comment) in under 90 seconds.
+> **Note**: SC-001 and SC-002 are **post-launch usability outcomes**,
+> not buildable acceptance criteria. They are tracked through manual
+> usability sessions after launch and intentionally have no
+> corresponding implementation task.
+
+- **SC-001** *(post-launch outcome metric)*: A registered Employee can
+  complete the end-to-end "submit idea with attachment" flow in under
+  2 minutes on first attempt without consulting documentation.
+- **SC-002** *(post-launch outcome metric)*: An Admin can decide on a
+  `SUBMITTED` idea (open queue → open detail → submit decision with
+  comment) in under 90 seconds.
 - **SC-003**: 100% of state-changing operations reject invalid input
   server-side, regardless of client-side validation state, as verified by
   the integration test suite.
@@ -494,9 +518,10 @@ dedicated pages.
 - Email notifications, analytics dashboards, public idea sharing, and
   search/filter UX beyond simple sorting are out of scope (per the
   Phase 1 brief).
-- The Evaluator role is distinct from Admin (FR-024). Both can review
-  and decide; only Admin manages users (FR-005a), approves categories
-  (FR-008c), and marks ideas as IMPLEMENTED (FR-019a).
+- The Evaluator role is distinct from Admin per the role-boundary
+  summary under Functional Requirements. Both can review and decide;
+  only Admin manages users (FR-005a), approves categories (FR-008c),
+  and marks ideas as IMPLEMENTED (FR-019a).
 - The `IMPLEMENTED` status is reachable only from `APPROVED` and is
   recorded by an Admin via an explicit "Mark as implemented" action
   on the idea detail page.

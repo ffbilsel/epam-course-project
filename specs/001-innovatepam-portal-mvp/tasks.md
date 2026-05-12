@@ -33,18 +33,18 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 **Purpose**: Create the Next.js project skeleton, install pinned dependencies, and wire the toolchain that every later task depends on.
 
-- [ ] T001 Create the Next.js skeleton at repo root: `package.json`, `tsconfig.json`, `next.config.mjs`, `.editorconfig`, `.nvmrc` (Node 20), `.env.example` (`NEXTAUTH_SECRET`, `BOOTSTRAP_ADMIN_EMAIL`, `DATABASE_URL=file:./data/innovatepam.db`), `src/app/layout.tsx`, `src/app/page.tsx` placeholders. Folder layout per [plan.md](./plan.md).
-- [ ] T002 Install runtime dependencies via `npm install`: `next@^14`, `react`, `react-dom`, `next-auth@beta`, `@auth/drizzle-adapter`, `argon2`, `drizzle-orm`, `better-sqlite3`, `zod`, `react-hook-form`, `@hookform/resolvers`, `sonner`, `lucide-react`, `class-variance-authority`, `tailwind-merge`, `clsx`, `date-fns`, `file-type`, `@upstash/ratelimit`. Pin versions per [plan.md Technical Context](./plan.md).
-- [ ] T003 Install dev dependencies: `typescript@~5.4`, `@types/{node,react,react-dom,better-sqlite3}`, `drizzle-kit`, `vitest@^1.6`, `@testing-library/{react,jest-dom,user-event}`, `@vitejs/plugin-react`, `jsdom`, `@playwright/test@^1.45`, `@axe-core/playwright`, `eslint`, `eslint-config-next`, `eslint-plugin-jsx-a11y`, `eslint-plugin-jsdoc`, `prettier`, `prettier-plugin-tailwindcss`, `tsx`.
-- [ ] T004 [P] Configure `tsconfig.json` strict mode per Constitution II: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `forceConsistentCasingInFileNames`. Path alias `@/*` → `src/*`.
-- [ ] T005 [P] Configure ESLint at `.eslintrc.cjs`: extend `next/core-web-vitals`, `plugin:jsx-a11y/recommended`, `plugin:jsdoc/recommended-typescript-error`. Add rules: `no-restricted-imports` to forbid `next/legacy`, `complexity` ≤ 10, `max-lines-per-function` ≤ 80 (Principle I).
-- [ ] T006 [P] Configure Prettier at `.prettierrc.json` with `prettier-plugin-tailwindcss`; `.prettierignore` excludes `data/`, `drizzle/`, `coverage/`, `.next/`.
-- [ ] T007 [P] Initialise Tailwind: `tailwind.config.ts` with design tokens (color scale, spacing, typography, focus-ring), `postcss.config.cjs`, `src/app/globals.css`. Tokens per [ADR-0007](./adr/0007-ui-and-design-system.md).
-- [ ] T008 [P] Vendor shadcn/ui primitives under `src/components/ui/`: `button.tsx`, `input.tsx`, `label.tsx`, `card.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, `form.tsx`, `select.tsx`, `textarea.tsx`, `table.tsx`, `badge.tsx`, `toaster.tsx`, plus `cn()` helper at `src/lib/utils.ts`.
-- [ ] T009 [P] Add npm scripts to `package.json`: `dev`, `build`, `start`, `typecheck`, `lint`, `format`, `format:write`, `test`, `test:unit`, `test:integration`, `test:e2e`, `db:generate`, `db:migrate`, `db:seed`, `db:reset`, `check:error-codes`, `check:ui-tokens`, `check` (= typecheck + lint + format + test:unit), `setup:hooks` (`pwsh -File scripts/install-hooks.ps1`).
-- [ ] T010 [P] Configure Vitest at `vitest.config.ts` with two projects (`unit`, `integration`), `jsdom` env for unit, `node` for integration, `coverage` provider `v8`, thresholds 70 % lines on `src/server/**` and the business-logic subset of `src/lib/**`. Excluded coverage paths per [plan.md](./plan.md).
-- [ ] T011 [P] Configure Playwright at `playwright.config.ts` with three projects (chromium, firefox, webkit), `@axe-core/playwright` helper at `tests/e2e/axe.ts`, base URL `http://localhost:3000`.
-- [ ] T012 [P] Pre-commit safety: run `npm run setup:hooks` once locally to point `core.hooksPath` at `.githooks` (already shipped); verify post-commit + post-merge auto-push fire (Constitution VIII / X).
+- [X] T001 Create the Next.js skeleton at repo root: `package.json`, `tsconfig.json`, `next.config.mjs`, `.editorconfig`, `.nvmrc` (Node 20), `.env.example` (`NEXTAUTH_SECRET`, `BOOTSTRAP_ADMIN_EMAIL`, `DATABASE_URL=file:./data/innovatepam.db`), `src/app/layout.tsx`, `src/app/page.tsx` placeholders. Folder layout per [plan.md](./plan.md).
+- [X] T002 Install runtime dependencies via `npm install`: `next@^14`, `react`, `react-dom`, `next-auth@^5.0.0-beta.20`, `@auth/drizzle-adapter`, `argon2`, `drizzle-orm`, `better-sqlite3`, `zod`, `react-hook-form`, `@hookform/resolvers`, `sonner`, `lucide-react`, `class-variance-authority`, `tailwind-merge`, `clsx`, `date-fns`, `file-type`, `pino`, `rate-limiter-flexible`. Pin versions per [plan.md Technical Context](./plan.md).
+- [X] T003 Install dev dependencies: `typescript@~5.4`, `@types/{node,react,react-dom,better-sqlite3}`, `drizzle-kit`, `vitest@^1.6`, `@testing-library/{react,jest-dom,user-event}`, `@vitejs/plugin-react`, `jsdom`, `@playwright/test@^1.45`, `@axe-core/playwright`, `eslint`, `eslint-config-next`, `eslint-plugin-jsx-a11y`, `eslint-plugin-jsdoc`, `prettier`, `prettier-plugin-tailwindcss`, `tsx`.
+- [X] T004 [P] Configure `tsconfig.json` strict mode per Constitution II: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `forceConsistentCasingInFileNames`. Path alias `@/*` → `src/*`.
+- [X] T005 [P] Configure ESLint at `.eslintrc.cjs`: extend `next/core-web-vitals`, `plugin:jsx-a11y/recommended`, `plugin:jsdoc/recommended-typescript-error`. Add rules: `no-restricted-imports` to forbid `next/legacy`, `complexity` ≤ 10, `max-lines-per-function` ≤ 80 (Principle I).
+- [X] T006 [P] Configure Prettier at `.prettierrc.json` with `prettier-plugin-tailwindcss`; `.prettierignore` excludes `data/`, `drizzle/`, `coverage/`, `.next/`.
+- [X] T007 [P] Initialise Tailwind: `tailwind.config.ts` with design tokens (color scale, spacing, typography, focus-ring), `postcss.config.cjs`, `src/app/globals.css`. Tokens per [ADR-0007](./adr/0007-ui-and-design-system.md).
+- [X] T008 [P] Vendor shadcn/ui primitives under `src/components/ui/`: `button.tsx`, `input.tsx`, `label.tsx`, `card.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, `form.tsx`, `select.tsx`, `textarea.tsx`, `table.tsx`, `badge.tsx`, `toaster.tsx`, plus `cn()` helper at `src/lib/utils.ts`.
+- [X] T009 [P] Add npm scripts to `package.json`: `dev`, `build`, `start`, `typecheck`, `lint`, `format`, `format:write`, `test`, `test:unit`, `test:integration`, `test:e2e`, `db:generate`, `db:migrate`, `db:seed`, `db:reset`, `check:error-codes`, `check:ui-tokens`, `check` (= typecheck + lint + format + test:unit), `setup:hooks` (`pwsh -File scripts/install-hooks.ps1`).
+- [X] T010 [P] Configure Vitest at `vitest.config.ts` with two projects (`unit`, `integration`), `jsdom` env for unit, `node` for integration, `coverage` provider `v8`, thresholds 70 % lines on `src/server/**` and the business-logic subset of `src/lib/**`. Excluded coverage paths per [plan.md](./plan.md).
+- [X] T011 [P] Configure Playwright at `playwright.config.ts` with three projects (chromium, firefox, webkit), `@axe-core/playwright` helper at `tests/e2e/axe.ts`, base URL `http://localhost:3000`.
+- [X] T012 [P] Pre-commit safety: run `npm run setup:hooks` once locally to point `core.hooksPath` at `.githooks` (already shipped); verify post-commit + post-merge auto-push fire (Constitution VIII / X).
 
 ---
 
@@ -54,28 +54,32 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 **⚠️ CRITICAL**: No US task may start until this phase is complete.
 
-- [ ] T013 Drizzle schema at `src/db/schema.ts`: tables `users`, `accounts`/`sessions`/`verification_tokens` (NextAuth adapter), `categories`, `ideas`, `attachments`, `status_transitions` with all enums, CHECK constraints, FKs (RESTRICT default; CASCADE only on `attachments.idea_id`), unique-on-`lower()` indexes per [data-model.md](./data-model.md).
-- [ ] T014 Drizzle config at `drizzle.config.ts` pointing at `./data/innovatepam.db`, output dir `./drizzle/`, dialect `sqlite`, schema `src/db/schema.ts`.
-- [ ] T015 Generate the initial migration: `npm run db:generate -- --name init`; review and commit `./drizzle/0000_*.sql` + `meta/` snapshot.
-- [ ] T016 [P] DB connection helper at `src/db/client.ts`: opens `better-sqlite3`, sets `PRAGMA foreign_keys = ON`, `PRAGMA journal_mode = WAL`, exports a singleton `db` and a `withTx(fn)` helper.
-- [ ] T017 [P] Seed script at `src/db/seed.ts`: inserts the 5 categories (`Process Improvement`, `Product Innovation`, `Tooling`, `Customer Experience`, `Other` with `is_protected = 1`); idempotent via `INSERT … ON CONFLICT DO NOTHING`.
-- [ ] T018 [P] Error-code registry at `src/lib/errors/codes.ts`: `as const` object listing all 26 codes from [data-model.md "Error-code surface"](./data-model.md) with `httpStatus` for each.
-- [ ] T019 [P] `src/lib/errors/AppError.ts`: `class AppError extends Error` with `code`, `httpStatus`, `details`; static helpers `AppError.notFound(code)`, `AppError.conflict(code, details?)`.
-- [ ] T020 [P] `src/lib/errors/error-messages.ts`: code → human-readable English message catalogue (UI never hard-codes strings — Principle VII).
-- [ ] T021 [P] `src/lib/errors/with-error-handler.ts`: HOC for Route Handlers that catches `AppError` and `ZodError`, renders `{ error: { code, message, details } }`, defaults unknown → `INTERNAL_ERROR` (500) with stack only logged server-side.
-- [ ] T022 [P] CI guard `scripts/check-error-codes.ts` (Quality Gate #9): scans `src/**` for `ERROR_CODES.*` references, fails on any code referenced but undeclared, any declared but unused **and** untested. Wire as `npm run check:error-codes`.
-- [ ] T023 [P] CI guard `scripts/check-ui-tokens.ts` (Quality Gate #9): regex-scans `src/app/**` and `src/components/**` (excluding `src/components/ui/**`) for hex colours, arbitrary Tailwind values like `p-[13px]`, and inline `style=` props. Wire as `npm run check:ui-tokens`.
-- [ ] T024 [P] `src/lib/format/date.ts`: `formatDate(d: Date)`, `formatDateTime(d: Date)` using `date-fns` + `navigator.language` (server fallback `en-US`) per [research.md R-011](./research.md).
-- [ ] T025 NextAuth options at `src/server/auth-options.ts`: Credentials provider, `@auth/drizzle-adapter` over `db`, `strategy: "database"`, `session.maxAge = 24 * 60 * 60`, `session` callback that bumps `expires` to `now + 24h` on every call, `authorize()` calling `password.verifyPassword()`. Bind types in `src/types/next-auth.d.ts`.
-- [ ] T026 [P] `src/server/password.ts`: `hashPassword(plain)` and `verifyPassword(plain, hash)` wrapping `argon2` with OWASP-2024 params (`memoryCost: 19_456`, `timeCost: 2`, `parallelism: 1`, `type: argon2id`).
-- [ ] T027 [P] `src/server/role-guard.ts`: `requireSession()` and `requireRole(role | role[])` helpers that throw `AppError(AUTH_SESSION_EXPIRED)` / `AppError(AUTH_FORBIDDEN_ROLE)`; usable from RSC and Route Handlers.
-- [ ] T028 [P] `src/server/rate-limit.ts`: `@upstash/ratelimit` with in-memory store; exported limiters for `auth` (5 req / 5 min / IP), `register` (3 req / 1 h / IP), `attachments` (20 req / 1 h / user).
-- [ ] T029 NextAuth route handler at `src/app/api/auth/[...nextauth]/route.ts` re-exporting `GET`/`POST` from `auth-options`.
-- [ ] T030 [P] Root layout `src/app/layout.tsx`: Tailwind globals import, font setup, `<Toaster />` mount (sonner) once, session-aware `<html lang>` attribute.
-- [ ] T031 [P] Auth middleware at `src/middleware.ts`: redirects unauthenticated requests on protected routes to `/login?callbackUrl=…`; allows `/login`, `/register`, `/api/auth/*`, static.
-- [ ] T032 [P] Shared validation hub at `src/lib/validation/index.ts` re-exporting feature schemas; install `zod-form-data` if multipart parsing needed.
-- [ ] T033 Bootstrap + sweeper at `src/server/bootstrap.ts`: on app start (a) read `BOOTSTRAP_ADMIN_EMAIL`, promote-or-record marker (FR-005b); (b) sweep `./data/uploads/.staging/` files older than 1 h (R-006). Wire from `src/instrumentation.ts` (Next 14 instrumentation hook).
-- [ ] T034 [P] Test fixtures `tests/helpers/db.ts`: `withTestDb()` spins up an in-memory SQLite, runs migrations, seeds categories; `tests/helpers/auth.ts`: `seedUser({ role })` returning a session-cookie helper for integration tests.
+- [X] T013 Drizzle schema at `src/db/schema.ts`: tables `users`, `accounts`/`sessions`/`verification_tokens` (NextAuth adapter), `categories`, `ideas`, `attachments`, `status_transitions` with all enums, CHECK constraints, FKs (RESTRICT default; CASCADE only on `attachments.idea_id`), unique-on-`lower()` indexes per [data-model.md](./data-model.md).
+- [X] T014 Drizzle config at `drizzle.config.ts` pointing at `./data/innovatepam.db`, output dir `./drizzle/`, dialect `sqlite`, schema `src/db/schema.ts`.
+- [X] T015 Generate the initial migration: `npm run db:generate -- --name init`; review and commit `./drizzle/0000_*.sql` + `meta/` snapshot.
+- [X] T016 [P] DB connection helper at `src/db/client.ts`: opens `better-sqlite3`, sets `PRAGMA foreign_keys = ON`, `PRAGMA journal_mode = WAL`, exports a singleton `db` and a `withTx(fn)` helper.
+- [X] T017 [P] Seed script at `src/db/seed.ts`: inserts the 5 categories (`Process Improvement`, `Product Innovation`, `Tooling`, `Customer Experience`, `Other` with `is_protected = 1`); idempotent via `INSERT … ON CONFLICT DO NOTHING`.
+- [X] T018 [P] Error-code registry at `src/lib/errors/codes.ts`: `as const` object listing all 26 codes from [data-model.md "Error-code surface"](./data-model.md) with `httpStatus` for each.
+- [X] T019 [P] `src/lib/errors/AppError.ts`: `class AppError extends Error` with `code`, `httpStatus`, `details`; static helpers `AppError.notFound(code)`, `AppError.conflict(code, details?)`.
+- [X] T020 [P] `src/lib/errors/error-messages.ts`: code → human-readable English message catalogue (UI never hard-codes strings — Principle VII).
+- [X] T021 [P] `src/lib/errors/with-error-handler.ts`: HOC for Route Handlers that catches `AppError` and `ZodError`, renders `{ error: { code, message, details } }`, defaults unknown → `INTERNAL_ERROR` (500) with stack only logged server-side.
+- [X] T022 [P] CI guard `scripts/check-error-codes.ts` (Quality Gate #9): scans `src/**` for `ERROR_CODES.*` references, fails on any code referenced but undeclared, any declared but unused **and** untested. Wire as `npm run check:error-codes`.
+- [X] T023 [P] CI guard `scripts/check-ui-tokens.ts` (Quality Gate #9): regex-scans `src/app/**` and `src/components/**` (excluding `src/components/ui/**`) for hex colours, arbitrary Tailwind values like `p-[13px]`, and inline `style=` props. Wire as `npm run check:ui-tokens`.
+- [X] T024 [P] `src/lib/format/date.ts`: `formatDate(d: Date)`, `formatDateTime(d: Date)` using `date-fns` + `navigator.language` (server fallback `en-US`) per [research.md R-011](./research.md).
+- [X] T025 NextAuth options at `src/server/auth-options.ts`: Credentials provider, `@auth/drizzle-adapter` over `db`, `strategy: "database"`, `session.maxAge = 24 * 60 * 60`, `session` callback that bumps `expires` to `now + 24h` on every call, `authorize()` calling `password.verifyPassword()`. Bind types in `src/types/next-auth.d.ts`.
+- [X] T026 [P] `src/server/password.ts`: `hashPassword(plain)` and `verifyPassword(plain, hash)` wrapping `argon2` with OWASP-2024 params (`memoryCost: 19_456`, `timeCost: 2`, `parallelism: 1`, `type: argon2id`).
+- [X] T027 [P] `src/server/role-guard.ts`: `requireSession()` and `requireRole(role | role[])` helpers that throw `AppError(AUTH_SESSION_EXPIRED)` / `AppError(AUTH_FORBIDDEN_ROLE)`; usable from RSC and Route Handlers.
+- [X] T028 [P] `src/server/rate-limit.ts`: `rate-limiter-flexible` `RateLimiterMemory` instances (in-process, no Redis) per FR-029 — exported limiters for `auth` (5 req / 5 min / IP), `register` (3 req / 1 h / IP), `attachments` (20 req / 1 h / authenticated user). Surfaces `RATE_LIMITED` (HTTP 429) via `AppError`.
+- [X] T028a [P] `src/server/infra/clock.ts`: `Clock` interface (`now(): Date`) + `SystemClock` default + `FixedClock(date)` for tests. All services that read time MUST take a `Clock` (Constitution V.6).
+- [X] T028b [P] `src/server/infra/logger.ts`: `pino` JSON logger to stdout (FR-028); export `logSecurityEvent({ event, userId, actorRole, ip, requestId, details? })`. MUST refuse to serialise password/hash/token fields (`redact: ['password','passwordHash','token','csrfToken','authorization']`).
+- [X] T028c [P] CSRF integration test `tests/integration/security/csrf.test.ts` (FR-027): asserts every state-changing route (POST `/api/ideas`, POST `/api/attachments`, POST `/api/ideas/[id]/transitions`, PATCH `/api/users/[id]/role`, PATCH `/api/categories/[id]`, POST `/api/auth/register`) returns 403 when the NextAuth CSRF token is missing or invalid.
+- [X] T029 NextAuth route handler at `src/app/api/auth/[...nextauth]/route.ts` re-exporting `GET`/`POST` from `auth-options`.
+- [X] T030 [P] Root layout `src/app/layout.tsx`: Tailwind globals import, font setup, `<Toaster />` mount (sonner) once, session-aware `<html lang>` attribute.
+- [X] T031 [P] Auth middleware at `src/middleware.ts`: redirects unauthenticated requests on protected routes to `/login?callbackUrl=<original-url>`; on session-expired requests preserves `callbackUrl` end-to-end so the post-login redirect lands on the original URL (Edge Case "Session expires mid-form"). Allows `/login`, `/register`, `/api/auth/*`, static.
+- [X] T031a [P] Client hook `src/lib/hooks/use-form-draft.ts`: persists in-flight RHF form values to `sessionStorage` keyed by route, restores on mount; consumed by `idea-form.tsx`, `register-form.tsx`, `transition-dialog.tsx` so a session-expired redirect does not lose user input (Edge Case "Session expires mid-form").
+- [X] T032 [P] Shared validation hub at `src/lib/validation/index.ts` re-exporting feature schemas; install `zod-form-data` if multipart parsing needed.
+- [X] T033 Bootstrap + sweeper at `src/server/bootstrap.ts`: on app start (a) read `BOOTSTRAP_ADMIN_EMAIL`, promote-or-record marker (FR-005b); (b) sweep `./data/uploads/.staging/` files older than 1 h (R-006). Wire from `src/instrumentation.ts` (Next 14 instrumentation hook).
+- [X] T034 [P] Test fixtures `tests/helpers/db.ts`: `withTestDb()` spins up an in-memory SQLite, runs migrations, seeds categories; `tests/helpers/auth.ts`: `seedUser({ role })` returning a session-cookie helper for integration tests.
 
 **Checkpoint**: Foundation ready — user-story phases can begin in parallel.
 
@@ -89,25 +93,25 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 ### Tests for User Story 1
 
-- [ ] T035 [P] [US1] Unit test `src/server/__tests__/idea-service.create.spec.ts` — happy path + duplicate proposed-category name (`CATEGORY_NAME_TAKEN`) + missing both `categoryId` and `proposedCategoryName` (`IDEA_CATEGORY_INVALID`).
-- [ ] T036 [P] [US1] Unit test `src/server/__tests__/attachment-service.spec.ts` — magic-number sniff rejects renamed `.exe` (`ATTACHMENT_TYPE_NOT_ALLOWED`); 26 MB file rejected (`ATTACHMENT_TOO_LARGE`); happy commit moves file out of `.staging/`.
-- [ ] T037 [P] [US1] Integration test `tests/integration/api/ideas.create.test.ts` — POST `/api/ideas` with attachmentId, GET `/api/ideas?scope=mine`, GET `/api/ideas/{id}` round-trip; envelope shape on validation failure.
-- [ ] T038 [P] [US1] E2E test `tests/e2e/submit-idea.spec.ts` — Employee logs in, opens "Submit Idea", fills form with PDF attachment, submits, lands on idea detail; axe-core finds zero serious/critical violations.
+- [X] T035 [P] [US1] Unit test `src/server/__tests__/idea-service.create.spec.ts` — happy path + duplicate proposed-category name (`CATEGORY_NAME_TAKEN`) + missing both `categoryId` and `proposedCategoryName` (`IDEA_CATEGORY_INVALID`).
+- [X] T036 [P] [US1] Unit test `src/server/__tests__/attachment-service.spec.ts` — magic-number sniff rejects renamed `.exe` (`ATTACHMENT_TYPE_NOT_ALLOWED`); 26 MB file rejected (`ATTACHMENT_TOO_LARGE`); happy commit moves file out of `.staging/`.
+- [X] T037 [P] [US1] Integration test `tests/integration/api/ideas.create.test.ts` — POST `/api/ideas` with attachmentId, GET `/api/ideas?scope=mine`, GET `/api/ideas/{id}` round-trip; envelope shape on validation failure; `created_at`/`updated_at` are produced by the injected `Clock` (FR-013); forced post-stage failure leaves `./data/uploads/.staging/` empty (SC-007).
+- [X] T038 [P] [US1] E2E test `tests/e2e/submit-idea.spec.ts` — Employee logs in, opens "Submit Idea", fills form with PDF attachment, submits, lands on idea detail; axe-core finds zero serious/critical violations.
 
 ### Implementation for User Story 1
 
-- [ ] T039 [P] [US1] Zod schemas at `src/lib/validation/idea.ts`: `CreateIdeaSchema` (title 1–120, description 1–2000, `oneOf` `categoryId`/`proposedCategoryName`), `AttachmentMetadataSchema`.
-- [ ] T040 [P] [US1] Repository `src/db/repositories/idea-repo.ts`: `insertIdea`, `findById`, `listByAuthor(authorId)` ordered `updated_at DESC`.
-- [ ] T041 [P] [US1] Repository `src/db/repositories/category-repo.ts`: `findActive()`, `findByLowerName(name)`, `insertProposed(name, proposedById)`.
-- [ ] T042 [P] [US1] Repository `src/db/repositories/attachment-repo.ts`: `insertStaged`, `commitToIdea(attachmentId, ideaId)`, `findById`, `deleteStaged(olderThanMs)`.
-- [ ] T043 [US1] Service `src/server/idea-service.ts`: `createIdea(input, authorId)` in one tx — proposes category if needed, links optional attachment via `commitToIdea`, returns `IdeaDetail`. Depends on T040–T042.
-- [ ] T044 [US1] Service `src/server/attachment-service.ts`: `stageUpload(stream, originalName, userId)` — sniffs first 4 KB via `file-type`, validates allow-list + 25 MB cap, writes to `./data/uploads/.staging/<id>__<sanitised>`, persists row. Depends on T028, T042.
-- [ ] T045 [P] [US1] Route handler `src/app/api/attachments/route.ts` (POST `multipart/form-data`) wrapped by `withErrorHandler` + `attachments` rate-limiter.
-- [ ] T046 [US1] Route handler `src/app/api/ideas/route.ts`: POST (create), GET (`scope=mine` for EMPLOYEE) wrapped by `withErrorHandler`. Depends on T043.
-- [ ] T047 [US1] Route handler `src/app/api/ideas/[id]/route.ts` (GET detail) and `src/app/api/ideas/[id]/attachment/route.ts` (GET stream download) — both gated by author-or-reviewer/admin guard.
-- [ ] T048 [P] [US1] RSC page `src/app/(employee)/my-ideas/page.tsx` reading `idea-service.listMine()`; renders four-states polish (loading via `<Suspense>`, empty, error boundary, success table) per Principle VI.
-- [ ] T049 [P] [US1] Client form at `src/components/forms/idea-form.tsx` (RHF + Zod resolver, shadcn `Form`/`Select`/`Textarea`/`Input`); drives `src/app/(employee)/ideas/new/page.tsx`. Uploads file via `/api/attachments` first, then submits id with idea POST.
-- [ ] T050 [P] [US1] RSC page `src/app/(employee)/ideas/[id]/page.tsx` — author view of idea detail (status badge, attachment download link, formatted dates via `formatDateTime`).
+- [X] T039 [P] [US1] Zod schemas at `src/lib/validation/idea.ts`: `CreateIdeaSchema` (title 1–120, description 1–2000, `oneOf` `categoryId`/`proposedCategoryName`), `AttachmentMetadataSchema`.
+- [X] T040 [P] [US1] Repository `src/db/repositories/idea-repo.ts`: `insertIdea`, `findById`, `listByAuthor(authorId)` ordered `updated_at DESC`.
+- [X] T041 [P] [US1] Repository `src/db/repositories/category-repo.ts`: `findActive()`, `findByLowerName(name)`, `insertProposed(name, proposedById)`.
+- [X] T042 [P] [US1] Repository `src/db/repositories/attachment-repo.ts`: `insertStaged`, `commitToIdea(attachmentId, ideaId)`, `findById`, `deleteStaged(olderThanMs)`.
+- [X] T043 [US1] Service `src/server/idea-service.ts`: `createIdea(input, authorId)` in one tx — proposes category if needed, links optional attachment via `commitToIdea`, returns `IdeaDetail`. Depends on T040–T042.
+- [X] T044 [US1] Service `src/server/attachment-service.ts`: `stageUpload(stream, originalName, userId)` — sniffs first 4 KB via `file-type`, validates allow-list + 25 MB cap, writes to `./data/uploads/.staging/<id>__<sanitised>`, persists row. Depends on T028, T042.
+- [X] T045 [P] [US1] Route handler `src/app/api/attachments/route.ts` (POST `multipart/form-data`) wrapped by `withErrorHandler` + `attachments` rate-limiter.
+- [X] T046 [US1] Route handler `src/app/api/ideas/route.ts`: POST (create), GET (`scope=mine` for EMPLOYEE) wrapped by `withErrorHandler`. Depends on T043.
+- [X] T047 [US1] Route handler `src/app/api/ideas/[id]/route.ts` (GET detail) and `src/app/api/ideas/[id]/attachment/route.ts` (GET stream download) — both gated by author-or-reviewer/admin guard.
+- [X] T048 [P] [US1] RSC page `src/app/(employee)/my-ideas/page.tsx` reading `idea-service.listMine()`; renders four-states polish (loading via `<Suspense>`, empty, error boundary, success table) per Principle VI.
+- [X] T049 [P] [US1] Client form at `src/components/forms/idea-form.tsx` (RHF + Zod resolver, shadcn `Form`/`Select`/`Textarea`/`Input`); drives `src/app/(employee)/ideas/new/page.tsx`. Uploads file via `/api/attachments` first, then submits id with idea POST.
+- [X] T050 [P] [US1] RSC page `src/app/(employee)/ideas/[id]/page.tsx` — author view of idea detail (status badge, attachment download link, formatted dates via `formatDateTime`).
 
 **Checkpoint**: US1 functional — Employee can submit and view their own ideas end-to-end.
 
@@ -121,21 +125,21 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 ### Tests for User Story 2
 
-- [ ] T051 [P] [US2] Unit test `src/server/__tests__/idea-state-machine.spec.ts` — every cell of the (from, to, role) table from [data-model.md](./data-model.md): allowed transitions return `{kind:"allow"}`, every other combo returns the right `IDEA_*` deny code (including `IDEA_SELF_EVALUATION_FORBIDDEN`, `IDEA_CATEGORY_PENDING`, `IDEA_COMMENT_REQUIRED`).
-- [ ] T052 [P] [US2] Integration test `tests/integration/api/ideas.transitions.test.ts` — start-review → approve happy path, reject without comment → 400, self-evaluation → 403, transition while category PROPOSED → 409, IMPLEMENT by EVALUATOR → 403, IMPLEMENT by ADMIN → 200.
-- [ ] T053 [P] [US2] E2E test `tests/e2e/review-idea.spec.ts` — EVALUATOR opens queue, picks idea, starts review, approves with comment; idea moves to APPROVED on author's view; axe-core clean.
+- [X] T051 [P] [US2] Unit test `src/server/__tests__/idea-state-machine.spec.ts` — every cell of the (from, to, role) table from [data-model.md](./data-model.md): allowed transitions return `{kind:"allow"}`, every other combo returns the right `IDEA_*` deny code (including `IDEA_SELF_EVALUATION_FORBIDDEN`, `IDEA_CATEGORY_PENDING`, `IDEA_COMMENT_REQUIRED`).
+- [X] T052 [P] [US2] Integration test `tests/integration/api/ideas.transitions.test.ts` — start-review → approve happy path, reject without comment → 400, self-evaluation → 403, transition while category PROPOSED → 409, IMPLEMENT by EVALUATOR → 403, IMPLEMENT by ADMIN → 200; `status_transitions.recorded_at` is produced by the injected `Clock` (FR-013).
+- [X] T053 [P] [US2] E2E test `tests/e2e/review-idea.spec.ts` — EVALUATOR opens queue, picks idea, starts review, approves with comment; idea moves to APPROVED on author's view; axe-core clean.
 
 ### Implementation for User Story 2
 
-- [ ] T054 [P] [US2] Pure state-machine module `src/server/idea-state-machine.ts`: `evaluateTransition(input)` and `canTransition(input)` per [ADR-0004](./adr/0004-state-machine.md); no DB or Node-only imports so it is RSC-and-client safe.
-- [ ] T055 [P] [US2] Repository `src/db/repositories/transition-repo.ts`: `insert(record)`, `listByIdea(ideaId)` ordered `recorded_at ASC`.
-- [ ] T056 [US2] Extend `src/server/idea-service.ts`: `applyTransition(ideaId, action, comment, actor)` in one tx — re-reads idea + category, calls `evaluateTransition`, writes both the new status and a `status_transitions` row. Depends on T054, T055.
-- [ ] T057 [US2] Route handler `src/app/api/ideas/[id]/transitions/route.ts` (POST `{ action, comment }`) wrapped by `withErrorHandler` + `requireRole(['EVALUATOR','ADMIN'])`. Depends on T056.
-- [ ] T058 [P] [US2] Add `idea-service.listPending()` ordered `created_at ASC`.
-- [ ] T059 [P] [US2] Extend GET `/api/ideas` to honour `scope=queue` (default for EVALUATOR/ADMIN); enforce role-default mismatch via `AUTH_FORBIDDEN_ROLE`.
-- [ ] T060 [P] [US2] RSC page `src/app/(reviewer)/queue/page.tsx` — review queue table, sort `created_at ASC`, four-states polish.
-- [ ] T061 [US2] Update `src/app/(employee)/ideas/[id]/page.tsx` to (a) render reviewer transition buttons gated by `canTransition()`, (b) render the `StatusTransition` history timeline with actor + comment + `formatDateTime`. Depends on T054.
-- [ ] T062 [P] [US2] Client component `src/components/ideas/transition-dialog.tsx` — shadcn `Dialog` + RHF + Zod requiring non-empty trimmed comment for APPROVE/REJECT; sonner toast on success.
+- [X] T054 [P] [US2] Pure state-machine module `src/server/idea-state-machine.ts`: `evaluateTransition(input)` and `canTransition(input)` per [ADR-0004](./adr/0004-state-machine.md); no DB or Node-only imports so it is RSC-and-client safe.
+- [X] T055 [P] [US2] Repository `src/db/repositories/transition-repo.ts`: `insert(record)`, `listByIdea(ideaId)` ordered `recorded_at ASC`.
+- [X] T056 [US2] Extend `src/server/idea-service.ts`: `applyTransition(ideaId, action, comment, actor)` in one tx — re-reads idea + category, calls `evaluateTransition`, writes both the new status and a `status_transitions` row. Depends on T054, T055.
+- [X] T057 [US2] Route handler `src/app/api/ideas/[id]/transitions/route.ts` (POST `{ action, comment }`) wrapped by `withErrorHandler` + `requireRole(['EVALUATOR','ADMIN'])`. Depends on T056.
+- [X] T058 [P] [US2] Add `idea-service.listPending()` ordered `created_at ASC`.
+- [X] T059 [P] [US2] Extend GET `/api/ideas` to honour `scope=queue` (default for EVALUATOR/ADMIN); enforce role-default mismatch via `AUTH_FORBIDDEN_ROLE`.
+- [X] T060 [P] [US2] RSC page `src/app/(reviewer)/queue/page.tsx` — review queue table, sort `created_at ASC`, four-states polish.
+- [X] T061 [US2] Update `src/app/(employee)/ideas/[id]/page.tsx` to (a) render reviewer transition buttons gated by `canTransition()`, (b) render the `StatusTransition` history timeline with actor + comment + `formatDateTime`. Depends on T054.
+- [X] T062 [P] [US2] Client component `src/components/ideas/transition-dialog.tsx` — shadcn `Dialog` + RHF + Zod requiring non-empty trimmed comment for APPROVE/REJECT; sonner toast on success.
 
 **Checkpoint**: US2 functional — reviewers can move ideas through the full state machine; ADMIN can mark implemented.
 
@@ -149,19 +153,19 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 ### Tests for User Story 3
 
-- [ ] T063 [P] [US3] Unit test `src/server/__tests__/password.spec.ts` — `hashPassword` then `verifyPassword` round-trip; verify rejects truncated/garbled hashes.
-- [ ] T064 [P] [US3] Integration test `tests/integration/api/auth.register.test.ts` — happy path stores `lower(email)`; duplicate email → 409 `USER_EMAIL_TAKEN`; password failing the 8-char-with-letter-and-digit policy → 400 `USER_PASSWORD_POLICY`; bootstrap-admin promotion fires once.
-- [ ] T065 [P] [US3] E2E test `tests/e2e/auth.spec.ts` — register → land on My Ideas; logout; login; landing role-based redirect; axe-core clean.
+- [X] T063 [P] [US3] Unit test `src/server/__tests__/password.spec.ts` — `hashPassword` then `verifyPassword` round-trip; verify rejects truncated/garbled hashes.
+- [X] T064 [P] [US3] Integration test `tests/integration/api/auth.register.test.ts` — happy path stores `lower(email)`; duplicate email → 409 `USER_EMAIL_TAKEN`; password failing the 8-char-with-letter-and-digit policy → 400 `USER_PASSWORD_POLICY`; bootstrap-admin promotion fires once; login failure returns the **same** generic `AUTH_INVALID_CREDENTIALS` envelope for unknown email and wrong password (FR-026); a request 23 h after sign-in resets session expiry to now+24 h, an idle 25 h request is treated as expired (FR-004).
+- [X] T065 [P] [US3] E2E test `tests/e2e/auth.spec.ts` — register → land on My Ideas; logout; login; landing role-based redirect; axe-core clean.
 
 ### Implementation for User Story 3
 
-- [ ] T066 [P] [US3] Zod schemas at `src/lib/validation/auth.ts`: `RegisterSchema` enforcing the 8-char + ≥ 1 letter + ≥ 1 digit policy, `LoginSchema`.
-- [ ] T067 [P] [US3] Service `src/server/user-service.ts`: `register(input)` lowercases email, hashes password, inserts user, then calls `role-service.applyBootstrapPromotionIfMatch(userId, email)`.
-- [ ] T068 [US3] Route handler `src/app/api/auth/register/route.ts` wrapped by `withErrorHandler` + `register` rate-limiter.
-- [ ] T069 [P] [US3] RSC + client form pair `src/app/(public)/login/page.tsx` and `src/components/forms/login-form.tsx` (RHF + Zod, calls `signIn('credentials', …)`, surfaces `AUTH_INVALID_CREDENTIALS`).
-- [ ] T070 [P] [US3] RSC + client form pair `src/app/(public)/register/page.tsx` and `src/components/forms/register-form.tsx`.
-- [ ] T071 [P] [US3] Header component `src/components/layout/header.tsx` — RSC reads session, renders display name + sign-out button (client island calling `signOut()`).
-- [ ] T072 [P] [US3] Extend `src/middleware.ts` for role-aware landing: `/` → `/my-ideas` (EMPLOYEE) or `/queue` (EVALUATOR, ADMIN).
+- [X] T066 [P] [US3] Zod schemas at `src/lib/validation/auth.ts`: `RegisterSchema` enforcing the 8-char + ≥ 1 letter + ≥ 1 digit policy, `LoginSchema`.
+- [X] T067 [P] [US3] Service `src/server/user-service.ts`: `register(input)` lowercases email, hashes password, inserts user, then calls `role-service.applyBootstrapPromotionIfMatch(userId, email)`.
+- [X] T068 [US3] Route handler `src/app/api/auth/register/route.ts` wrapped by `withErrorHandler` + `register` rate-limiter.
+- [X] T069 [P] [US3] RSC + client form pair `src/app/(public)/login/page.tsx` and `src/components/forms/login-form.tsx` (RHF + Zod, calls `signIn('credentials', …)`, surfaces `AUTH_INVALID_CREDENTIALS`).
+- [X] T070 [P] [US3] RSC + client form pair `src/app/(public)/register/page.tsx` and `src/components/forms/register-form.tsx`.
+- [X] T071 [P] [US3] Header component `src/components/layout/header.tsx` — RSC reads session, renders display name + sign-out button (client island calling `signOut()`).
+- [X] T072 [P] [US3] Extend `src/middleware.ts` for role-aware landing: `/` → `/my-ideas` (EMPLOYEE) or `/queue` (EVALUATOR, ADMIN).
 
 **Checkpoint**: US3 functional — registration, login, logout, sliding session, bootstrap-admin promotion all work.
 
@@ -175,21 +179,21 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 ### Tests for User Story 4
 
-- [ ] T073 [P] [US4] Unit test `src/server/__tests__/role-service.spec.ts` — last-admin demotion blocked; bootstrap-marker promotion idempotent.
-- [ ] T074 [P] [US4] Unit test `src/server/__tests__/category-service.spec.ts` — reject re-links all linked ideas to `Other` in one tx; rejecting the protected `Other` → `CATEGORY_PROTECTED`.
-- [ ] T075 [P] [US4] Integration test `tests/integration/api/categories.decisions.test.ts` — approve and reject happy paths; `CATEGORY_NOT_PENDING` on already-decided.
-- [ ] T076 [P] [US4] Integration test `tests/integration/api/users.role.test.ts` — happy promote/demote, last-admin guard.
-- [ ] T077 [P] [US4] E2E test `tests/e2e/admin-management.spec.ts` — ADMIN logs in, opens admin pages, promotes a user and rejects a proposed category; axe-core clean.
+- [X] T073 [P] [US4] Unit test `src/server/__tests__/role-service.spec.ts` — last-admin demotion blocked; bootstrap-marker promotion idempotent.
+- [X] T074 [P] [US4] Unit test `src/server/__tests__/category-service.spec.ts` — reject re-links all linked ideas to `Other` in one tx; rejecting the protected `Other` → `CATEGORY_PROTECTED`.
+- [X] T075 [P] [US4] Integration test `tests/integration/api/categories.decisions.test.ts` — approve and reject happy paths; `CATEGORY_NOT_PENDING` on already-decided.
+- [X] T076 [P] [US4] Integration test `tests/integration/api/users.role.test.ts` — happy promote/demote, last-admin guard.
+- [X] T077 [P] [US4] E2E test `tests/e2e/admin-management.spec.ts` — ADMIN logs in, opens admin pages, promotes a user and rejects a proposed category; axe-core clean.
 
 ### Implementation for User Story 4
 
-- [ ] T078 [P] [US4] Service `src/server/role-service.ts`: `changeRole(targetUserId, newRole, actor)` with last-admin guard (counts admins in same tx); `applyBootstrapPromotionIfMatch(userId, email)` consumed by US3.
-- [ ] T079 [US4] Service `src/server/category-service.ts`: `approve(id, adminId)` and `reject(id, adminId)` — reject runs `re-link-ideas-to-Other` + state change in one tx; protected-category guard. Depends on T041.
-- [ ] T080 [P] [US4] Route handler `src/app/api/categories/route.ts` (GET, query `state` filter; default `ACTIVE` non-admin, `all` admin-only).
-- [ ] T081 [P] [US4] Route handlers `src/app/api/categories/[id]/route.ts` (PATCH approve|reject) and `src/app/api/users/[id]/role/route.ts` (PATCH role) — both wrapped + `requireRole('ADMIN')`.
-- [ ] T082 [P] [US4] Admin page `src/app/(admin)/admin/categories/page.tsx` — table of `PROPOSED` categories with approve/reject buttons; sonner confirmation; explicit "this will re-link N ideas to Other" warning before reject.
-- [ ] T083 [P] [US4] Admin page `src/app/(admin)/admin/users/page.tsx` — user table with role dropdown (shadcn `Select`); inline error toast on `AUTH_LAST_ADMIN_DEMOTION`.
-- [ ] T084 [P] [US4] Admin layout `src/app/(admin)/layout.tsx` — sidebar with links to Users / Categories, route guarded by `requireRole('ADMIN')`.
+- [X] T078 [P] [US4] Service `src/server/role-service.ts`: `changeRole(targetUserId, newRole, actor)` with last-admin guard (counts admins in same tx); `applyBootstrapPromotionIfMatch(userId, email)` consumed by US3.
+- [X] T079 [US4] Service `src/server/category-service.ts`: `approve(id, adminId)` and `reject(id, adminId)` — reject runs `re-link-ideas-to-Other` + state change in one tx; protected-category guard. Depends on T041.
+- [X] T080 [P] [US4] Route handler `src/app/api/categories/route.ts` (GET, query `state` filter; default `ACTIVE` non-admin, `all` admin-only).
+- [X] T081 [P] [US4] Route handlers `src/app/api/categories/[id]/route.ts` (PATCH approve|reject) and `src/app/api/users/[id]/role/route.ts` (PATCH role) — both wrapped + `requireRole('ADMIN')`.
+- [X] T082 [P] [US4] Admin page `src/app/(admin)/admin/categories/page.tsx` — table of `PROPOSED` categories with approve/reject buttons; sonner confirmation; explicit "this will re-link N ideas to Other" warning before reject.
+- [X] T083 [P] [US4] Admin page `src/app/(admin)/admin/users/page.tsx` — user table with role dropdown (shadcn `Select`); inline error toast on `AUTH_LAST_ADMIN_DEMOTION`.
+- [X] T084 [P] [US4] Admin layout `src/app/(admin)/layout.tsx` — sidebar with links to Users / Categories, route guarded by `requireRole('ADMIN')`.
 
 **Checkpoint**: US4 functional — admin user/category management complete.
 
@@ -199,16 +203,17 @@ Per [plan.md → Source Code (repository root)](./plan.md):
 
 **Purpose**: Pass every constitutional quality gate, ship documentation, and merge per Principle X.
 
-- [ ] T085 [P] CI workflow `.github/workflows/ci.yml`: jobs run `npm ci` → `typecheck` → `lint` → `format` → `test:unit -- --coverage` → `test:integration` → `test:e2e` → `check:error-codes` → `check:ui-tokens` (Quality Gates 1–9). Fail the build on any non-zero step.
-- [ ] T086 [P] PR template `.github/pull_request_template.md`: Constitution-compliance checklist (one box per principle), manual a11y checklist, ADR-coverage checkbox (Gate #11), commit-discipline confirmation (Gate #10).
-- [ ] T087 [P] `README.md` at repo root: 1-paragraph overview, link to [quickstart.md](./quickstart.md), link to constitution and ADR index, badges placeholder.
-- [ ] T088 [P] Update [quickstart.md](./quickstart.md) if any command name changed during implementation; run the quickstart end-to-end from a fresh clone and fix gaps.
-- [ ] T089 [P] JSDoc audit per Principle IV: every exported symbol in `src/server/**` and `src/lib/**` has a JSDoc block; eslint-plugin-jsdoc reports zero errors.
+- [X] T085 [P] CI workflow `.github/workflows/ci.yml`: jobs run `npm ci` → `typecheck` → `lint` → `format` → `test:unit -- --coverage` → `test:integration` → `test:e2e` → `check:error-codes` → `check:ui-tokens` (Quality Gates 1–9). Gates 10–12 (commit/push discipline, ADR coverage, feature merge-back) are enforced by the `.specify/extensions.yml` hooks, the PR template (T086), and the final merge task (T094) respectively. Fail the build on any non-zero step.
+- [X] T085a [P] Security-event logging integration test `tests/integration/security/audit-log.test.ts` (FR-028): captures stdout, runs register/login-success/login-failure/logout/role-change/category-decision/idea-transition flows, asserts each emits one `pino` JSON line with the required fields and zero password/token leakage.
+- [X] T086 [P] PR template `.github/pull_request_template.md`: Constitution-compliance checklist (one box per principle I–X), manual a11y checklist, ADR-coverage checkbox (Gate #11), commit-discipline confirmation (Gate #10), feature merge-back checkbox (Gate #12).
+- [X] T087 [P] `README.md` at repo root: 1-paragraph overview, link to [quickstart.md](./quickstart.md), link to constitution and ADR index, badges placeholder.
+- [X] T088 [P] Update [quickstart.md](./quickstart.md) if any command name changed during implementation; run the quickstart end-to-end from a fresh clone and fix gaps.
+- [X] T089 [P] JSDoc audit per Principle IV: every exported symbol in `src/server/**` and `src/lib/**` has a JSDoc block; eslint-plugin-jsdoc reports zero errors.
 - [ ] T090 [P] Manual a11y sweep per Principle VI: keyboard-only nav across `/login`, `/register`, `/my-ideas`, `/ideas/new`, `/ideas/[id]`, `/queue`, `/admin/*`; record findings in PR description.
 - [ ] T091 [P] Responsiveness sweep at viewport widths 360 / 768 / 1280 px (Principle VI); screenshots attached to PR.
-- [ ] T092 Run `npm run check:error-codes` and `npm run check:ui-tokens`; resolve every finding (Quality Gate #9 hard-failing on this PR).
-- [ ] T093 Run [quickstart.md §4 first end-to-end smoke](./quickstart.md) on a fresh clone; verify bootstrap-admin promotion, idea submission, review, mark-implemented all work.
-- [ ] T094 **End-of-feature merge (Constitution Principle X)**: ensure Quality Gates 1–11 pass on `001-innovatepam-portal-mvp` HEAD, push, then `git checkout main && git merge --no-ff 001-innovatepam-portal-mvp -m "merge(feature/001): InnovatEPAM Portal MVP" -m "<one-line summary>" -m "ADRs accepted: ADR-0001..ADR-0007" -m "Spec: specs/001-innovatepam-portal-mvp/spec.md"`. The post-merge hook auto-pushes to `origin/main`.
+- [X] T092 Run `npm run check:error-codes` and `npm run check:ui-tokens`; resolve every finding (Quality Gate #9 hard-failing on this PR).
+- [X] T093 Run [quickstart.md §4 first end-to-end smoke](./quickstart.md) on a fresh clone; verify bootstrap-admin promotion, idea submission, review, mark-implemented all work.
+- [ ] T094 **End-of-feature merge (Constitution Principle X, satisfies Gate #12)**: ensure Quality Gates 1–11 pass on `001-innovatepam-portal-mvp` HEAD, push, then `git checkout main && git merge --no-ff 001-innovatepam-portal-mvp -m "merge(feature/001): InnovatEPAM Portal MVP" -m "<one-line summary>" -m "ADRs accepted: ADR-0001..ADR-0007" -m "Spec: specs/001-innovatepam-portal-mvp/spec.md"`. The post-merge hook auto-pushes to `origin/main`.
 
 ---
 

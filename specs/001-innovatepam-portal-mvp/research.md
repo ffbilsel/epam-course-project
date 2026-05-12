@@ -2,9 +2,10 @@
 
 This document records the technology decisions made for the plan, the
 alternatives considered, and the rationale for each choice. All
-decisions are bounded by the Constitution v1.2.0 (TypeScript strict,
+decisions are bounded by the Constitution v1.4.0 (TypeScript strict,
 Next.js stack already mandated, SQLite, shadcn/ui, 70% line coverage,
-WCAG 2.1 AA, error-code registry).
+WCAG 2.1 AA, error-code registry, ADR-backed design choices,
+feature merge discipline).
 
 ---
 
@@ -258,15 +259,25 @@ components").
 
 ## R-012 — Rate limiting
 
-**Decision**: A simple per-IP token bucket on `/api/auth/*` and on
-attachment upload using `@upstash/ratelimit`'s in-memory adapter for
-local; configurable env var to swap to Redis later.
+**Decision**: In-process token-bucket limiters via
+`rate-limiter-flexible`'s `RateLimiterMemory` on `/api/auth/*`,
+`/api/auth/register`, and `POST /api/attachments`. Phase 1 deliberately
+avoids any external Redis or message broker (per plan.md Constraints).
 **Code**: `RATE_LIMITED` (HTTP 429) returned via the standard error
 envelope.
 
 **Why**: Without it, the login endpoint becomes a brute-force
-playground. In-memory limiter is fine for a single-process Node
-deployment in Phase 1.
+playground. `rate-limiter-flexible`'s in-memory store is fine for a
+single-process Node deployment in Phase 1; swapping to a distributed
+store later is a one-line constructor change.
+
+> **Amendment (2026-05-12)**: this supersedes the earlier note that
+> mentioned `@upstash/ratelimit`'s "in-memory adapter" — that package
+> is a Redis client and has no in-memory backend, so the new choice is
+> the only one that satisfies the no-external-Redis constraint. The
+> companion mention in [adr/0005-attachment-storage.md](./adr/0005-attachment-storage.md)
+> is amended by this research note (ADRs are immutable; the
+> implementation tasks T028 and the plan use `rate-limiter-flexible`).
 
 ---
 
