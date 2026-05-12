@@ -1,0 +1,52 @@
+﻿# === OS / Editor ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# === Local notes ===
+/TODO
+/NOTES.md
+*.local
+
+# === Node / Next.js ===
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# === Test / Coverage ===
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# === Env files ===
+.env
+.env.*
+!.env.example
+
+# === Local data (SQLite + uploads) ===
+/data/
+*.db
+*.db-shm
+*.db-wal
+
+# === Drizzle cache ===
+.drizzle/
+
+# === Misc ===
+.cache/
+.turbo/
+.vercel/
