@@ -1,5 +1,6 @@
 import { test } from "@playwright/test";
 import { expectNoSeriousAxeViolations } from "./axe";
+import { signInAs } from "./auth-helpers";
 
 /**
  * T065 — US3: Admin views Users page, changes a role.
@@ -12,11 +13,7 @@ test("US3: admin can browse users and change a role", async ({ page }) => {
   const adminEmail = process.env["E2E_ADMIN_EMAIL"] ?? "admin@innovatepam.test";
   const adminPassword = process.env["E2E_ADMIN_PASSWORD"] ?? "Passw0rd!2024";
 
-  await page.goto("/login");
-  await page.getByLabel(/email/i).fill(adminEmail);
-  await page.getByLabel(/password/i).fill(adminPassword);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/\/(queue|my-ideas|admin)/);
+  await signInAs(page, adminEmail, adminPassword);
 
   await page.goto("/admin/users");
   await expectNoSeriousAxeViolations(page);
