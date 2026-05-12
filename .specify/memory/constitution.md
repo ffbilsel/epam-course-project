@@ -1,6 +1,19 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.0 → 1.4.0
+Bump rationale: Added two substantive new principles — IX. ADR-Backed
+Design Choices and X. Feature Merge Discipline. IX makes Architecture
+Decision Records the canonical record for every load-bearing design
+choice, with a fixed location, MADR template, and immutability rule.
+X defines the end-of-feature workflow: every feature branch MUST be
+merged back to `main` via a non-fast-forward merge once the SpecKit
+lifecycle for that feature reaches `/speckit.implement` completion
+and all gates pass. Adds Quality Gates #11 (ADR coverage) and #12
+(feature merge-back). No existing principle removed or redefined.
+Per governance versioning policy this is a MINOR bump.
+
+----- Previous report (v1.3.0) -----
 Version change: 1.2.0 → 1.3.0
 Bump rationale: Added a substantive new principle (VIII. Commit &
 Push Discipline) that codifies the existing operational expectation
@@ -790,6 +803,17 @@ The following gates MUST pass before a change merges to `main`:
     session ends. Reviewers MUST reject PRs whose history shows long
     "WIP" runs that were not pushed incrementally without a recorded
     justification.
+11. ADR coverage (Principle IX) is satisfied: every load-bearing
+    design choice introduced or changed by the PR is recorded in
+    `specs/<feature>/adr/NNNN-*.md` using the MADR template, and the
+    ADR index (`specs/<feature>/adr/README.md`) lists it. Code that
+    contradicts an Accepted ADR without superseding it is a hard
+    failure of this gate.
+12. Feature merge-back (Principle X) is satisfied at end-of-feature:
+    `/speckit.implement` reports green, gates 1–11 pass on the
+    feature branch's HEAD, and the branch is merged into `main` with
+    `git merge --no-ff` (preserving the feature topology) before the
+    SpecKit lifecycle for that feature is considered closed.
 
 ## Principle VIII. Commit & Push Discipline (NON-NEGOTIABLE)
 
@@ -833,6 +857,98 @@ model and risks data loss on a single laptop.
 - Secrets MUST NOT be committed; the `.gitignore` ships with `.env*`
   excluded and a `gitleaks` scan SHOULD run in CI.
 
+## Principle IX. ADR-Backed Design Choices (NON-NEGOTIABLE)
+
+Every **load-bearing design choice** MUST be recorded as an
+Architecture Decision Record (ADR) before, or in the same PR as, the
+code that depends on it. Verbal agreements, chat history, and prose
+bodies of `plan.md` are not substitutes.
+
+A "load-bearing design choice" is any decision a future contributor
+would need to understand to safely change the system, including but
+not limited to:
+
+- Choice of framework, language version, runtime, or major library.
+- Persistence engine, ORM, schema strategy, migration tooling.
+- Authentication / authorization model, session strategy, password
+  hashing algorithm and parameters.
+- API contract style (REST/GraphQL/RPC), serialization format, error
+  envelope, versioning policy.
+- Cross-cutting infrastructure: caching, queues, file storage,
+  rate limiting, observability stack.
+- Domain-model invariants encoded as state machines.
+- UI architecture: rendering model (RSC vs. SPA), design-system
+  vendoring, token strategy.
+
+**Hard rules**:
+
+- ADRs live at `specs/<feature>/adr/NNNN-<kebab-title>.md` (gap-free
+  4-digit numbering, never reused) with an index at
+  `specs/<feature>/adr/README.md`. For cross-cutting decisions that
+  outlive a single feature, the ADR MAY be promoted to
+  `docs/adr/NNNN-*.md` once such a folder exists; until then it stays
+  with its originating feature.
+- ADRs MUST use the MADR-style sections **Status**, **Date**,
+  **Deciders**, **Source**, **Context**, **Decision**,
+  **Consequences** (positive + negative), **Alternatives considered**.
+- ADR status flow: `Proposed → Accepted → Superseded by ADR-NNNN`.
+  Once **Accepted**, an ADR is **immutable** except for status
+  changes and link fixes; new direction is a *new* ADR that
+  supersedes it.
+- `plan.md` and `research.md` MAY summarise decisions, but the
+  authoritative reference for each is its ADR id (`ADR-NNNN`).
+  Where they conflict, the ADR wins.
+- A PR that introduces or changes a load-bearing design choice
+  without the matching ADR fails Quality Gate #11 and MUST be
+  rejected.
+- Reviewers MUST link every "why is it built this way?" review
+  question to an ADR id. If no ADR covers the question, the PR
+  author MUST add one in the same PR.
+
+## Principle X. Feature Merge Discipline (NON-NEGOTIABLE)
+
+Every SpecKit feature is developed on its numbered branch (e.g.
+`001-innovatepam-portal-mvp`) and MUST be **merged back into `main`
+at end-of-feature** so that `main` is always the canonical, releasable
+record of the project.
+
+**End-of-feature** means all of the following are true on the feature
+branch's HEAD:
+
+- `/speckit.implement` reports the feature complete (no outstanding
+  tasks in `tasks.md`).
+- Quality Gates 1–11 all pass.
+- The latest commit is pushed to `origin/<feature-branch>`.
+
+**Merge rules**:
+
+- The merge MUST be a **non-fast-forward merge** (`git merge --no-ff`
+  or the equivalent "Create a merge commit" option in the PR UI), so
+  that the feature branch's topology is preserved in `main`'s
+  history.
+- The merge commit subject MUST follow Conventional Commits and name
+  the feature: `merge(feature/NNN): <feature-name>`.
+- The merge commit body MUST include:
+  - A one-line summary of what shipped.
+  - The list of ADR ids accepted in this feature.
+  - A pointer to the spec (`specs/<feature>/spec.md`).
+- Squash-merging a feature branch is **forbidden** — it destroys the
+  spec→plan→tasks→implement commit narrative that Principle VIII
+  exists to preserve.
+- Rebase-merging is **forbidden** for the same reason.
+- After the merge, the feature branch MAY be kept on `origin` for
+  reference (deletion is optional). New features start a new
+  numbered branch from the merge commit on `main`.
+- If gates fail late and the merge cannot happen, an issue MUST be
+  filed naming the failing gate; the feature is **not** considered
+  closed until the merge lands.
+
+**Rationale**: Without a discipline that brings every feature back to
+`main`, long-lived branches diverge, ADRs land in branches no one
+rebases against, and `main` becomes a museum piece instead of the
+product. The merge commit is also the natural moment for the final
+`/speckit.analyze` audit and for tagging a release.
+
 ## Governance
 
 This constitution supersedes ad-hoc conventions and individual
@@ -862,4 +978,4 @@ ratified.
 release) MUST verify that the codebase still satisfies the principles;
 deviations MUST be filed as remediation issues.
 
-**Version**: 1.3.0 | **Ratified**: 2026-05-12 | **Last Amended**: 2026-05-12
+**Version**: 1.4.0 | **Ratified**: 2026-05-12 | **Last Amended**: 2026-05-12
