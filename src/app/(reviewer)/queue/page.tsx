@@ -27,12 +27,26 @@ export default async function QueuePage(): Promise<JSX.Element> {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-semibold">Review queue</h1>
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Submitted ideas awaiting evaluation, oldest first.
+          </p>
+        </div>
         {ideas.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              No ideas awaiting review.
+            <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+              <div
+                aria-hidden="true"
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-accent-foreground"
+              >
+                ✓
+              </div>
+              <p className="text-base font-medium">All caught up</p>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                No ideas are awaiting review right now. Check back soon.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -48,7 +62,7 @@ export default async function QueuePage(): Promise<JSX.Element> {
                 </TableHeader>
                 <TableBody>
                   {ideas.map((i) => (
-                    <TableRow key={i.id}>
+                    <TableRow key={i.id} className="transition-colors hover:bg-accent/40">
                       <TableCell>
                         <Link href={`/ideas/${i.id}`} className="font-medium hover:underline">
                           {i.title}
@@ -62,7 +76,9 @@ export default async function QueuePage(): Promise<JSX.Element> {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell>{formatDate(new Date(i.createdAt))}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(new Date(i.createdAt))}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

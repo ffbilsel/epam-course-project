@@ -14,7 +14,7 @@ const SESSION_MAX_AGE_SEC = 24 * 60 * 60;
 const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db) as never,
   trustHost: true,
-  session: { strategy: "database", maxAge: SESSION_MAX_AGE_SEC, updateAge: 0 },
+  session: { strategy: "jwt", maxAge: SESSION_MAX_AGE_SEC, updateAge: 0 },
   pages: { signIn: "/login" },
   providers: [
     Credentials({
@@ -77,9 +77,21 @@ const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user && user) {
-        const dbUser = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    async jwt({ token, user }) {
+      if (user) {
+        token.uid = (user as { id: string }).id;
+        token.role = (user as { role: Role }).role;
+        token.displayName = (user as { name?: string | null }).name ?? token.name ?? "";
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token) {
+        const dbUser = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, token.uid as string))
+          .limit(1);
         const u = dbUser[0];
         if (u) {
           (session.user as { id: string }).id = u.id;

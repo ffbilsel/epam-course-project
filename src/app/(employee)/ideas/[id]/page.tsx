@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ideas/status-badge";
 import { TransitionDialog } from "@/components/ideas/transition-dialog";
 import { CategoryDetailsPanel } from "@/components/ideas/category-details-panel";
 import { auth } from "@/server/auth-options";
@@ -58,7 +59,7 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
               )}
             </p>
           </div>
-          <Badge>{detail.status.replace("_", " ")}</Badge>
+          <StatusBadge status={detail.status} />
         </div>
 
         <Card>

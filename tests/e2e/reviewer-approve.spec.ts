@@ -22,7 +22,10 @@ test("US2: reviewer can approve a submitted idea with a mandatory comment", asyn
   await page.goto("/queue");
   await expectNoSeriousAxeViolations(page);
 
-  const firstIdea = page.getByRole("link").filter({ hasText: /./ }).first();
+  // Pick the first idea-detail link inside the queue table
+  // specifically; the page header also contains nav links that
+  // would otherwise match `getByRole("link")`.
+  const firstIdea = page.locator("table a[href^='/ideas/']").first();
   if ((await firstIdea.count()) === 0) {
     test.info().annotations.push({ type: "info", description: "Queue empty — skipping body" });
     return;

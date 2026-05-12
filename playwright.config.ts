@@ -2,10 +2,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: ["**/global-setup.ts"],
+  globalSetup: "./tests/e2e/global-setup.ts",
   fullyParallel: true,
   forbidOnly: !!process.env["CI"],
-  retries: process.env["CI"] ? 2 : 0,
+  retries: process.env["CI"] ? 2 : 1,
   workers: process.env["CI"] ? 1 : undefined,
+  timeout: 60_000,
   reporter: process.env["CI"] ? "github" : "list",
   use: {
     baseURL: process.env["PLAYWRIGHT_BASE_URL"] ?? "http://localhost:3000",
@@ -28,6 +31,7 @@ export default defineConfig({
       AUTH_URL: process.env["AUTH_URL"] ?? process.env["NEXTAUTH_URL"] ?? "http://localhost:3000",
       DATABASE_URL: process.env["DATABASE_URL"] ?? "file:./data/innovatepam.db",
       BOOTSTRAP_ADMIN_EMAIL: process.env["BOOTSTRAP_ADMIN_EMAIL"] ?? "admin@innovatepam.test",
+      BOOTSTRAP_ADMIN_PASSWORD: process.env["BOOTSTRAP_ADMIN_PASSWORD"] ?? "Passw0rd!2024",
     },
   },
 });
