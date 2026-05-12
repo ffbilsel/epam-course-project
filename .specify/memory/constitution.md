@@ -1,6 +1,19 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.2.0 → 1.3.0
+Bump rationale: Added a substantive new principle (VIII. Commit &
+Push Discipline) that codifies the existing operational expectation
+that each meaningful unit of work is captured as a Conventional-Commit
+and pushed to `origin` immediately, so review history mirrors the
+actual SpecKit lifecycle. Introduces a matching quality gate (#10) and
+names the two automation surfaces that enforce it: the SpecKit
+`auto_commit` map in `.specify/extensions/git/git-config.yml`, and the
+`.git/hooks/post-commit` push hook installed via `npm run setup:hooks`
+(or `pwsh scripts/install-hooks.ps1`). No existing principle removed
+or redefined. Per governance versioning policy this is a MINOR bump.
+
+----- Previous report (v1.2.0) -----
 Version change: 1.1.0 → 1.2.0
 Bump rationale: Added a substantive new principle (VII. Consistency —
 UI, Code, and Error Codes) that consolidates and extends consistency
@@ -771,6 +784,54 @@ The following gates MUST pass before a change merges to `main`:
    "advisory-failing" — PRs MUST attach a manual consistency
    note in the description; the gate becomes hard-failing as soon
    as the CI jobs are in place.
+10. Commit & push discipline (Principle VIII) is satisfied: every
+    completed unit of work is recorded as a Conventional-Commit on
+    the appropriate branch and pushed to `origin` before the work
+    session ends. Reviewers MUST reject PRs whose history shows long
+    "WIP" runs that were not pushed incrementally without a recorded
+    justification.
+
+## Principle VIII. Commit & Push Discipline (NON-NEGOTIABLE)
+
+Every meaningful unit of work — a finished SpecKit step (constitution,
+specify, clarify, plan, tasks, implement), a green test for a new
+capability, a refactor that leaves the tree compiling — MUST be
+captured as its own commit and pushed to `origin` **before the agent
+or contributor moves on to the next unit**. Long-lived uncommitted
+trees and unpushed local branches are forbidden.
+
+**Rationale**: Spec-driven development depends on the ability to
+replay the lifecycle from `git log` alone. A reviewer must be able to
+see "spec → ADR → plan → tasks → implementation" as a sequence of
+small, named commits. Local-only history defeats the SDD review
+model and risks data loss on a single laptop.
+
+**Hard rules**:
+
+- Every commit MUST follow the Conventional Commits 1.0.0 format
+  (`<type>(<scope>): <subject>`). Allowed `type`s: `feat`, `fix`,
+  `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`. Subject
+  MUST be imperative, ≤ 72 characters, no trailing period.
+- The body MUST explain *why* the change is being made when the
+  *what* is non-obvious. SpecKit-generated commits MUST name the
+  slash command they correspond to (e.g. `/speckit.plan`).
+- A commit MUST be pushed to `origin/<branch>` immediately after it
+  lands locally. The only exception is when `git push` itself fails;
+  in that case the failure MUST be surfaced and resolved within the
+  same work session.
+- The agent (Copilot or otherwise) MUST NOT require an explicit
+  user instruction to commit or to push. The two automation surfaces
+  named in the Sync Impact Report make this self-enforcing:
+  - The SpecKit `auto_commit` map MUST stay enabled with at least
+    every `after_*` event set to `enabled: true`. Disabling an entry
+    requires the same amendment process as any constitutional rule.
+  - The `post-commit` Git hook MUST run `git push` to the tracked
+    upstream of the current branch. Operating without the hook
+    installed is a Quality-Gate-#10 failure.
+- Force-pushes (`git push --force` / `--force-with-lease`) are
+  forbidden on `main` and on any branch that has an open PR.
+- Secrets MUST NOT be committed; the `.gitignore` ships with `.env*`
+  excluded and a `gitleaks` scan SHOULD run in CI.
 
 ## Governance
 
@@ -801,4 +862,4 @@ ratified.
 release) MUST verify that the codebase still satisfies the principles;
 deviations MUST be filed as remediation issues.
 
-**Version**: 1.2.0 | **Ratified**: 2026-05-12 | **Last Amended**: 2026-05-12
+**Version**: 1.3.0 | **Ratified**: 2026-05-12 | **Last Amended**: 2026-05-12

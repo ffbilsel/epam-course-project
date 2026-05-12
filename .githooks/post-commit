@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+# Constitution VIII (Commit & Push Discipline) — Quality Gate #10.
+# Push every new commit to the upstream of the current branch as soon
+# as it lands locally. Skipped silently if the branch has no upstream
+# yet (set with `git push -u origin <branch>` once).
+set -e
+
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+[ -z "$branch" ] && exit 0
+[ "$branch" = "HEAD" ] && exit 0  # detached HEAD
+
+# Skip if SPECIFY_NO_AUTO_PUSH=1 (escape hatch for batch operations).
+if [ "${SPECIFY_NO_AUTO_PUSH:-0}" = "1" ]; then
+  echo "[post-commit] SPECIFY_NO_AUTO_PUSH=1 — skipping push"
+  exit 0
+fi
+
+# Only push when an upstream is configured for this branch.
+if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+  echo "[post-commit] pushing $branch to its upstream..."
+  git push --quiet || {
+    echo "[post-commit] push failed; resolve before next commit (Constitution VIII)" >&2
+    exit 0  # do not fail the commit; just warn
+  }
+else
+  echo "[post-commit] no upstream for $branch — run: git push -u origin $branch"
+fi
