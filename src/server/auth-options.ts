@@ -13,6 +13,7 @@ const SESSION_MAX_AGE_SEC = 24 * 60 * 60;
 
 const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db) as never,
+  trustHost: true,
   session: { strategy: "database", maxAge: SESSION_MAX_AGE_SEC, updateAge: 0 },
   pages: { signIn: "/login" },
   providers: [

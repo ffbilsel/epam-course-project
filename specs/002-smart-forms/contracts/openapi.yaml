@@ -1,0 +1,426 @@
+openapi: 3.0.3
+info:
+  title: InnovatEPAM Portal API — Phase 2 (Smart Forms)
+  version: 0.2.0
+  description: |
+    REST contract **delta** for Phase 2 — Smart Submission Forms.
+    Only routes that are **new** or **changed** by this phase appear
+    here; every other Phase-1 route in
+    `specs/001-innovatepam-portal-mvp/contracts/openapi.yaml`
+    continues to apply unchanged.
+
+    Authentication, CSRF, and the error envelope are inherited from
+    Phase 1. Every non-2xx response conforms to:
+
+    ```json
+    {
+      "error": {
+        "code": "<UPPER_SNAKE_CASE>",
+        "message": "<developer-facing English>",
+        "details": { "field": "<answers.key>", "reason": "<sub-code>" }
+      }
+    }
+    ```
+
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+
+tags:
+  - name: categories
+    description: Category lifecycle + (Phase 2) field-schema management
+  - name: ideas
+    description: Idea submission and detail (now carrying structured answers)
+
+paths:
+
+  /api/categories/{id}/schema:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    get:
+      tags: [categories]
+      summary: Read the current field schema for a category
+      description: |
+        Returns the live `CategoryFieldDefinition[]` for the
+        category. Available to any authenticated user — the schema
+        is rendered on the new-idea form for Employees.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryFieldSchema' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'   # CATEGORY_NOT_FOUND
+    put:
+      tags: [categories]
+      summary: Replace the field schema for an ACTIVE category (Admin only)
+      description: |
+        Replaces the entire schema (full PUT, not PATCH). The body
+        is validated against `CategoryFieldSchema`. Saving on a
+        non-`ACTIVE` category fails with `CATEGORY_NOT_ACTIVE`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryFieldSchema' }
+      responses:
+        '200':
+          description: OK — the schema after the write
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryFieldSchema' }
+        '400':
+          description: |
+            Schema invalid.
+            `code` is one of:
+              - `CATEGORY_SCHEMA_INVALID`
+              - `CATEGORY_SCHEMA_FIELD_DUPLICATE`
+              - `CATEGORY_SCHEMA_OPTION_REQUIRED`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'   # AUTH_FORBIDDEN_ROLE
+        '404':
+          $ref: '#/components/responses/NotFound'    # CATEGORY_NOT_FOUND
+        '409':
+          description: Category is not in ACTIVE state — `CATEGORY_NOT_ACTIVE`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/ideas:
+    post:
+      tags: [ideas]
+      summary: Create a new idea (now accepts `answers`)
+      description: |
+        **Phase 2 delta**: the request body gains an `answers`
+        block keyed by field `key`. The server resolves the
+        category's live `field_schema` and validates `answers`
+        against it; required fields missing or values out of range
+        return one of the new `IDEA_ANSWER_*` codes.
+
+        On success, the answers are persisted with a per-answer
+        `labelSnapshot` capturing the label that was in effect at
+        submission time (FR-008).
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateIdeaRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdeaDetail' }
+        '400':
+          description: |
+            One of (Phase 1 + Phase 2):
+              - `IDEA_TITLE_REQUIRED`
+              - `IDEA_TITLE_TOO_LONG`
+              - `IDEA_DESCRIPTION_REQUIRED`
+              - `IDEA_DESCRIPTION_TOO_LONG`
+              - `IDEA_CATEGORY_INVALID`
+              - `IDEA_ANSWER_REQUIRED`        ◄── Phase 2
+              - `IDEA_ANSWER_INVALID`         ◄── Phase 2
+              - `IDEA_ANSWER_TOO_LONG`        ◄── Phase 2
+              - `IDEA_ANSWER_OUT_OF_RANGE`    ◄── Phase 2
+              - `IDEA_ANSWER_OPTION_INVALID`  ◄── Phase 2
+            `details.field` carries `answers.<key>` for Phase-2 codes.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: |
+            `IDEA_CATEGORY_PENDING` (Phase 1) — chosen category is `PROPOSED`/`REJECTED`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/ideas/{id}:
+    get:
+      tags: [ideas]
+      summary: Read an idea (now includes `answers`)
+      description: |
+        **Phase 2 delta**: the response includes the persisted
+        `answers` (with `labelSnapshot`) so the UI can render the
+        "Category details" section without re-fetching the schema.
+      parameters:
+        - $ref: '#/components/parameters/IdeaId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdeaDetail' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  parameters:
+    CategoryId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdeaId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+
+  schemas:
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable error code from `src/lib/errors/codes.ts`.
+            message:
+              type: string
+              description: Developer-facing English; the UI looks up `code`, not this.
+            details:
+              type: object
+              additionalProperties: true
+
+    # --- Phase 2: Category Field Schema ----------------------------
+
+    CategoryFieldSchema:
+      type: array
+      maxItems: 20
+      items: { $ref: '#/components/schemas/CategoryFieldDefinition' }
+
+    CategoryFieldDefinition:
+      oneOf:
+        - $ref: '#/components/schemas/CategoryFieldShortText'
+        - $ref: '#/components/schemas/CategoryFieldLongText'
+        - $ref: '#/components/schemas/CategoryFieldNumber'
+        - $ref: '#/components/schemas/CategoryFieldSingleChoice'
+        - $ref: '#/components/schemas/CategoryFieldYesNo'
+      discriminator:
+        propertyName: type
+
+    CategoryFieldCommon:
+      type: object
+      required: [key, label, type, required]
+      properties:
+        key:
+          type: string
+          pattern: '^[a-z][a-z0-9_]{0,39}$'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 80
+        helpText:
+          type: string
+          maxLength: 160
+        required:
+          type: boolean
+
+    CategoryFieldShortText:
+      allOf:
+        - $ref: '#/components/schemas/CategoryFieldCommon'
+        - type: object
+          properties:
+            type: { type: string, enum: [SHORT_TEXT] }
+
+    CategoryFieldLongText:
+      allOf:
+        - $ref: '#/components/schemas/CategoryFieldCommon'
+        - type: object
+          properties:
+            type: { type: string, enum: [LONG_TEXT] }
+
+    CategoryFieldNumber:
+      allOf:
+        - $ref: '#/components/schemas/CategoryFieldCommon'
+        - type: object
+          properties:
+            type: { type: string, enum: [NUMBER] }
+            min: { type: number }
+            max: { type: number }
+
+    CategoryFieldSingleChoice:
+      allOf:
+        - $ref: '#/components/schemas/CategoryFieldCommon'
+        - type: object
+          required: [options]
+          properties:
+            type: { type: string, enum: [SINGLE_CHOICE] }
+            options:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                required: [value, label]
+                properties:
+                  value:
+                    type: string
+                    pattern: '^[a-z][a-z0-9_]{0,39}$'
+                  label:
+                    type: string
+                    minLength: 1
+                    maxLength: 80
+
+    CategoryFieldYesNo:
+      allOf:
+        - $ref: '#/components/schemas/CategoryFieldCommon'
+        - type: object
+          properties:
+            type: { type: string, enum: [YES_NO] }
+
+    # --- Phase 2: Idea Structured Answers --------------------------
+
+    IdeaCategoryAnswers:
+      type: array
+      maxItems: 20
+      items: { $ref: '#/components/schemas/IdeaStructuredAnswer' }
+
+    IdeaStructuredAnswer:
+      type: object
+      required: [key, labelSnapshot, type, value]
+      properties:
+        key:
+          type: string
+          pattern: '^[a-z][a-z0-9_]{0,39}$'
+        labelSnapshot:
+          type: string
+          minLength: 1
+          maxLength: 80
+        type:
+          type: string
+          enum: [SHORT_TEXT, LONG_TEXT, NUMBER, SINGLE_CHOICE, YES_NO]
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+        valueLabelSnapshot:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: |
+            **Present only when `type === 'SINGLE_CHOICE'`.** Copy of
+            the chosen option's `label` at submission time; the
+            detail page renders this string (not `value`) so that
+            historical answers survive later option renames or
+            removals (FR-008).
+
+    # --- Phase 2: Idea request / detail with answers ---------------
+
+    CreateIdeaRequest:
+      type: object
+      required: [title, description, categoryChoice]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        categoryChoice:
+          type: string
+          description: |
+            Existing category id, or the sentinel `__propose__` to
+            propose a new category at submission time (Phase 1
+            FR-008b).
+        proposedCategoryName:
+          type: string
+          maxLength: 40
+        attachmentId:
+          type: string
+          nullable: true
+          description: Staged attachment id from `POST /api/attachments`.
+        answers:
+          $ref: '#/components/schemas/AnswersInput'
+
+    AnswersInput:
+      type: object
+      additionalProperties:
+        oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+      description: |
+        Flat map keyed by field `key`. The server resolves the
+        chosen category's live schema and rejects unknown keys,
+        missing required keys, and out-of-range values with the
+        appropriate `IDEA_ANSWER_*` code (see `POST /api/ideas`).
+        Omitted optional keys mean "no answer".
+
+    IdeaDetail:
+      type: object
+      required: [id, authorId, title, description, categoryId, categoryName, categoryState, status, createdAt, updatedAt, attachment, answers]
+      properties:
+        id: { type: string, format: uuid }
+        authorId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        categoryId: { type: string, format: uuid }
+        categoryName: { type: string }
+        categoryState:
+          type: string
+          enum: [ACTIVE, PROPOSED, REJECTED]
+        status:
+          type: string
+          enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED]
+        createdAt: { type: integer, format: int64 }
+        updatedAt: { type: integer, format: int64 }
+        attachment:
+          oneOf:
+            - type: 'null'
+            - type: object
+              required: [id, originalName, sizeBytes, mimeType]
+              properties:
+                id: { type: string, format: uuid }
+                originalName: { type: string }
+                sizeBytes: { type: integer }
+                mimeType: { type: string }
+        answers:
+          $ref: '#/components/schemas/IdeaCategoryAnswers'
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid session — `AUTH_SESSION_EXPIRED` or `AUTH_INVALID_CREDENTIALS`.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Authenticated but lacks the required role — `AUTH_FORBIDDEN_ROLE`.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

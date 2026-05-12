@@ -9,7 +9,10 @@ on:
 env:
   CI: "true"
   NEXTAUTH_SECRET: "ci-test-secret-not-for-production-use-only"
+  AUTH_SECRET: "ci-test-secret-not-for-production-use-only"
   NEXTAUTH_URL: "http://localhost:3000"
+  AUTH_URL: "http://localhost:3000"
+  AUTH_TRUST_HOST: "true"
   DATABASE_URL: "file:./data/innovatepam.db"
   BOOTSTRAP_ADMIN_EMAIL: "admin@innovatepam.test"
 
