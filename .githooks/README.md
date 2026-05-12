@@ -26,3 +26,6 @@ pwsh -File scripts/install-hooks.ps1
   Push Discipline) by pushing every new commit to the upstream of the
   current branch immediately after it lands locally. Set
   `SPECIFY_NO_AUTO_PUSH=1` to skip during batch operations.
+- **post-merge** — same auto-push behaviour for merge commits, so
+  end-of-feature `git merge --no-ff` (Principle X) lands on `origin`
+  immediately. Honours the same `SPECIFY_NO_AUTO_PUSH=1` escape hatch.

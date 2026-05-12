@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+# Constitution VIII + X — push the merge commit immediately so
+# `main` and the feature branch stay in sync on `origin`.
+set -e
+
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+[ -z "$branch" ] && exit 0
+[ "$branch" = "HEAD" ] && exit 0
+
+if [ "${SPECIFY_NO_AUTO_PUSH:-0}" = "1" ]; then
+  echo "[post-merge] SPECIFY_NO_AUTO_PUSH=1 — skipping push"
+  exit 0
+fi
+
+if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+  echo "[post-merge] pushing $branch to its upstream..."
+  git push --quiet || {
+    echo "[post-merge] push failed; resolve before next commit (Constitution VIII/X)" >&2
+    exit 0
+  }
+else
+  echo "[post-merge] no upstream for $branch — run: git push -u origin $branch"
+fi
