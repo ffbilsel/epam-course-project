@@ -3,13 +3,18 @@ import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/ideas/status-badge";
 import { TransitionDialog } from "@/components/ideas/transition-dialog";
 import { CategoryDetailsPanel } from "@/components/ideas/category-details-panel";
+import { EditIdeaButton } from "@/components/ideas/edit-idea-button";
+import { DeleteIdeaDialog } from "@/components/ideas/delete-idea-dialog";
+import { IdeaHistoryTab } from "@/components/ideas/idea-history-tab";
 import { auth } from "@/server/auth-options";
-import { getIdeaDetail, listIdeaTransitions } from "@/server/idea-service";
+import { getIdeaDetail } from "@/server/idea-service";
+import { getIdeaHistory } from "@/server/idea-history";
 import { formatDateTime } from "@/lib/format/date";
-import { canTransition } from "@/server/idea-state-machine";
+import { canTransition, canAuthorEdit } from "@/server/idea-state-machine";
 
 interface PageProps {
   params: { id: string };
@@ -35,7 +40,10 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
   if (!isAuthor && !isReviewer) {
     redirect("/my-ideas");
   }
-  const transitions = await listIdeaTransitions(detail.id);
+  const transitions = await getIdeaHistory(detail.id, {
+    id: session.user.id,
+    role: session.user.role,
+  });
 
   const stateMachineInput = {
     idea: { status: detail.status, authorId: detail.authorId, categoryState: detail.categoryState },
@@ -62,95 +70,112 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
           <StatusBadge status={detail.status} />
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Description</CardTitle>
-          </CardHeader>
-          <CardContent className="whitespace-pre-wrap text-sm">{detail.description}</CardContent>
-        </Card>
+        <Tabs defaultValue="details">
+          <TabsList>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
 
-        <CategoryDetailsPanel answers={detail.answers} categoryName={detail.categoryName} />
+          <TabsContent value="details" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Description</CardTitle>
+              </CardHeader>
+              <CardContent className="whitespace-pre-wrap text-sm">
+                {detail.description}
+              </CardContent>
+            </Card>
 
-        {detail.attachment && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Attachment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Link
-                className="text-sm underline"
-                href={`/api/ideas/${detail.id}/attachment`}
-                prefetch={false}
-              >
-                {detail.attachment.originalName} ({Math.round(detail.attachment.sizeBytes / 1024)}{" "}
-                KB)
-              </Link>
-            </CardContent>
-          </Card>
-        )}
+            <CategoryDetailsPanel answers={detail.answers} categoryName={detail.categoryName} />
 
-        {isReviewer && !isAuthor && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Reviewer actions</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {canTransition({ ...stateMachineInput, action: "START_REVIEW" }) && (
-                <TransitionDialog ideaId={detail.id} action="START_REVIEW" label="Start review" />
-              )}
-              {canTransition({ ...stateMachineInput, action: "APPROVE" }) && (
-                <TransitionDialog
-                  ideaId={detail.id}
-                  action="APPROVE"
-                  label="Approve"
-                  requireComment
-                />
-              )}
-              {canTransition({ ...stateMachineInput, action: "REJECT" }) && (
-                <TransitionDialog
-                  ideaId={detail.id}
-                  action="REJECT"
-                  label="Reject"
-                  requireComment
-                />
-              )}
-              {canTransition({ ...stateMachineInput, action: "IMPLEMENT" }) && (
-                <TransitionDialog ideaId={detail.id} action="IMPLEMENT" label="Mark implemented" />
-              )}
-              {detail.categoryState === "PROPOSED" && (
-                <p className="text-sm text-muted-foreground">
-                  This idea&apos;s category is awaiting Admin approval.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle>History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {transitions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No status changes yet.</p>
-            ) : (
-              <ul className="space-y-3 text-sm">
-                {transitions.map((t) => (
-                  <li key={t.id} className="border-l-2 border-muted pl-3">
-                    <div>
-                      <span className="font-medium">{t.from.replace("_", " ")}</span> →{" "}
-                      <span className="font-medium">{t.to.replace("_", " ")}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDateTime(new Date(t.recordedAt))}
-                    </div>
-                    {t.comment && <p className="mt-1 italic">“{t.comment}”</p>}
-                  </li>
-                ))}
-              </ul>
+            {detail.attachment && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Attachment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Link
+                    className="text-sm underline"
+                    href={`/api/ideas/${detail.id}/attachment`}
+                    prefetch={false}
+                  >
+                    {detail.attachment.originalName} (
+                    {Math.round(detail.attachment.sizeBytes / 1024)} KB)
+                  </Link>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
+
+            {isReviewer && !isAuthor && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reviewer actions</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  {canTransition({ ...stateMachineInput, action: "START_REVIEW" }) && (
+                    <TransitionDialog
+                      ideaId={detail.id}
+                      action="START_REVIEW"
+                      label="Start review"
+                    />
+                  )}
+                  {canTransition({ ...stateMachineInput, action: "APPROVE" }) && (
+                    <TransitionDialog
+                      ideaId={detail.id}
+                      action="APPROVE"
+                      label="Approve"
+                      requireComment
+                    />
+                  )}
+                  {canTransition({ ...stateMachineInput, action: "REJECT" }) && (
+                    <TransitionDialog
+                      ideaId={detail.id}
+                      action="REJECT"
+                      label="Reject"
+                      requireComment
+                    />
+                  )}
+                  {canTransition({ ...stateMachineInput, action: "IMPLEMENT" }) && (
+                    <TransitionDialog
+                      ideaId={detail.id}
+                      action="IMPLEMENT"
+                      label="Mark implemented"
+                    />
+                  )}
+                  {detail.categoryState === "PROPOSED" && (
+                    <p className="text-sm text-muted-foreground">
+                      This idea&apos;s category is awaiting Admin approval.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {isAuthor &&
+              canAuthorEdit({
+                idea: { status: detail.status, authorId: detail.authorId },
+                actor: { id: session.user.id },
+              }) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Manage your idea</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-2">
+                    <EditIdeaButton ideaId={detail.id} />
+                    <DeleteIdeaDialog ideaId={detail.id} ideaTitle={detail.title} />
+                  </CardContent>
+                </Card>
+              )}
+          </TabsContent>
+
+          <TabsContent value="history">
+            <Card>
+              <CardContent className="py-4">
+                <IdeaHistoryTab events={transitions} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <p className="text-xs text-muted-foreground">
           Submitted {formatDateTime(new Date(detail.createdAt))} • Updated{" "}

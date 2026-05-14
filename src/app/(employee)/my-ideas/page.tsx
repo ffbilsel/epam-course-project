@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ideas/status-badge";
+import { IdeaFilterBar } from "@/components/ideas/idea-filter-bar";
+import { IdeaPagination } from "@/components/ideas/idea-pagination";
 import {
   Table,
   TableBody,
@@ -14,18 +15,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { auth } from "@/server/auth-options";
-import { listMineIdeas } from "@/server/idea-service";
+import { runListingQuery } from "@/server/idea-listing";
+import { listCategories } from "@/db/repositories/category-repo";
+import { parseListingQuery } from "@/lib/validation/idea";
 import { formatDate } from "@/lib/format/date";
 
+interface PageProps {
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
+function toSearchParams(searchParams: PageProps["searchParams"]): URLSearchParams {
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(searchParams)) {
+    if (Array.isArray(v)) for (const x of v) sp.append(k, x);
+    else if (v !== undefined) sp.set(k, v);
+  }
+  return sp;
+}
+
 /**
- * "My Ideas" — Employee landing page listing the caller's own
- * submissions.
+ * "My Ideas" — Employee landing page. Lists the caller's own
+ * ideas, with the shared filter bar (US2) and pagination (US3).
  */
-export default async function MyIdeasPage(): Promise<JSX.Element> {
+export default async function MyIdeasPage({ searchParams }: PageProps): Promise<JSX.Element> {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/my-ideas");
 
-  const ideas = await listMineIdeas(session.user.id);
+  const sp = toSearchParams(searchParams);
+  sp.set("scope", "mine");
+  const query = parseListingQuery(sp);
+  const page = await runListingQuery(query, {
+    id: session.user.id,
+    role: session.user.role,
+  });
+  const cats = await listCategories("ACTIVE");
+
   return (
     <>
       <Header />
@@ -42,7 +66,9 @@ export default async function MyIdeasPage(): Promise<JSX.Element> {
           </Button>
         </div>
 
-        {ideas.length === 0 ? (
+        <IdeaFilterBar categories={cats.map((c) => ({ id: c.id, name: c.name }))} />
+
+        {page.total === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
               <div
@@ -51,12 +77,12 @@ export default async function MyIdeasPage(): Promise<JSX.Element> {
               >
                 💡
               </div>
-              <p className="text-base font-medium">No ideas yet</p>
+              <p className="text-base font-medium">No ideas match your filters</p>
               <p className="max-w-sm text-sm text-muted-foreground">
-                Got an idea worth sharing? Submit your first one and start the conversation.
+                Adjust the search above or submit a brand-new idea.
               </p>
               <Button asChild className="mt-2">
-                <Link href="/ideas/new">Submit your first idea</Link>
+                <Link href="/ideas/new">Submit a new idea</Link>
               </Button>
             </CardContent>
           </Card>
@@ -73,21 +99,14 @@ export default async function MyIdeasPage(): Promise<JSX.Element> {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ideas.map((i) => (
+                  {page.rows.map((i) => (
                     <TableRow key={i.id} className="transition-colors hover:bg-accent/40">
                       <TableCell>
                         <Link href={`/ideas/${i.id}`} className="font-medium hover:underline">
                           {i.title}
                         </Link>
                       </TableCell>
-                      <TableCell>
-                        {i.categoryName}
-                        {i.categoryState === "PROPOSED" && (
-                          <Badge variant="secondary" className="ml-2">
-                            Pending
-                          </Badge>
-                        )}
-                      </TableCell>
+                      <TableCell>{i.categoryName}</TableCell>
                       <TableCell>
                         <StatusBadge status={i.status} />
                       </TableCell>
@@ -101,6 +120,13 @@ export default async function MyIdeasPage(): Promise<JSX.Element> {
             </CardContent>
           </Card>
         )}
+
+        <IdeaPagination
+          page={page.page}
+          pageSize={page.pageSize}
+          totalPages={page.totalPages}
+          total={page.total}
+        />
       </main>
     </>
   );

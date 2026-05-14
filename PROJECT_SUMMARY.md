@@ -16,7 +16,7 @@ InnovatEPAM Portal is an internal **employee innovation management platform** fo
 
 Built as the capstone for the EPAM A201 course as a **Spec-Driven Development (SDD)** exercise using **GitHub SpecKit + GitHub Copilot**. The repository contains formal specs, ADRs, a constitution with quality gates, and a fully runnable Next.js app with offline SQLite storage.
 
-Phase 1 covers the MVP (auth, submission, review). Phase 2 adds **Smart Submission Forms** (admin-defined per-category dynamic field schemas with runtime Zod validation and label snapshots).
+Phase 1 covers the MVP (auth, submission, review). Phase 2 adds **Smart Submission Forms** (admin-defined per-category dynamic field schemas with runtime Zod validation and label snapshots). Phase 3 adds **Idea Listing & Management** (author self-service edit/delete, server-side filtering/search/pagination, a combined audit timeline, and an admin CSV export).
 
 ---
 
@@ -41,7 +41,15 @@ Phase 1 covers the MVP (auth, submission, review). Phase 2 adds **Smart Submissi
 - Reviewer detail page renders answers grouped under category name.
 - Orphaned answers (field removed from schema later) still render under last known label.
 
-### Phases 3–7
+### Phase 3 — Idea Listing & Management (complete)
+
+- **Author edit & delete** on `SUBMITTED` ideas (title, description, category, attachment, structured answers). Edits are recorded as `from = to` rows in `status_transitions` so the timeline shows them alongside reviewer decisions (ADR-0015).
+- **Shared listing contract**: server-side `q`, `categoryId`, multi-`status`, `from`/`to` date range, `scope` (`mine` / `queue` / `all`), and pagination (20 / 50 / 100). Identical filter bar across My Ideas, the reviewer queue, and the admin all-ideas page (ADR-0014).
+- **Out-of-range pages clamped server-side** with `Cache-Control: no-store` to avoid stale redirects.
+- **History tab**: a unified audit timeline that folds the synthesised submission event, author edits, and reviewer transitions into one chronological feed; author plus reviewers/admins can read, everyone else gets `AUTH_FORBIDDEN_ROLE`.
+- **Admin CSV export**: RFC 4180-quoted streaming download from `/api/ideas/export`, scoped to the current filter set, with a `idea_export` security log entry on completion (ADR-0016).
+
+### Phases 4–7
 
 Not implemented in this codebase (no multi-attachment, draft, multi-stage, blind-review, or scoring features).
 
@@ -90,6 +98,12 @@ Phase 2 (`specs/002-smart-forms/adr/`):
 - 0010 Answer storage & label snapshot
 - 0011 Dynamic Zod validation
 - 0012 Field type taxonomy
+
+Phase 3 (`specs/003-idea-listing-management/adr/`):
+- 0013 Edit/delete cut-off & audit policy
+- 0014 Shared listing query design
+- 0015 Edit audit marker (`from = to` row)
+- 0016 Streaming CSV export
 
 ---
 

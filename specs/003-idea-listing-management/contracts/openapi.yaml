@@ -1,0 +1,248 @@
+openapi: 3.0.3
+info:
+  title: InnovatEPAM Portal — Phase 3 REST delta
+  version: "0.3.0"
+  description: |
+    Endpoints added or changed by feature 003-idea-listing-management.
+    All errors use the platform envelope `{ error: { code, message } }`
+    where `code` is a member of `src/lib/errors/codes.ts`.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/ideas:
+    get:
+      summary: List ideas, server-side filtered and paginated.
+      description: |
+        The scope is implicit in the calling session: employees see only
+        their own ideas; reviewers see the review queue; admins see
+        everything. The same endpoint backs every listing page.
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string, maxLength: 200 }
+        - in: query
+          name: categoryId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: status
+          description: Repeatable. One or more lifecycle statuses.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED]
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, enum: [20, 50, 100], default: 20 }
+      responses:
+        "200":
+          description: A page of summaries.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdeaListingPage" }
+        "400":
+          description: Range/page/search invalid.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+        "401":
+          description: Unauthenticated.
+
+  /api/ideas/{id}:
+    patch:
+      summary: Edit own idea (author only, only while SUBMITTED).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateIdeaInput" }
+      responses:
+        "200":
+          description: Updated idea summary.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdeaSummary" }
+        "400":
+          description: Validation error (title, description, answers).
+        "403":
+          description: Not the author. `FORBIDDEN`.
+        "404":
+          description: Not found. `IDEA_NOT_FOUND`.
+        "409":
+          description: Not in SUBMITTED. `IDEA_NOT_EDITABLE`.
+    delete:
+      summary: Hard-delete own idea (author only, only while SUBMITTED).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Deleted. }
+        "403": { description: "`FORBIDDEN`." }
+        "404": { description: "`IDEA_NOT_FOUND`." }
+        "409": { description: "`IDEA_NOT_DELETABLE`." }
+
+  /api/ideas/{id}/history:
+    get:
+      summary: Chronological history (SUBMITTED + EDITED + TRANSITION events).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Non-empty event list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items: { $ref: "#/components/schemas/IdeaHistoryEvent" }
+        "403": { description: "`FORBIDDEN`." }
+        "404": { description: "`IDEA_NOT_FOUND`." }
+
+  /api/ideas/export:
+    get:
+      summary: Streamed CSV export of the current filter set (admin only).
+      description: |
+        Accepts the same query parameters as `GET /api/ideas` except
+        `page` and `pageSize` (every matching row is exported).
+        Logs a `security` event of kind `idea_export`.
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string, maxLength: 200 }
+        - in: query
+          name: categoryId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED]
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: CSV stream.
+          headers:
+            Content-Disposition:
+              schema: { type: string, example: 'attachment; filename="ideas-2026-05-14.csv"' }
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: |
+                  id,title,status,category,author_email,created_at,updated_at,latest_decision_at,latest_decision_actor,latest_decision_comment
+                  abc...,Coffee machine,APPROVED,Office,alice@epam.com,2026-05-01T08:00:00Z,2026-05-03T11:00:00Z,2026-05-03T11:00:00Z,Bob Reviewer,"Great idea"
+        "401": { description: Unauthenticated. }
+        "403": { description: Not admin. `FORBIDDEN`. }
+        "400":
+          description: Filter invalid. `IDEA_EXPORT_FORBIDDEN_FILTER` or any listing error.
+
+components:
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+
+    IdeaSummary:
+      type: object
+      required: [id, title, status, categoryId, categoryName, authorId, authorName, createdAt, updatedAt]
+      properties:
+        id:           { type: string, format: uuid }
+        title:        { type: string }
+        status:       { type: string, enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED] }
+        categoryId:   { type: string, format: uuid }
+        categoryName: { type: string }
+        authorId:     { type: string, format: uuid }
+        authorName:   { type: string }
+        createdAt:    { type: string, format: date-time }
+        updatedAt:    { type: string, format: date-time }
+
+    IdeaListingPage:
+      type: object
+      required: [rows, total, page, pageSize, totalPages]
+      properties:
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/IdeaSummary" }
+        total:      { type: integer, minimum: 0 }
+        page:       { type: integer, minimum: 1 }
+        pageSize:   { type: integer, enum: [20, 50, 100] }
+        totalPages: { type: integer, minimum: 0 }
+
+    UpdateIdeaInput:
+      type: object
+      required: [title, description, categoryId, answers]
+      properties:
+        title:       { type: string, minLength: 3, maxLength: 120 }
+        description: { type: string, minLength: 20, maxLength: 5000 }
+        categoryId:  { type: string, format: uuid }
+        answers:
+          type: array
+          items:
+            type: object
+            required: [questionId, value]
+            properties:
+              questionId: { type: string }
+              value: {}
+
+    IdeaHistoryEvent:
+      oneOf:
+        - type: object
+          required: [kind, at, actorId, actorName]
+          properties:
+            kind:      { type: string, enum: [SUBMITTED] }
+            at:        { type: string, format: date-time }
+            actorId:   { type: string, format: uuid }
+            actorName: { type: string }
+        - type: object
+          required: [kind, at, actorId, actorName, comment]
+          properties:
+            kind:      { type: string, enum: [EDITED] }
+            at:        { type: string, format: date-time }
+            actorId:   { type: string, format: uuid }
+            actorName: { type: string }
+            comment:   { type: string, nullable: true }
+        - type: object
+          required: [kind, at, actorId, actorName, from, to, comment]
+          properties:
+            kind:      { type: string, enum: [TRANSITION] }
+            at:        { type: string, format: date-time }
+            actorId:   { type: string, format: uuid }
+            actorName: { type: string }
+            from:      { type: string, enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED] }
+            to:        { type: string, enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED] }
+            comment:   { type: string, nullable: true }
