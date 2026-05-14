@@ -38,11 +38,11 @@ US1 + US2.
 
 **Purpose**: small repo-wide groundwork shared by every story.
 
-- [ ] T001 Add 13 new error codes to `src/lib/errors/codes.ts` — `DRAFT_NOT_FOUND`, `DRAFT_FORBIDDEN`, `DRAFT_VALIDATION`, `RATING_INVALID_SCORE`, `RATING_REQUIRED_MISSING`, `RATING_LOCKED`, `COMMENT_NOT_FOUND`, `COMMENT_FORBIDDEN`, `COMMENT_TOO_LONG`, `COMMENT_NESTING_EXCEEDED`, `COMMENT_EDIT_WINDOW_EXPIRED`, `INSIGHTS_FORBIDDEN`, `INSIGHTS_RANGE_INVALID`
-- [ ] T002 [P] Add matching UI copy for those 13 codes in `src/lib/errors/error-messages.ts`
-- [ ] T003 [P] Extend `SecurityEvent.event` union in `src/server/infra/logger.ts` with `draft_submitted`, `rating_locked`, `comment_moderated`, `anonymity_overridden`, `insights_viewed`
-- [ ] T004 [P] Add `tests/unit/lib/errors/new-codes-004.test.ts` asserting each new code has a UI message (Quality Gate 9)
-- [ ] T005 [P] Add `recharts ^2.12` runtime dependency to `package.json` (and lockfile) per [ADR-0021](./adr/0021-recharts-as-chart-engine.md)
+- [X] T001 Add 13 new error codes to `src/lib/errors/codes.ts` — `DRAFT_NOT_FOUND`, `DRAFT_FORBIDDEN`, `DRAFT_VALIDATION`, `RATING_INVALID_SCORE`, `RATING_REQUIRED_MISSING`, `RATING_LOCKED`, `COMMENT_NOT_FOUND`, `COMMENT_FORBIDDEN`, `COMMENT_TOO_LONG`, `COMMENT_NESTING_EXCEEDED`, `COMMENT_EDIT_WINDOW_EXPIRED`, `INSIGHTS_FORBIDDEN`, `INSIGHTS_RANGE_INVALID`
+- [X] T002 [P] Add matching UI copy for those 13 codes in `src/lib/errors/error-messages.ts`
+- [X] T003 [P] Extend `SecurityEvent.event` union in `src/server/infra/logger.ts` with `draft_submitted`, `rating_locked`, `comment_moderated`, `anonymity_overridden`, `insights_viewed`
+- [X] T004 [P] Add `tests/unit/lib/errors/new-codes-004.test.ts` asserting each new code has a UI message (Quality Gate 9)
+- [X] T005 [P] Add `recharts ^2.12` runtime dependency to `package.json` (and lockfile) per [ADR-0021](./adr/0021-recharts-as-chart-engine.md)
 
 **Checkpoint**: shared types, codes, and the chart engine are wired in.
 
