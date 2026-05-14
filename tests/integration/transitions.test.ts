@@ -5,6 +5,8 @@ import { categories, ideas, statusTransitions, users } from "@/db/schema";
 import { hashPassword } from "@/server/password";
 import { createIdea, applyTransition } from "@/server/idea-service";
 import { proposeCategory } from "@/server/category-service";
+import { putRatings } from "@/server/rating-service";
+import { listDimensionsForCategory } from "@/db/repositories/dimension-repo";
 import { FixedClock } from "@/server/infra/clock";
 
 let authorId: string;
@@ -62,10 +64,23 @@ async function makeIdea(): Promise<string> {
   return idea.id;
 }
 
+/** Score every required dimension for an idea so APPROVE can land. */
+async function scoreRequired(ideaId: string, evaluator: string): Promise<void> {
+  const idea = (await db.select().from(ideas).where(sql`${ideas.id} = ${ideaId}`).limit(1))[0]!;
+  const dims = await listDimensionsForCategory(idea.categoryId!);
+  const required = dims.filter((d) => d.required === 1);
+  await putRatings(
+    ideaId,
+    { id: evaluator, role: "EVALUATOR" },
+    { scores: required.map((d) => ({ dimensionId: d.id, score: 4 })) },
+  );
+}
+
 describe("transitions", () => {
   it("START_REVIEW → APPROVE happy path writes a transition row", async () => {
     const id = await makeIdea();
     await applyTransition(id, "START_REVIEW", null, { id: evaluatorId, role: "EVALUATOR" });
+    await scoreRequired(id, evaluatorId);
     const after = await applyTransition(id, "APPROVE", "looks good", {
       id: evaluatorId,
       role: "EVALUATOR",
@@ -81,6 +96,7 @@ describe("transitions", () => {
   it("APPROVE without comment → IDEA_COMMENT_REQUIRED", async () => {
     const id = await makeIdea();
     await applyTransition(id, "START_REVIEW", null, { id: evaluatorId, role: "EVALUATOR" });
+    await scoreRequired(id, evaluatorId);
     await expect(
       applyTransition(id, "APPROVE", "  ", { id: evaluatorId, role: "EVALUATOR" }),
     ).rejects.toMatchObject({ code: "IDEA_COMMENT_REQUIRED" });
@@ -101,6 +117,7 @@ describe("transitions", () => {
   it("IMPLEMENT by EVALUATOR → AUTH_FORBIDDEN_ROLE; by ADMIN → IMPLEMENTED", async () => {
     const id = await makeIdea();
     await applyTransition(id, "START_REVIEW", null, { id: evaluatorId, role: "EVALUATOR" });
+    await scoreRequired(id, evaluatorId);
     await applyTransition(id, "APPROVE", "ok", { id: evaluatorId, role: "EVALUATOR" });
     await expect(
       applyTransition(id, "IMPLEMENT", null, { id: evaluatorId, role: "EVALUATOR" }),
@@ -112,6 +129,7 @@ describe("transitions", () => {
   it("APPROVE again → IDEA_ALREADY_DECIDED", async () => {
     const id = await makeIdea();
     await applyTransition(id, "START_REVIEW", null, { id: evaluatorId, role: "EVALUATOR" });
+    await scoreRequired(id, evaluatorId);
     await applyTransition(id, "APPROVE", "ok", { id: evaluatorId, role: "EVALUATOR" });
     await expect(
       applyTransition(id, "APPROVE", "again", { id: evaluatorId, role: "EVALUATOR" }),

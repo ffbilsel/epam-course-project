@@ -206,8 +206,8 @@ export async function submitDraft(
       updatedAt: now,
       categoryAnswers: JSON.stringify(answers),
       anonymous: category.anonymousDefault ? 1 : 0,
-    });
-    void db.delete(ideaDrafts).where(eq(ideaDrafts.id, id));
+    }).run();
+    void db.delete(ideaDrafts).where(eq(ideaDrafts.id, id)).run();
   });
 
   logSecurityEvent({

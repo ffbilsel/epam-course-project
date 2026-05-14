@@ -8,6 +8,7 @@ import { streamIdeasCsv } from "@/server/idea-export";
 import { ListingQuerySchema } from "@/lib/validation/idea";
 import { FixedClock } from "@/server/infra/clock";
 import { AppError } from "@/lib/errors/AppError";
+import { scoreRequiredForApprove } from "../helpers/score-required";
 
 let authorA: string;
 let authorB: string;
@@ -187,6 +188,7 @@ describe("streamIdeasCsv", () => {
       createdAt: new Date("2026-05-01"),
     });
     await applyTransition(id, "START_REVIEW", null, { id: evaluatorId, role: "EVALUATOR" });
+    await scoreRequiredForApprove(id, evaluatorId);
     await applyTransition(id, "APPROVE", "looks good", {
       id: evaluatorId,
       role: "EVALUATOR",

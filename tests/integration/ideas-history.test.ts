@@ -7,6 +7,7 @@ import { createIdea, editIdea, applyTransition } from "@/server/idea-service";
 import { getIdeaHistory } from "@/server/idea-history";
 import { FixedClock } from "@/server/infra/clock";
 import { StaticIdGenerator } from "@/server/infra/id-generator";
+import { scoreRequiredForApprove } from "../helpers/score-required";
 
 let authorId: string;
 let strangerId: string;
@@ -102,6 +103,7 @@ describe("getIdeaHistory", () => {
       id: evaluatorId,
       role: "EVALUATOR",
     });
+    await scoreRequiredForApprove(ideaId, evaluatorId);
     await applyTransition(ideaId, "APPROVE", "looks good", {
       id: evaluatorId,
       role: "EVALUATOR",

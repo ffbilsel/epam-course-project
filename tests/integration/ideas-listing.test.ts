@@ -7,6 +7,7 @@ import { createIdea, applyTransition } from "@/server/idea-service";
 import { runListingQuery } from "@/server/idea-listing";
 import { ListingQuerySchema } from "@/lib/validation/idea";
 import { FixedClock } from "@/server/infra/clock";
+import { scoreRequiredForApprove } from "../helpers/score-required";
 
 let authorA: string;
 let authorB: string;
@@ -133,6 +134,7 @@ describe("runListingQuery", () => {
       id: evaluatorId,
       role: "EVALUATOR",
     });
+    await scoreRequiredForApprove(i2, evaluatorId);
     await applyTransition(i2, "APPROVE", "ok", { id: evaluatorId, role: "EVALUATOR" });
     void i1;
     const page = await runListingQuery(q({ scope: "queue" }), {
