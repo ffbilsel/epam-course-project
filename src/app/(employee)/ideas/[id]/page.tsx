@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,9 +67,7 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
   };
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+          <main className="mx-auto max-w-3xl space-y-6 px-4 py-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">{detail.title}</h1>
@@ -218,6 +215,5 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
           {formatDateTime(new Date(detail.updatedAt))}
         </p>
       </main>
-    </>
   );
 }

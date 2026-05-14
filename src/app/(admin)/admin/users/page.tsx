@@ -7,7 +7,7 @@ import { UsersTable } from "@/components/admin/users-table";
 export default async function AdminUsersPage(): Promise<JSX.Element> {
   const users = await listAllUsers();
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="mx-auto max-w-7xl px-4 py-6">
       <h1 className="mb-4 text-2xl font-semibold">Users</h1>
       <UsersTable
         users={users.map((u) => ({

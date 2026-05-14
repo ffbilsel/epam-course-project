@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ideas/status-badge";
 import { IdeaFilterBar } from "@/components/ideas/idea-filter-bar";
@@ -63,9 +62,7 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
   );
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+          <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -142,6 +139,5 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
           total={page.total}
         />
       </main>
-    </>
   );
 }

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ideas/status-badge";
@@ -51,9 +50,7 @@ export default async function MyIdeasPage({ searchParams }: PageProps): Promise<
   const cats = await listCategories("ACTIVE");
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+          <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">My Ideas</h1>
@@ -128,6 +125,5 @@ export default async function MyIdeasPage({ searchParams }: PageProps): Promise<
           total={page.total}
         />
       </main>
-    </>
   );
 }

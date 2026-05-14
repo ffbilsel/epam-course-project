@@ -41,6 +41,13 @@
   --motion-base: 200ms;
   --motion-slow: 320ms;
   --motion-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Phase 5 — Diff highlights (ADR-0024). WCAG AA against
+     --foreground (222 47% 11%) on light surface. */
+  --diff-add: 152 60% 22%;
+  --diff-add-bg: 138 76% 88%;
+  --diff-remove: 0 70% 32%;
+  --diff-remove-bg: 0 80% 92%;
 }
 
 .dark {
@@ -66,6 +73,35 @@
   --sidebar-muted: 215 20% 65%;
   --sidebar-active-bg: 243 60% 22%;
   --sidebar-active-fg: 243 100% 88%;
+}
+
+/* Also support [data-theme="dark"] (ADR-0022 alias used by the
+   server-rendered theme attribute). */
+[data-theme="dark"] {
+  --brand-50: 243 60% 22%;
+  --brand-100: 243 60% 28%;
+  --brand-500: 243 90% 70%;
+  --brand-600: 243 90% 78%;
+  --brand-700: 243 100% 88%;
+  --surface-1: 224 47% 9%;
+  --surface-2: 224 71% 4%;
+  --surface-3: 217 32% 17%;
+  --sidebar-bg: 224 47% 9%;
+  --sidebar-fg: 210 40% 98%;
+  --sidebar-muted: 215 20% 65%;
+  --sidebar-active-bg: 243 60% 22%;
+  --sidebar-active-fg: 243 100% 88%;
+  --diff-add: 138 70% 78%;
+  --diff-add-bg: 152 50% 18%;
+  --diff-remove: 0 90% 80%;
+  --diff-remove-bg: 0 60% 22%;
+}
+
+.dark {
+  --diff-add: 138 70% 78%;
+  --diff-add-bg: 152 50% 18%;
+  --diff-remove: 0 90% 80%;
+  --diff-remove-bg: 0 60% 22%;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -32,7 +32,7 @@ export async function InsightsPage({ range, actor, title, subtitle }: Props): Pr
   ]);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">{title ?? "Insights"}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}

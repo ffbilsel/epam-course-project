@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
+import { AppShell } from "@/components/layout/app-shell";
 import { auth } from "@/server/auth-options";
 
 /**
@@ -13,10 +13,5 @@ export default async function AdminLayout({
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/admin/users");
   if (session.user.role !== "ADMIN") redirect("/");
-  return (
-    <>
-      <Header />
-      {children}
-    </>
-  );
+  return <AppShell>{children}</AppShell>;
 }
