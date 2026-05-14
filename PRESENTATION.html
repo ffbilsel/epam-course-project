@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>InnovatEPAM Portal — Capstone Presentation</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css"
+      id="theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css"
+    />
+    <style>
+      :root {
+        --epam-orange: #ffa500;
+        --epam-yellow: #ffd54f;
+      }
+      .reveal h1,
+      .reveal h2,
+      .reveal h3 {
+        text-transform: none;
+        letter-spacing: -0.01em;
+      }
+      .reveal h1 {
+        color: var(--epam-yellow);
+      }
+      .reveal .accent {
+        color: var(--epam-orange);
+      }
+      .reveal section {
+        text-align: left;
+      }
+      .reveal section.center {
+        text-align: center;
+      }
+      .reveal img.shot {
+        max-height: 820px;
+        max-width: 100%;
+        width: auto;
+        border: 1px solid #444;
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        background: #fff;
+      }
+      .reveal .two-col {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 28px;
+        align-items: center;
+      }
+      .reveal .two-col img.shot {
+        max-height: 860px;
+        width: 100%;
+        object-fit: contain;
+      }
+      .reveal section > img.shot {
+        display: block;
+        margin: 0 auto;
+      }
+      .reveal .three-col {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .reveal .stat {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 18px 16px;
+        text-align: center;
+      }
+      .reveal .stat .num {
+        display: block;
+        color: var(--epam-yellow);
+        font-size: 2.4em;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      .reveal .stat .label {
+        font-size: 0.6em;
+        color: #ccc;
+      }
+      .reveal table {
+        font-size: 0.65em;
+      }
+      .reveal table th {
+        color: var(--epam-yellow);
+      }
+      .reveal pre {
+        font-size: 0.45em;
+      }
+      .reveal .small {
+        font-size: 0.7em;
+        color: #aaa;
+      }
+      .reveal .pill {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        font-size: 0.55em;
+        margin: 2px 4px;
+      }
+      .reveal .pill.ok {
+        border-color: #2e7d32;
+        color: #b9f6ca;
+      }
+      .reveal .pill.warn {
+        border-color: #ad6a00;
+        color: #ffd180;
+      }
+      .reveal .footer {
+        position: absolute;
+        bottom: 16px;
+        right: 24px;
+        color: #666;
+        font-size: 0.5em;
+      }
+      .reveal .lifecycle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-size: 0.7em;
+        flex-wrap: wrap;
+      }
+      .reveal .lifecycle .node {
+        background: #1a1a1a;
+        border: 1px solid var(--epam-orange);
+        color: var(--epam-yellow);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-weight: 600;
+        font-family: ui-monospace, monospace;
+      }
+      .reveal .lifecycle .arrow {
+        color: var(--epam-orange);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <!-- 1. Title -->
+        <section class="center" data-background-color="#0d0d0d">
+          <h1>InnovatEPAM Portal</h1>
+          <h3 class="accent">A201 “Beyond Vibe Coding” — Capstone Showcase</h3>
+          <p class="small">
+            A reference build for AI-native engineering:<br />
+            Spec-Driven Development · Context Engineering · Constitution-as-CI
+          </p>
+          <p style="margin-top: 1.2em">
+            <span class="pill">Fatih Furkan Bilsel</span>
+            <span class="pill">12 May 2026</span>
+            <span class="pill">GitHub Copilot + SpecKit</span>
+          </p>
+        </section>
+
+        <!-- 1b. Capstone framing -->
+        <section>
+          <h2>What this deck demonstrates</h2>
+          <ul>
+            <li><strong>This is a bootcamp capstone</strong>, not a product pitch — the artefact is the <em>process</em>, the app is the proof.</li>
+            <li><strong>AI as a force multiplier, not the architect.</strong> Every Copilot output is constrained by spec, ADR, types, tests and a CI “constitution”.</li>
+            <li><strong>Engineering judgement is visible</strong> in the file tree: 2 SpecKit features, 12 ADRs, a typed error registry, a pure-function state machine, custom CI checks.</li>
+            <li><strong>Reproducible workflow</strong>: <code>/speckit.specify → plan → tasks → implement</code> on every slice, same loop both phases.</li>
+          </ul>
+          <p class="small">
+            What follows: the AI-native workflow I used, then a screen tour mapped to the technical decisions behind each surface.
+          </p>
+        </section>
+
+        <!-- 1c. AI-native workflow -->
+        <section>
+          <h2>My AI-Native Workflow</h2>
+          <div class="two-col">
+            <div>
+              <h3 class="accent">Context engineering</h3>
+              <ul>
+                <li><code>.github/copilot-instructions.md</code> = project constitution loaded into every Copilot turn</li>
+                <li>Per-area <code>AGENTS.md</code> conventions (server, db, ui)</li>
+                <li>Spec + ADRs pinned as context before code generation</li>
+                <li>Custom checks (<code>check:error-codes</code>, <code>check:ui-tokens</code>) feed Copilot back its own mistakes</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="accent">Prompt loop per slice</h3>
+              <ol>
+                <li><code>/speckit.specify</code> — user stories, acceptance criteria</li>
+                <li><code>/speckit.plan</code> — tech approach, data model, contracts</li>
+                <li><code>/speckit.tasks</code> — atomic, testable units</li>
+                <li>Tests first, then implementation under Copilot</li>
+                <li>ADR for any irreversible call</li>
+              </ol>
+              <p class="small">Result: Copilot generates inside guardrails I designed — not the other way round.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Live: Sign-in -->
+        <section>
+          <h2>Sign in <span class="accent">(NextAuth + Argon2)</span></h2>
+          <div class="two-col">
+            <img class="shot" src="screenshots/01-login.png" alt="Login page" />
+            <div>
+              <ul>
+                <li>Credentials provider, JWT session, 24 h sliding</li>
+                <li>Argon2id password hashing</li>
+                <li>Edge middleware redirects to <code>/login?callbackUrl=…</code></li>
+                <li>First admin elevated by one-shot <code>BOOTSTRAP_ADMIN_EMAIL</code> marker (audited)</li>
+              </ul>
+              <p class="small">
+                <span class="pill ok">FR-027 sliding expiry</span>
+                <span class="pill ok">audited login_success / login_failure</span>
+              </p>
+            </div>
+          </div>
+          <div class="footer">screenshots/01-login.png</div>
+        </section>
+
+        <!-- 5. Register -->
+        <section>
+          <h2>Register</h2>
+          <div class="two-col">
+            <img class="shot" src="screenshots/02-register.png" alt="Register page" />
+            <div>
+              <ul>
+                <li>Self-service registration → starts as <code>EMPLOYEE</code></li>
+                <li>Password policy: ≥8 chars, ≥1 letter + ≥1 digit</li>
+                <li>Server-side Zod validation, typed <code>ERROR_CODES</code></li>
+                <li>Rate-limited; emits <code>register</code> security event</li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer">screenshots/02-register.png</div>
+        </section>
+
+        <!-- 6. Employee: My Ideas -->
+        <section>
+          <h2>Employee — My Ideas</h2>
+          <img class="shot" src="screenshots/03-employee-my-ideas.png" alt="My ideas" />
+          <p class="small">
+            All ideas authored by the signed-in user, newest first, with status badges and category.
+          </p>
+          <div class="footer">screenshots/03-employee-my-ideas.png</div>
+        </section>
+
+        <!-- 7. Submit form (empty) -->
+        <section>
+          <h2>Submit a New Idea</h2>
+          <div class="two-col">
+            <img class="shot" src="screenshots/04-employee-new-idea-empty.png" alt="New idea empty" />
+            <div>
+              <ul>
+                <li>Title, description, category, optional attachment</li>
+                <li><strong>One attachment</strong> staged then committed atomically</li>
+                <li>PDF / PNG / JPEG / DOCX / PPTX, ≤25 MB</li>
+                <li>Magic-number MIME sniff (defence-in-depth)</li>
+                <li>Auto-saved draft in <code>localStorage</code></li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer">screenshots/04-employee-new-idea-empty.png</div>
+        </section>
+
+        <!-- 8. Smart forms in action -->
+        <section>
+          <h2>Smart Forms <span class="accent">— Phase 2</span></h2>
+          <div class="two-col">
+            <img class="shot" src="screenshots/05-employee-new-idea-dynamic-fields.png" alt="Dynamic fields appear after picking a category" />
+            <div>
+              <ul>
+                <li>Pick "Process Improvement" → <strong>schema-driven fields appear inline</strong></li>
+                <li>Field types: short text, long text, number, single-choice, yes/no</li>
+                <li><strong>Runtime Zod schema</strong> built from the live category definition</li>
+                <li>Answers persist per-idea with <strong>label snapshots</strong> — review-time text survives later schema edits</li>
+              </ul>
+              <p class="small">
+                <span class="pill ok">ADR-0009 schema storage</span>
+                <span class="pill ok">ADR-0010 label snapshots</span>
+                <span class="pill ok">ADR-0011 dynamic Zod</span>
+              </p>
+            </div>
+          </div>
+          <div class="footer">screenshots/05-employee-new-idea-dynamic-fields.png</div>
+        </section>
+
+        <!-- 9. Idea detail (employee) -->
+        <section>
+          <h2>Idea Detail</h2>
+          <img class="shot" src="screenshots/06-employee-idea-detail.png" alt="Idea detail with structured answers" />
+          <p class="small">
+            Reads like a one-pager: status, description, attachment download, and the structured answers grouped under the category — rendered from the snapshot, not the live schema.
+          </p>
+          <div class="footer">screenshots/06-employee-idea-detail.png</div>
+        </section>
+
+        <!-- 10. Reviewer queue -->
+        <section>
+          <h2>Reviewer — Queue</h2>
+          <div class="two-col">
+            <img class="shot" src="screenshots/07-reviewer-queue.png" alt="Reviewer queue" />
+            <div>
+              <ul>
+                <li>All <code>SUBMITTED</code> ideas, oldest first</li>
+                <li>Pending-category badge prevents premature decisions (FR-018)</li>
+                <li>Self-evaluation forbidden — guarded both client- and server-side</li>
+                <li>Role gate: <code>EVALUATOR</code> + <code>ADMIN</code> only</li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer">screenshots/07-reviewer-queue.png</div>
+        </section>
+
+        <!-- 11. Reviewer detail -->
+        <section>
+          <h2>Reviewer — Decide</h2>
+          <img class="shot" src="screenshots/08-reviewer-idea-detail.png" alt="Reviewer detail with action buttons" />
+          <p class="small">
+            <strong>Start review</strong>, <strong>Approve</strong>, <strong>Reject</strong> — comment <span class="accent">required</span> on approve/reject. Buttons are gated by the same pure-function state machine that the API enforces in the DB transaction.
+          </p>
+          <div class="footer">screenshots/08-reviewer-idea-detail.png</div>
+        </section>
+
+        <!-- 12. State machine -->
+        <section>
+          <h2>Idea Lifecycle</h2>
+          <div class="lifecycle">
+            <div class="node">SUBMITTED</div>
+            <span class="arrow">→</span>
+            <div class="node">UNDER_REVIEW</div>
+            <span class="arrow">→</span>
+            <div class="node">APPROVED</div>
+            <span class="arrow">→</span>
+            <div class="node">IMPLEMENTED</div>
+          </div>
+          <p class="small" style="text-align: center; margin-top: 6px">
+            <code>REJECTED</code> branches off from SUBMITTED or UNDER_REVIEW.
+          </p>
+          <table>
+            <thead>
+              <tr><th>Action</th><th>From</th><th>To</th><th>Roles</th><th>Comment?</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>START_REVIEW</code></td><td>SUBMITTED</td><td>UNDER_REVIEW</td><td>EVALUATOR, ADMIN</td><td>—</td></tr>
+              <tr><td><code>APPROVE</code></td><td>SUBMITTED, UNDER_REVIEW</td><td>APPROVED</td><td>EVALUATOR, ADMIN</td><td><strong>required</strong></td></tr>
+              <tr><td><code>REJECT</code></td><td>SUBMITTED, UNDER_REVIEW</td><td>REJECTED</td><td>EVALUATOR, ADMIN</td><td><strong>required</strong></td></tr>
+              <tr><td><code>IMPLEMENT</code></td><td>APPROVED</td><td>IMPLEMENTED</td><td>ADMIN</td><td>—</td></tr>
+            </tbody>
+          </table>
+          <p class="small">
+            Pure function. Same evaluator runs in the API transaction <em>and</em> in the UI for button gating. Every transition appended to the <code>status_transitions</code> audit table.
+          </p>
+        </section>
+
+        <!-- 13. Admin users -->
+        <section>
+          <h2>Admin — Users</h2>
+          <img class="shot" src="screenshots/09-admin-users.png" alt="Admin users page" />
+          <p class="small">
+            Promote / demote between EMPLOYEE / EVALUATOR / ADMIN. Self-demotion is blocked. Every role change is audited.
+          </p>
+          <div class="footer">screenshots/09-admin-users.png</div>
+        </section>
+
+        <!-- 14. Admin categories -->
+        <section>
+          <h2>Admin — Categories</h2>
+          <img class="shot" src="screenshots/10-admin-categories.png" alt="Admin categories" />
+          <p class="small">
+            <code>PROPOSED</code> queue (employee-suggested) → admin approves to <code>ACTIVE</code> or rejects. Rejected categories' ideas re-link to the protected <strong>Other</strong>.
+          </p>
+          <div class="footer">screenshots/10-admin-categories.png</div>
+        </section>
+
+        <!-- 15. Schema editor -->
+        <section>
+          <h2>Admin — Per-Category Schema Editor</h2>
+          <img class="shot" src="screenshots/11-admin-category-schema.png" alt="Schema editor" />
+          <p class="small">
+            Add / remove / reorder fields. Saved schema becomes the live <strong>source of truth</strong> for new submissions; existing answers keep their snapshot labels, so renames never lose review-time meaning.
+          </p>
+          <div class="footer">screenshots/11-admin-category-schema.png</div>
+        </section>
+
+        <!-- 16. Tech stack -->
+        <section>
+          <h2>Tech Stack</h2>
+          <div class="three-col">
+            <div>
+              <h3 class="accent">Web</h3>
+              <ul>
+                <li>Next.js 14 (App Router, RSC-first)</li>
+                <li>React 18 + TypeScript 5 strict</li>
+                <li>Tailwind + shadcn/ui (Radix)</li>
+                <li>react-hook-form + Zod</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="accent">Server</h3>
+              <ul>
+                <li>NextAuth v5 + Credentials</li>
+                <li>Argon2id passwords</li>
+                <li>SQLite (better-sqlite3)</li>
+                <li>Drizzle ORM 0.33 + drizzle-kit</li>
+                <li>Pino structured logs, rate limiter</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="accent">Quality</h3>
+              <ul>
+                <li>Vitest unit + integration</li>
+                <li>Playwright E2E (chromium / firefox / webkit)</li>
+                <li>axe-core accessibility checks</li>
+                <li>ESLint + jsx-a11y + Prettier</li>
+                <li>Custom <code>check:error-codes</code>, <code>check:ui-tokens</code></li>
+              </ul>
+            </div>
+          </div>
+          <p class="small">
+            12 ADRs documented (<code>specs/001-…/adr/</code> + <code>specs/002-…/adr/</code>) — every non-trivial choice is justified and dated.
+          </p>
+        </section>
+
+        <!-- 17. Numbers -->
+        <section>
+          <h2>By the Numbers</h2>
+          <div class="three-col">
+            <div class="stat"><span class="num">78.8%</span><span class="label">Statement coverage<br />(1506 / 1912)</span></div>
+            <div class="stat"><span class="num">81.6%</span><span class="label">Branch coverage</span></div>
+            <div class="stat"><span class="num">84%</span><span class="label">Function coverage</span></div>
+          </div>
+          <div class="three-col" style="margin-top: 18px">
+            <div class="stat"><span class="num">13</span><span class="label">Vitest test files<br />(4 unit + 9 integration)</span></div>
+            <div class="stat"><span class="num">4</span><span class="label">Playwright E2E specs<br />(US1–US4 happy paths)</span></div>
+            <div class="stat"><span class="num">12</span><span class="label">ADRs documented</span></div>
+          </div>
+          <p class="small" style="margin-top: 18px">
+            Constitution gate: ≥70% coverage on <code>src/server/**</code> + <code>src/lib/**</code> — <strong>met</strong>. CI also enforces every <code>ERROR_CODES</code> entry to be exercised by ≥1 test, no raw hex/rgb literals in UI, and clean Prettier / ESLint / <code>tsc --noEmit</code>.
+          </p>
+        </section>
+
+        <!-- 18. Architecture highlights -->
+        <section>
+          <h2>Architecture Highlights</h2>
+          <ul>
+            <li><strong>RSC-first</strong> — every protected page does its own <code>auth()</code> + <code>redirect()</code>; no client trust.</li>
+            <li><strong>Pure-function state machine</strong> in <code>src/server/idea-state-machine.ts</code> — same evaluator in API transaction and in UI button gating.</li>
+            <li><strong>Defence-in-depth attachments</strong> — staged on disk, magic-number sniffed, then atomically committed when the idea row is created.</li>
+            <li><strong>Typed error codes</strong> + matching message registry — UI strings never drift from API contracts.</li>
+            <li><strong>Structured security audit log</strong> — every login, role change, transition, attachment.</li>
+            <li><strong>Local-first</strong> — single SQLite file in <code>data/</code>; works fully offline.</li>
+          </ul>
+        </section>
+
+        <!-- 19. Spec-Driven Development -->
+        <section>
+          <h2>Spec-Driven Development in Practice</h2>
+          <div class="two-col">
+            <div>
+              <h3 class="accent">For each phase</h3>
+              <ul>
+                <li><code>spec.md</code> — user stories &amp; acceptance criteria</li>
+                <li><code>plan.md</code> — tech approach</li>
+                <li><code>research.md</code> — options weighed</li>
+                <li><code>data-model.md</code> — tables &amp; constraints</li>
+                <li><code>contracts/openapi.yaml</code> — API shape</li>
+                <li><code>tasks.md</code> — granular implementation list</li>
+                <li><code>adr/</code> — irreversible decisions, dated</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="accent">Constitution as quality gate</h3>
+              <ul>
+                <li>Coverage thresholds enforced in CI</li>
+                <li>UI tokens only — no raw hex / rgb literals</li>
+                <li>Every <code>ERROR_CODE</code> exercised by ≥1 test</li>
+                <li>Drizzle migrations + seed run cleanly</li>
+                <li>Strict TS: <code>noUncheckedIndexedAccess</code>, <code>exactOptionalPropertyTypes</code></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 19b. Professional use of AI -->
+        <section>
+          <h2>Professional Use of AI — Concrete Examples</h2>
+          <div class="two-col">
+            <div>
+              <h3 class="accent">Where Copilot accelerated me</h3>
+              <ul>
+                <li>Drafting Drizzle schemas + migrations from <code>data-model.md</code></li>
+                <li>Generating Zod schemas paired with TS types from OpenAPI</li>
+                <li>Scaffolding RSC pages, server actions, shadcn forms</li>
+                <li>Producing Playwright specs from acceptance criteria</li>
+                <li>Mechanical refactors across the typed error registry</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="accent">Where I overrode Copilot</h3>
+              <ul>
+                <li>State machine kept as a <strong>pure function</strong>, not inlined in handlers — same evaluator UI + API</li>
+                <li>Attachments <strong>staged → committed atomically</strong> with magic-number sniff (security, not the first suggestion)</li>
+                <li>Smart-form answers store <strong>label snapshots</strong> so renames don’t rewrite history (ADR-0010)</li>
+                <li>Auth gates re-checked server-side on every RSC, not trusted from client</li>
+                <li>Every irreversible choice captured in an <strong>ADR</strong>, not just a commit</li>
+              </ul>
+            </div>
+          </div>
+          <p class="small">
+            The interesting work isn’t the code Copilot wrote — it’s the constraints I designed so that what it wrote was safe to merge.
+          </p>
+        </section>
+
+        <!-- Thank you -->
+        <section class="center" data-background-color="#0d0d0d">
+          <h1>Thank you</h1>
+          <p class="accent">Questions?</p>
+          <p class="small" style="margin-top: 1em">
+            <strong>Fatih Furkan Bilsel</strong> · 12 May 2026<br />
+            EPAM A201 — Beyond Vibe Coding
+          </p>
+          <p class="small">
+            <strong>Takeaway:</strong> AI tools amplify whatever discipline you bring to them.<br />
+            Spec, ADRs, types and CI are how I made that amplification safe.
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: "c/t",
+        transition: "slide",
+        controls: true,
+        progress: true,
+        width: 1600,
+        height: 1000,
+        margin: 0.04,
+        minScale: 0.2,
+        maxScale: 2.0,
+        plugins: [RevealHighlight, RevealNotes],
+      });
+    </script>
+  </body>
+</html>
