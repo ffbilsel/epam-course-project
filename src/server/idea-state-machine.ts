@@ -115,7 +115,20 @@ function checkComment(input: EvaluateTransitionInput, rule: Rule): Decision | nu
 
 /**
  * Convenience boolean for UI button gating.
+ *
+ * Note: gating ignores the `commentRequired` guard — the comment is
+ * collected by the action dialog at submit time, so we only want to
+ * know whether the action is structurally possible (role, self-eval,
+ * category state, from-state). The comment requirement is still
+ * enforced by {@link evaluateTransition} when the dialog POSTs and
+ * by the API route as defence-in-depth.
  */
 export function canTransition(input: EvaluateTransitionInput): boolean {
-  return evaluateTransition(input).kind === "allow";
+  const rule = MAP[input.action];
+  const guard =
+    checkRole(input, rule) ??
+    checkSelfEval(input) ??
+    checkCategoryPending(input) ??
+    checkFromState(input, rule);
+  return guard === null;
 }
