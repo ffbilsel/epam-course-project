@@ -67,6 +67,7 @@ export const ERROR_CODES = {
   ATTACHMENT_QUOTA_EXCEEDED: { httpStatus: 422 },
   ATTACHMENT_ORDER_INVALID: { httpStatus: 400 },
   ATTACHMENT_FORBIDDEN: { httpStatus: 403 },
+  ATTACHMENT_PREVIEW_UNSUPPORTED: { httpStatus: 415 },
   IDEA_VERSION_NOT_FOUND: { httpStatus: 404 },
   IDEA_VERSION_RANGE_INVALID: { httpStatus: 400 },
   NOTIFICATION_NOT_FOUND: { httpStatus: 404 },

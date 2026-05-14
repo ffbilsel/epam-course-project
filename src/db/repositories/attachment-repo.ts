@@ -102,13 +102,16 @@ export async function insertBatch(rows: Array<typeof attachments.$inferInsert>):
  * (`ATTACHMENT_ORDER_INVALID` otherwise).
  */
 export async function reorder(ideaId: string, orderedIds: string[]): Promise<void> {
-  await db.transaction(async (tx) => {
+  // better-sqlite3 transactions are synchronous; Drizzle requires a sync
+  // callback. We run the updates sequentially inside one transaction.
+  db.transaction((tx) => {
     for (let i = 0; i < orderedIds.length; i += 1) {
       const id = orderedIds[i]!;
-      await tx
+      tx
         .update(attachments)
         .set({ displayOrder: i })
-        .where(and(eq(attachments.ideaId, ideaId), eq(attachments.id, id)));
+        .where(and(eq(attachments.ideaId, ideaId), eq(attachments.id, id)))
+        .run();
     }
   });
 }
