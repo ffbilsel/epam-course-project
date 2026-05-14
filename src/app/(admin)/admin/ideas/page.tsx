@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ideas/status-badge";
 import { IdeaFilterBar } from "@/components/ideas/idea-filter-bar";
 import { IdeaPagination } from "@/components/ideas/idea-pagination";
+import { ExportIdeasButton } from "@/components/admin/export-ideas-button";
 import {
   Table,
   TableBody,
@@ -62,6 +63,10 @@ export default async function AdminIdeasPage({ searchParams }: PageProps): Promi
         </div>
 
         <IdeaFilterBar categories={cats.map((c) => ({ id: c.id, name: c.name }))} />
+
+        <div className="mb-4 flex justify-end">
+          <ExportIdeasButton />
+        </div>
 
         {page.total === 0 ? (
           <Card>

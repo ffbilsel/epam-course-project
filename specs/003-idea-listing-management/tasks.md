@@ -166,15 +166,15 @@ US1 + US2.
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T045 [P] [US5] Integration tests `tests/integration/ideas-export-csv.test.ts` — non-admin → 403; filter respected; row count matches listing total; quoting on title with commas/quotes/newlines; security event written
+- [X] T045 [P] [US5] Integration tests `tests/integration/ideas-export-csv.test.ts` — non-admin → 403; filter respected; row count matches listing total; quoting on title with commas/quotes/newlines; security event written
 - [ ] T046 [P] [US5] Extend E2E `tests/e2e/reviewer-filter-and-export.spec.ts` (export half) — download triggers, file parses, axe pass
 
 ### Implementation for User Story 5
 
-- [ ] T047 [P] [US5] Add `src/server/idea-export.ts` — `streamIdeasCsv(query, session)` returns a `ReadableStream<Uint8Array>` pulled in batches of 500 rows; logs `idea_export`. Depends on T029 (reuses listing predicate)
-- [ ] T048 [P] [US5] Add `src/components/admin/export-ideas-button.tsx` (preserves current URL filters in the export href)
-- [ ] T049 [US5] Add `GET` handler `src/app/api/ideas/export/route.ts` (admin-only role guard, sets `Content-Disposition`, returns the stream). Depends on T047
-- [ ] T050 [US5] Wire the button into `src/app/(admin)/admin/ideas/page.tsx`. Depends on T048
+- [X] T047 [P] [US5] Add `src/server/idea-export.ts` — `streamIdeasCsv(query, session)` returns a `ReadableStream<Uint8Array>` pulled in batches of 500 rows; logs `idea_export`. Depends on T029 (reuses listing predicate)
+- [X] T048 [P] [US5] Add `src/components/admin/export-ideas-button.tsx` (preserves current URL filters in the export href)
+- [X] T049 [US5] Add `GET` handler `src/app/api/ideas/export/route.ts` (admin-only role guard, sets `Content-Disposition`, returns the stream). Depends on T047
+- [X] T050 [US5] Wire the button into `src/app/(admin)/admin/ideas/page.tsx`. Depends on T048
 
 **Checkpoint**: all five stories independently functional.
 
