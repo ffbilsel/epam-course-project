@@ -8,6 +8,12 @@ import { sqliteClient } from "@/db/client";
 afterEach(() => {
   sqliteClient.exec(`
     PRAGMA foreign_keys = OFF;
+    DELETE FROM email_deliveries;
+    DELETE FROM notification_events;
+    DELETE FROM email_preferences;
+    DELETE FROM idea_versions;
+    DELETE FROM comments;
+    DELETE FROM ratings;
     DELETE FROM status_transitions;
     DELETE FROM attachments;
     DELETE FROM ideas;

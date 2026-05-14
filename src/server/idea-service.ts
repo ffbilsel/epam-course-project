@@ -349,8 +349,46 @@ export async function applyTransition(
     details: { ideaId, from: idea.status, to: decision.toState, action },
   });
 
+  // eslint-disable-next-line no-use-before-define -- inline US2 hook
+  await emitStatusChangedNotification(idea, decision.toState, actor, ideaId);
+
   return loadDetail(ideaId);
 }
+
+/* eslint-disable jsdoc/require-jsdoc -- internal helper */
+async function emitStatusChangedNotification(
+  idea: { authorId: string; title: string; status: string; anonymous?: number | boolean },
+  toState: string,
+  actor: { id: string; role: string },
+  ideaId: string,
+): Promise<void> {
+  if (idea.authorId === actor.id) return;
+  try {
+    const { enqueue } = await import("@/server/notification-service");
+    await enqueue([
+      {
+        recipientId: idea.authorId,
+        recipientRole: "EMPLOYEE",
+        actorId: actor.id,
+        ideaId,
+        kind: "STATUS_CHANGED",
+        payload: {
+          kind: "STATUS_CHANGED",
+          ideaTitle: idea.title,
+          fromState: idea.status as never,
+          toState: toState as never,
+          actorDisplayName: actor.role,
+        },
+        ideaAnonymous: Boolean(idea.anonymous),
+        actorIsAuthor: false,
+        preferenceKey: "statusChanges",
+      },
+    ]);
+  } catch {
+    // swallow — notification failure must never roll back a domain write
+  }
+}
+/* eslint-enable jsdoc/require-jsdoc */
 
 // re-export helpers used by category-service for transactional safety
 export const _internal = {
