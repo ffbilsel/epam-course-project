@@ -43,12 +43,29 @@ export interface CategoryWithSchema {
 }
 
 /**
- * Client form for submitting a new idea. Stages an attachment first
- * (if any), then POSTs the idea with the returned attachment id and
- * any structured answers driven by the selected category schema
- * (Phase 2 / FR-001..FR-004).
+ * Client form for submitting a new idea OR editing an existing one
+ * (US1). In `mode === "create"` it stages an attachment first (if
+ * any) and POSTs to `/api/ideas`. In `mode === "edit"` it PATCHes
+ * `/api/ideas/:id` with the structural fields and answers; the
+ * attachment surface is intentionally not exposed in edit mode
+ * (Phase 3 keeps attachment edits out of scope per spec assumptions).
  */
-export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): JSX.Element {
+export function IdeaForm({
+  categories,
+  mode = "create",
+  ideaId,
+  defaultValues,
+}: {
+  categories: CategoryWithSchema[];
+  mode?: "create" | "edit";
+  ideaId?: string;
+  defaultValues?: {
+    title: string;
+    description: string;
+    categoryChoice: string;
+    answers: Record<string, unknown>;
+  };
+}): JSX.Element {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -78,7 +95,7 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
         }
       }),
     ),
-    defaultValues: {
+    defaultValues: defaultValues ?? {
       title: "",
       description: "",
       categoryChoice: "",
@@ -86,7 +103,8 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
     },
   });
 
-  const draft = useFormDraft<FormValues>("draft:idea-form", watch(), (next) => reset(next));
+  const draftKey = mode === "edit" ? null : "draft:idea-form";
+  const draft = useFormDraft<FormValues>(draftKey, watch(), (next) => reset(next));
   const choice = watch("categoryChoice");
   const currentCategory = categoriesById.get(choice);
   const currentFields = currentCategory?.fieldSchema ?? [];
@@ -109,6 +127,29 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
   async function onSubmit(values: FormValues): Promise<void> {
     setSubmitting(true);
     try {
+      if (mode === "edit") {
+        if (!ideaId) throw new Error("ideaId is required for edit mode");
+        const body = {
+          title: values.title,
+          description: values.description,
+          categoryId: values.categoryChoice,
+          answers: values.answers ?? {},
+        };
+        const res = await fetch(`/api/ideas/${ideaId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const err = (await res.json()) as { error?: { code?: ErrorCode; message?: string } };
+          throw new Error(err.error?.message ?? "Update failed");
+        }
+        toast.success("Idea updated");
+        router.push(`/ideas/${ideaId}`);
+        router.refresh();
+        return;
+      }
+
       let attachmentId: string | null = null;
       if (file) {
         const fd = new FormData();
@@ -229,16 +270,28 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
       )}
       <div className="space-y-2">
         <Label htmlFor="file">Attachment (optional, ≤ 25 MB)</Label>
-        <input
-          id="file"
-          type="file"
-          accept=".pdf,.png,.jpg,.jpeg,.docx,.pptx"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block text-sm"
-        />
+        {mode === "edit" ? (
+          <p className="text-xs text-muted-foreground">
+            Attachment changes are not supported from the edit form yet.
+          </p>
+        ) : (
+          <input
+            id="file"
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.docx,.pptx"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="block text-sm"
+          />
+        )}
       </div>
       <Button type="submit" disabled={submitting}>
-        {submitting ? "Submitting…" : "Submit idea"}
+        {submitting
+          ? mode === "edit"
+            ? "Saving…"
+            : "Submitting…"
+          : mode === "edit"
+            ? "Save changes"
+            : "Submit idea"}
       </Button>
     </form>
   );

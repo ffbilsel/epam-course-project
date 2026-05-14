@@ -70,21 +70,21 @@ US1 + US2.
 
 ### Tests for User Story 1 ⚠️ (write first, ensure they fail)
 
-- [ ] T013 [P] [US1] Unit tests for `canAuthorEdit` / `canAuthorDelete` in `tests/unit/server/idea-service.edit-delete.test.ts` — one assertion per status × (own/other) matrix
-- [ ] T014 [P] [US1] Integration tests in `tests/integration/ideas-edit-delete.test.ts` covering: edit own `SUBMITTED` succeeds and writes an `EDITED` audit row; edit `UNDER_REVIEW` → 409; edit other's idea → 403; delete own `SUBMITTED` cascades to answers + attachments + transitions; delete `APPROVED` → 409
-- [ ] T015 [P] [US1] E2E in `tests/e2e/employee-edit-own-idea.spec.ts` — sign in, edit, see updated detail, axe scan passes (Quality Gate 8)
+- [X] T013 [P] [US1] Unit tests for `canAuthorEdit` / `canAuthorDelete` in `tests/unit/server/idea-service.edit-delete.test.ts` — one assertion per status × (own/other) matrix
+- [X] T014 [P] [US1] Integration tests in `tests/integration/ideas-edit-delete.test.ts` covering: edit own `SUBMITTED` succeeds and writes an `EDITED` audit row; edit `UNDER_REVIEW` → 409; edit other's idea → 403; delete own `SUBMITTED` cascades to answers + attachments + transitions; delete `APPROVED` → 409
+- [X] T015 [P] [US1] E2E in `tests/e2e/employee-edit-own-idea.spec.ts` — sign in, edit, see updated detail, axe scan passes (Quality Gate 8)
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Add `updateIdea(ideaId, fields)`, `hardDeleteIdea(ideaId)` to `src/db/repositories/idea-repo.ts`
-- [ ] T017 [P] [US1] Add `insertEditedMarker(ideaId, actorId, status, comment)` to `src/db/repositories/transition-repo.ts`
-- [ ] T018 [US1] Add `editIdea(ideaId, input, actor)` and `deleteIdea(ideaId, actor)` to `src/server/idea-service.ts` (transactional; emits `idea_edited` security event). Depends on T016, T017
-- [ ] T019 [P] [US1] Make `src/components/forms/idea-form.tsx` reusable for both create and edit (accept `defaultValues` + `mode`)
-- [ ] T020 [US1] Add page `src/app/(employee)/ideas/[id]/edit/page.tsx` (RSC: auth, load idea, render `IdeaForm`). Depends on T019
-- [ ] T021 [P] [US1] Add `src/components/ideas/edit-idea-button.tsx` (visibility gated on `canAuthorEdit`)
-- [ ] T022 [P] [US1] Add `src/components/ideas/delete-idea-dialog.tsx` (shadcn `Dialog`, destructive variant, confirm phrase)
-- [ ] T023 [US1] Wire Edit + Delete into `src/app/(employee)/ideas/[id]/page.tsx`. Depends on T021, T022
-- [ ] T024 [US1] Add `PATCH` + `DELETE` handlers to `src/app/api/ideas/[id]/route.ts` (Zod parse → `editIdea`/`deleteIdea` → error envelope). Depends on T018
+- [X] T016 [P] [US1] Add `updateIdea(ideaId, fields)`, `hardDeleteIdea(ideaId)` to `src/db/repositories/idea-repo.ts`
+- [X] T017 [P] [US1] Add `insertEditedMarker(ideaId, actorId, status, comment)` to `src/db/repositories/transition-repo.ts`
+- [X] T018 [US1] Add `editIdea(ideaId, input, actor)` and `deleteIdea(ideaId, actor)` to `src/server/idea-service.ts` (transactional; emits `idea_edited` security event). Depends on T016, T017
+- [X] T019 [P] [US1] Make `src/components/forms/idea-form.tsx` reusable for both create and edit (accept `defaultValues` + `mode`)
+- [X] T020 [US1] Add page `src/app/(employee)/ideas/[id]/edit/page.tsx` (RSC: auth, load idea, render `IdeaForm`). Depends on T019
+- [X] T021 [P] [US1] Add `src/components/ideas/edit-idea-button.tsx` (visibility gated on `canAuthorEdit`)
+- [X] T022 [P] [US1] Add `src/components/ideas/delete-idea-dialog.tsx` (shadcn `Dialog`, destructive variant, confirm phrase)
+- [X] T023 [US1] Wire Edit + Delete into `src/app/(employee)/ideas/[id]/page.tsx`. Depends on T021, T022
+- [X] T024 [US1] Add `PATCH` + `DELETE` handlers to `src/app/api/ideas/[id]/route.ts` (Zod parse → `editIdea`/`deleteIdea` → error envelope). Depends on T018
 
 **Checkpoint**: US1 demoable end-to-end.
 

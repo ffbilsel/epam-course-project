@@ -132,3 +132,27 @@ export function canTransition(input: EvaluateTransitionInput): boolean {
     checkFromState(input, rule);
   return guard === null;
 }
+
+/**
+ * Pure UI gate: returns true when the actor is the author of an idea
+ * whose status is still `SUBMITTED`. Anything past that is locked
+ * for the author (ADR-0013).
+ */
+export function canAuthorEdit(input: {
+  idea: { status: IdeaStatus; authorId: string };
+  actor: { id: string };
+}): boolean {
+  return input.actor.id === input.idea.authorId && input.idea.status === "SUBMITTED";
+}
+
+/**
+ * Pure UI gate: same predicate as {@link canAuthorEdit}; kept
+ * separate so future divergence (e.g. soft delete) doesn't have to
+ * rename a public symbol.
+ */
+export function canAuthorDelete(input: {
+  idea: { status: IdeaStatus; authorId: string };
+  actor: { id: string };
+}): boolean {
+  return canAuthorEdit(input);
+}

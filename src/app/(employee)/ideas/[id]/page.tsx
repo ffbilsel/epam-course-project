@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ideas/status-badge";
 import { TransitionDialog } from "@/components/ideas/transition-dialog";
 import { CategoryDetailsPanel } from "@/components/ideas/category-details-panel";
+import { EditIdeaButton } from "@/components/ideas/edit-idea-button";
+import { DeleteIdeaDialog } from "@/components/ideas/delete-idea-dialog";
 import { auth } from "@/server/auth-options";
 import { getIdeaDetail, listIdeaTransitions } from "@/server/idea-service";
 import { formatDateTime } from "@/lib/format/date";
-import { canTransition } from "@/server/idea-state-machine";
+import { canTransition, canAuthorEdit } from "@/server/idea-state-machine";
 
 interface PageProps {
   params: { id: string };
@@ -125,6 +127,22 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
             </CardContent>
           </Card>
         )}
+
+        {isAuthor &&
+          canAuthorEdit({
+            idea: { status: detail.status, authorId: detail.authorId },
+            actor: { id: session.user.id },
+          }) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Manage your idea</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                <EditIdeaButton ideaId={detail.id} />
+                <DeleteIdeaDialog ideaId={detail.id} ideaTitle={detail.title} />
+              </CardContent>
+            </Card>
+          )}
 
         <Card>
           <CardHeader>

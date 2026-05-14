@@ -1,7 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { withErrorHandler } from "@/lib/errors/with-error-handler";
 import { requireSession } from "@/server/role-guard";
-import { getIdeaDetail, listIdeaTransitions } from "@/server/idea-service";
+import {
+  getIdeaDetail,
+  listIdeaTransitions,
+  editIdea,
+  deleteIdea,
+} from "@/server/idea-service";
+import { UpdateIdeaSchema } from "@/lib/validation/idea";
 import { AppError } from "@/lib/errors/AppError";
 
 /**
@@ -20,5 +26,32 @@ export const GET = withErrorHandler(
     }
     const transitions = await listIdeaTransitions(detail.id);
     return NextResponse.json({ ...detail, transitions });
+  },
+);
+
+/**
+ * PATCH /api/ideas/:id — author edits an own SUBMITTED idea (US1).
+ */
+export const PATCH = withErrorHandler(
+  async (req: NextRequest, { params }: { params: { id: string } }) => {
+    const session = await requireSession();
+    const body = (await req.json()) as unknown;
+    const parsed = UpdateIdeaSchema.parse(body);
+    const updated = await editIdea(params.id, parsed, {
+      id: session.user.id,
+      role: session.user.role,
+    });
+    return NextResponse.json(updated);
+  },
+);
+
+/**
+ * DELETE /api/ideas/:id — author hard-deletes an own SUBMITTED idea (US1).
+ */
+export const DELETE = withErrorHandler(
+  async (_req: NextRequest, { params }: { params: { id: string } }) => {
+    const session = await requireSession();
+    await deleteIdea(params.id, { id: session.user.id, role: session.user.role });
+    return new NextResponse(null, { status: 204 });
   },
 );

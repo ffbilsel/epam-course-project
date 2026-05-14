@@ -111,3 +111,38 @@ export function parseAnswersJson(raw: string | null | undefined): IdeaStructured
   }
   return result.data;
 }
+
+/**
+ * Updates the editable structural fields of an idea (Phase 3 / US1).
+ * Caller is responsible for verifying `canAuthorEdit` and for
+ * validating answers against the current category schema.
+ */
+export async function updateIdea(
+  id: string,
+  fields: {
+    title: string;
+    description: string;
+    categoryId: string;
+    answers: readonly IdeaStructuredAnswer[];
+    updatedAt: number;
+  },
+): Promise<void> {
+  await db
+    .update(ideas)
+    .set({
+      title: fields.title,
+      description: fields.description,
+      categoryId: fields.categoryId,
+      categoryAnswers: JSON.stringify(fields.answers),
+      updatedAt: fields.updatedAt,
+    })
+    .where(eq(ideas.id, id));
+}
+
+/**
+ * Hard-deletes an idea. Cascades via FKs delete the row's answers
+ * (stored on the same row), attachments, and status_transitions.
+ */
+export async function hardDeleteIdea(id: string): Promise<void> {
+  await db.delete(ideas).where(eq(ideas.id, id));
+}
