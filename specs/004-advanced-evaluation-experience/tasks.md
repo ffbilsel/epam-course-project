@@ -261,12 +261,12 @@ must ship with Phase 4.
 
 ### Implementation for Hardening
 
-- [ ] T079 [H] Extend `src/server/idea-listing.ts` with a `concludedOnly` predicate (status ∈ {APPROVED, REJECTED, IMPLEMENTED} ∧ authorId = viewer) and a typed `EmployeeHistoryRow` projection (title, category, concludedAt, decision). Depends on T053 (anonymity projection)
-- [ ] T080 [P] [H] `src/components/dashboard/history-tab.tsx` — list, empty/loading/error states, links to `/ideas/[id]`
-- [ ] T081 [H] Add the History tab to `src/app/(employee)/dashboard/page.tsx` (shadcn `Tabs`: "Active" + "History"). Depends on T079, T080
-- [ ] T082 [H] Fix `src/components/ideas/idea-filter-bar.tsx`: restrict the status set to the queue surface (`SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `IMPLEMENTED`); treat empty selection as "no filter" (omit `status` from the URL entirely); show distinct empty-state copy for "queue empty" vs. "no matches"
-- [ ] T083 [H] Tighten `ListingQuerySchema` in `src/lib/validation/idea.ts` so an empty `status` array round-trips as "no filter" and is removed from the parsed query (not coerced to "no results"); rename `IDEA_LISTING_RANGE_INVALID` mapping if needed
-- [ ] T084 [H] Wire the corrected filter bar into `src/app/(reviewer)/queue/page.tsx` and ensure the URL serialiser drops empty `status`. Depends on T082, T083
+- [X] T079 [H] Extend `src/server/idea-listing.ts` with a `concludedOnly` predicate (status ∈ {APPROVED, REJECTED, IMPLEMENTED} ∧ authorId = viewer) and a typed `EmployeeHistoryRow` projection (title, category, concludedAt, decision). Depends on T053 (anonymity projection)
+- [X] T080 [P] [H] `src/components/dashboard/history-tab.tsx` — list, empty/loading/error states, links to `/ideas/[id]`
+- [X] T081 [H] Add the History tab to `src/app/(employee)/dashboard/page.tsx` (shadcn `Tabs`: "Active" + "History"). Depends on T079, T080
+- [X] T082 [H] Fix `src/components/ideas/idea-filter-bar.tsx`: restrict the status set to the queue surface (`SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `IMPLEMENTED`); treat empty selection as "no filter" (omit `status` from the URL entirely); show distinct empty-state copy for "queue empty" vs. "no matches"
+- [X] T083 [H] Tighten `ListingQuerySchema` in `src/lib/validation/idea.ts` so an empty `status` array round-trips as "no filter" and is removed from the parsed query (not coerced to "no results"); rename `IDEA_LISTING_RANGE_INVALID` mapping if needed
+- [X] T084 [H] Wire the corrected filter bar into `src/app/(reviewer)/queue/page.tsx` and ensure the URL serialiser drops empty `status`. Depends on T082, T083
 
 **Checkpoint**: FR-037 and FR-038 are closed and regression-tested.
 

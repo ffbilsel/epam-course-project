@@ -131,7 +131,11 @@ export const ListingQuerySchema = z
     status: z
       .array(z.enum(IDEA_STATUS_VALUES as readonly [string, ...string[]]))
       .max(IDEA_STATUS_VALUES.length)
-      .optional(),
+      .optional()
+      // Empty status array means "no filter" (FR-038), never "no
+      // results". Drop the field so downstream predicates fall back
+      // to the scope-default whitelist.
+      .transform((v) => (v && v.length === 0 ? undefined : v)),
     from: z.string().refine(isValidIsoDate, { message: "IDEA_LISTING_RANGE_INVALID" }).optional(),
     to: z.string().refine(isValidIsoDate, { message: "IDEA_LISTING_RANGE_INVALID" }).optional(),
     page: z.coerce.number().int().min(1).default(1),
