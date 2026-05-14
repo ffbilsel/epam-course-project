@@ -1,0 +1,503 @@
+openapi: 3.1.0
+info:
+  title: InnovatEPAM Portal — Phase 5 API Delta
+  version: 0.5.0
+  description: |
+    REST surfaces introduced or modified by feature
+    `005-attachments-history-notifications`. Authentication is the
+    existing NextAuth session cookie. All non-2xx responses conform
+    to the common error envelope:
+
+    ```json
+    {
+      "error": {
+        "code": "ATTACHMENT_LIMIT_EXCEEDED",
+        "message": "developer-facing English",
+        "details": { ... }
+      }
+    }
+    ```
+
+    See [data-model.md](../data-model.md) for entity shapes and
+    [research.md](../research.md) for the design rationale behind each
+    endpoint.
+
+servers:
+  - url: https://portal.example.com
+
+tags:
+  - name: attachments
+    description: Multi-attachment upload, reorder, remove, preview (Story 1).
+  - name: versions
+    description: Append-only idea version snapshots + diff viewer (Story 3).
+  - name: notifications
+    description: In-app notification list + mark-read (Story 2).
+  - name: email-preferences
+    description: Per-user toggles for outbound mail categories (Story 2).
+
+components:
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:    { type: string }
+            message: { type: string }
+            details: { type: object, additionalProperties: true }
+
+    AttachmentSummary:
+      type: object
+      required: [id, originalName, mimeType, sizeBytes, displayOrder, uploadedAt, previewKind]
+      properties:
+        id:            { type: string }
+        ideaId:        { type: string, nullable: true }
+        originalName:  { type: string }
+        mimeType:      { type: string }
+        sizeBytes:     { type: integer, format: int64 }
+        displayOrder:  { type: integer, minimum: 0 }
+        uploadedAt:    { type: string, format: date-time }
+        previewKind:
+          type: string
+          enum: [image, pdf, text, download]
+
+    AttachmentReorderRequest:
+      type: object
+      required: [orderedIds]
+      properties:
+        orderedIds:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items: { type: string }
+
+    IdeaVersionSummary:
+      type: object
+      required: [id, versionNo, actorId, createdAt]
+      properties:
+        id:        { type: string }
+        versionNo: { type: integer, minimum: 1 }
+        actorId:   { type: string }
+        createdAt: { type: string, format: date-time }
+
+    IdeaVersion:
+      allOf:
+        - $ref: '#/components/schemas/IdeaVersionSummary'
+        - type: object
+          required: [title, description, categoryAnswers, attachmentIds]
+          properties:
+            title:           { type: string }
+            description:     { type: string }
+            categoryId:      { type: string, nullable: true }
+            categoryAnswers: { type: array, items: { type: object } }
+            attachmentIds:   { type: array, items: { type: string } }
+
+    ProseHunk:
+      type: object
+      required: [value]
+      properties:
+        value:   { type: string }
+        added:   { type: boolean }
+        removed: { type: boolean }
+
+    IdeaDiffField:
+      oneOf:
+        - type: object
+          required: [kind, name, hunks, changed]
+          properties:
+            kind:    { type: string, enum: [prose] }
+            name:    { type: string }
+            hunks:
+              type: array
+              items: { $ref: '#/components/schemas/ProseHunk' }
+            changed: { type: boolean }
+        - type: object
+          required: [kind, name, from, to, changed]
+          properties:
+            kind:    { type: string, enum: [structured] }
+            name:    { type: string }
+            from:    {}
+            to:      {}
+            changed: { type: boolean }
+        - type: object
+          required: [kind, added, removed, reordered, changed]
+          properties:
+            kind:      { type: string, enum: [attachments] }
+            added:
+              type: array
+              items: { $ref: '#/components/schemas/AttachmentSummary' }
+            removed:
+              type: array
+              items: { $ref: '#/components/schemas/AttachmentSummary' }
+            reordered: { type: boolean }
+            changed:   { type: boolean }
+
+    IdeaDiff:
+      type: object
+      required: [ideaId, fromVersionNo, toVersionNo, fields, truncated]
+      properties:
+        ideaId:        { type: string }
+        fromVersionNo: { type: integer, minimum: 1 }
+        toVersionNo:   { type: integer, minimum: 1 }
+        truncated:     { type: boolean }
+        fields:
+          type: array
+          items: { $ref: '#/components/schemas/IdeaDiffField' }
+
+    NotificationEvent:
+      type: object
+      required: [id, recipientId, kind, payload, createdAt]
+      properties:
+        id:          { type: string }
+        recipientId: { type: string }
+        ideaId:      { type: string, nullable: true }
+        kind:
+          type: string
+          enum: [STATUS_CHANGED, COMMENT_ADDED, RATING_ADDED, REPLY_ON_REVIEW, BULK_DIGEST]
+        payload:     { type: object, additionalProperties: true }
+        createdAt:   { type: string, format: date-time }
+        readAt:      { type: string, format: date-time, nullable: true }
+
+    NotificationListResponse:
+      type: object
+      required: [unreadCount, items]
+      properties:
+        unreadCount: { type: integer, minimum: 0 }
+        items:
+          type: array
+          maxItems: 50
+          items: { $ref: '#/components/schemas/NotificationEvent' }
+
+    EmailPreference:
+      type: object
+      required:
+        [userId, statusChanges, commentsOnMyIdeas, ratingsOnMyIdeas, repliesOnIdeasIReview, updatedAt]
+      properties:
+        userId:                 { type: string }
+        statusChanges:          { type: boolean }
+        commentsOnMyIdeas:      { type: boolean }
+        ratingsOnMyIdeas:       { type: boolean }
+        repliesOnIdeasIReview:  { type: boolean }
+        updatedAt:              { type: string, format: date-time }
+
+    EmailPreferenceUpdate:
+      type: object
+      properties:
+        statusChanges:          { type: boolean }
+        commentsOnMyIdeas:      { type: boolean }
+        ratingsOnMyIdeas:       { type: boolean }
+        repliesOnIdeasIReview:  { type: boolean }
+
+security:
+  - SessionCookie: []
+
+paths:
+  /api/ideas/{id}/attachments:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      tags: [attachments]
+      summary: List attachments for an idea (ordered by displayOrder).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AttachmentSummary' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [attachments]
+      summary: Upload one or more new attachments to an idea.
+      description: |
+        Author-only while the idea is in `DRAFT` or `SUBMITTED`. Enforces
+        per-idea caps (≤ 10 attachments, ≤ 100 MB total). Returns the
+        full ordered attachment list after insert.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AttachmentSummary' }
+        "400":
+          description: Validation failed (type, size, malformed payload).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+        "413":
+          description: Single file exceeds 25 MB (`ATTACHMENT_TOO_LARGE`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        "422":
+          description: |
+            Idea would exceed 10 attachments
+            (`ATTACHMENT_LIMIT_EXCEEDED`) or 100 MB total
+            (`ATTACHMENT_QUOTA_EXCEEDED`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    patch:
+      tags: [attachments]
+      summary: Reorder the attachment list for an idea.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AttachmentReorderRequest' }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AttachmentSummary' }
+        "400":
+          description: |
+            `ATTACHMENT_ORDER_INVALID` — orderedIds missing or
+            referencing unknown attachments.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /api/ideas/{id}/attachments/{attachmentId}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+      - in: path
+        name: attachmentId
+        required: true
+        schema: { type: string }
+    delete:
+      tags: [attachments]
+      summary: Remove a single attachment from an idea.
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /api/attachments/{id}/preview:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      tags: [attachments]
+      summary: Stream an attachment's bytes for inline preview.
+      description: |
+        Returns the file bytes with `Content-Disposition: inline`,
+        `Content-Security-Policy: sandbox`, and
+        `X-Content-Type-Options: nosniff`. For `text/markdown` the
+        response body is **already-sanitised HTML** (extended Phase-4
+        whitelist). The endpoint authorises against the parent idea.
+      responses:
+        "200":
+          description: Inline content; mime echoes `previewKind` policy.
+          content:
+            "*/*": {}
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+              description: '`inline; filename="<sanitised>"`'
+            Content-Security-Policy:
+              schema: { type: string }
+              description: '`sandbox`'
+            X-Content-Type-Options:
+              schema: { type: string }
+              description: '`nosniff`'
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /api/ideas/{id}/versions:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      tags: [versions]
+      summary: List version summaries for an idea.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/IdeaVersionSummary' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /api/ideas/{id}/versions/{versionNo}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+      - in: path
+        name: versionNo
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      tags: [versions]
+      summary: Return one full version snapshot.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdeaVersion' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404":
+          description: '`IDEA_VERSION_NOT_FOUND` or `IDEA_NOT_FOUND`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+  /api/ideas/{id}/versions/diff:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+      - in: query
+        name: from
+        required: true
+        schema: { type: integer, minimum: 1 }
+      - in: query
+        name: to
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      tags: [versions]
+      summary: Compute the per-field diff between two versions of an idea.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdeaDiff' }
+        "400":
+          description: '`IDEA_VERSION_RANGE_INVALID` — `from == to` or out-of-range.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /api/notifications:
+    get:
+      tags: [notifications]
+      summary: List the caller's most-recent notifications + unread count.
+      parameters:
+        - in: query
+          name: since
+          required: false
+          schema: { type: string, format: date-time }
+          description: Only return events created strictly after this timestamp.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationListResponse' }
+        "401": { $ref: '#/components/responses/Forbidden' }
+
+  /api/notifications/{id}/read:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    post:
+      tags: [notifications]
+      summary: Mark a single notification as read for the caller. Idempotent.
+      responses:
+        "204": { description: Marked. }
+        "403":
+          description: '`NOTIFICATION_FORBIDDEN`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        "404":
+          description: '`NOTIFICATION_NOT_FOUND`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+  /api/me/email-preferences:
+    get:
+      tags: [email-preferences]
+      summary: Get the caller's email-preference toggles (defaults ON).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EmailPreference' }
+    put:
+      tags: [email-preferences]
+      summary: Update one or more toggles. Unspecified fields keep their current value.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailPreferenceUpdate' }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EmailPreference' }
+        "400":
+          description: '`EMAIL_PREFERENCE_INVALID`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+  responses:
+    Forbidden:
+      description: Caller is not allowed to view or mutate this resource.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    NotFound:
+      description: Resource does not exist (or is forbidden — no leakage).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
