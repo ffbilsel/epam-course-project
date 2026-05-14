@@ -13,7 +13,9 @@ export async function Header(): Promise<JSX.Element | null> {
   if (!session?.user) return null;
   const role = session.user.role;
   const homeHref = role === "EMPLOYEE" ? "/my-ideas" : "/queue";
-  const initials = session.user.displayName
+  const displayName =
+    session.user.displayName ?? session.user.name ?? session.user.email ?? "User";
+  const initials = displayName
     .split(/\s+/)
     .map((part) => part[0])
     .filter(Boolean)
@@ -93,7 +95,7 @@ export async function Header(): Promise<JSX.Element | null> {
             >
               {initials || "?"}
             </span>
-            <span className="text-sm font-medium">{session.user.displayName}</span>
+            <span className="text-sm font-medium">{displayName}</span>
           </div>
           <form
             action={async () => {
