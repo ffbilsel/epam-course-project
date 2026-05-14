@@ -42,12 +42,12 @@ with WCAG AA contrast, and re-theme live on toggle.
 
 **Purpose**: small repo-wide groundwork shared by every story.
 
-- [ ] T001 Add 9 new error codes to `src/lib/errors/codes.ts` — `ATTACHMENT_LIMIT_EXCEEDED`, `ATTACHMENT_QUOTA_EXCEEDED`, `ATTACHMENT_ORDER_INVALID`, `ATTACHMENT_FORBIDDEN`, `IDEA_VERSION_NOT_FOUND`, `IDEA_VERSION_RANGE_INVALID`, `NOTIFICATION_NOT_FOUND`, `NOTIFICATION_FORBIDDEN`, `EMAIL_PREFERENCE_INVALID` (plus log-only `EMAIL_DELIVERY_PERMANENT_FAILURE`)
-- [ ] T002 [P] Add matching UI copy for the new codes in `src/lib/errors/error-messages.ts`
-- [ ] T003 [P] Add `tests/unit/lib/errors/new-codes-005.test.ts` asserting every new code maps to a UI message (Quality Gate 9)
-- [ ] T004 [P] Add `nodemailer ^6.9` and `diff ^5.2` runtime dependencies plus `@types/nodemailer` dev dep to `package.json` and refresh the lockfile per [ADR-0023](./adr/0023-nodemailer-smtp-transport.md) and [ADR-0024](./adr/0024-version-history-and-diff-strategy.md)
-- [ ] T005 [P] Extend `SecurityEvent.event` union in `src/server/infra/logger.ts` with `attachment_added`, `attachment_removed`, `attachment_reordered`, `idea_version_snapshotted`, `notification_enqueued`, `email_dispatch_failed_permanent`, `email_preferences_updated`
-- [ ] T006 [P] Add Phase-5 SMTP env vars (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM`, `NOTIFICATION_POLL_INTERVAL_MS`) to `.env.example` and document them in `README.md` per [./quickstart.md](./quickstart.md)
+- [X] T001 Add 9 new error codes to `src/lib/errors/codes.ts` — `ATTACHMENT_LIMIT_EXCEEDED`, `ATTACHMENT_QUOTA_EXCEEDED`, `ATTACHMENT_ORDER_INVALID`, `ATTACHMENT_FORBIDDEN`, `IDEA_VERSION_NOT_FOUND`, `IDEA_VERSION_RANGE_INVALID`, `NOTIFICATION_NOT_FOUND`, `NOTIFICATION_FORBIDDEN`, `EMAIL_PREFERENCE_INVALID` (plus log-only `EMAIL_DELIVERY_PERMANENT_FAILURE`)
+- [X] T002 [P] Add matching UI copy for the new codes in `src/lib/errors/error-messages.ts`
+- [X] T003 [P] Add `tests/unit/lib/errors/new-codes-005.test.ts` asserting every new code maps to a UI message (Quality Gate 9)
+- [X] T004 [P] Add `nodemailer ^6.9` and `diff ^5.2` runtime dependencies plus `@types/nodemailer` dev dep to `package.json` and refresh the lockfile per [ADR-0023](./adr/0023-nodemailer-smtp-transport.md) and [ADR-0024](./adr/0024-version-history-and-diff-strategy.md)
+- [X] T005 [P] Extend `SecurityEvent.event` union in `src/server/infra/logger.ts` with `attachment_added`, `attachment_removed`, `attachment_reordered`, `idea_version_snapshotted`, `notification_enqueued`, `email_dispatch_failed_permanent`, `email_preferences_updated`
+- [X] T006 [P] Add Phase-5 SMTP env vars (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM`, `NOTIFICATION_POLL_INTERVAL_MS`) to `.env.example` and document them in `README.md` per [./quickstart.md](./quickstart.md)
 
 **Checkpoint**: shared codes, deps, audit-event vocabulary, and SMTP env are wired in.
 
