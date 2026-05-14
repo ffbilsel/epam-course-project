@@ -62,7 +62,7 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
   );
 
   return (
-          <main className="w-full px-4 py-8 sm:px-6 lg:px-10">
+          <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
           <p className="mt-1 text-sm text-muted-foreground">

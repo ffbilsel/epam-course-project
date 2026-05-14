@@ -156,11 +156,12 @@ export async function listConcludedByAuthor(viewer: {
   id: string;
   role: Role;
 }): Promise<EmployeeHistoryRow[]> {
+  // Admins and evaluators see every concluded idea; employees see only their own (FR-037).
+  const isReviewer = viewer.role === "ADMIN" || viewer.role === "EVALUATOR";
   const rows = await listFiltered(
-    {
-      authorScope: viewer.id,
-      statusWhitelist: CONCLUDED_STATUSES,
-    },
+    isReviewer
+      ? { statusWhitelist: CONCLUDED_STATUSES }
+      : { authorScope: viewer.id, statusWhitelist: CONCLUDED_STATUSES },
     0,
     100,
   );

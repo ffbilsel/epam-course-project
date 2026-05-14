@@ -11,7 +11,7 @@ export default async function ProposeCategoryPage(): Promise<JSX.Element> {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/categories/propose");
   return (
-    <main className="w-full px-4 py-6 sm:px-6 lg:px-10">
+    <main className="mx-auto w-full max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-10">
       <h1 className="mb-2 text-2xl font-semibold">Propose a category</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Don&apos;t see a fit in the existing list? Propose a new category and an Admin will review

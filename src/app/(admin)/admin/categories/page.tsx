@@ -13,7 +13,7 @@ export default async function AdminCategoriesPage(): Promise<JSX.Element> {
     listCategories("ACTIVE"),
   ]);
   return (
-    <main className="w-full space-y-8 px-4 py-6 sm:px-6 lg:px-10">
+    <main className="mx-auto w-full max-w-screen-2xl space-y-8 px-4 py-6 sm:px-6 lg:px-10">
       <section>
         <h1 className="mb-4 text-2xl font-semibold">Proposed categories</h1>
         <CategoriesTable categories={proposed.map((c) => ({ id: c.id, name: c.name }))} />

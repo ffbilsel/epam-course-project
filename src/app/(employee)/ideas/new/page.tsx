@@ -17,7 +17,7 @@ export default async function NewIdeaPage(): Promise<JSX.Element> {
     fieldSchema: parseSchemaJson(c.fieldSchema),
   }));
   return (
-          <main className="w-full px-4 py-6 sm:px-6 lg:px-10">
+          <main className="mx-auto w-full max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-10">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold">Submit a new idea</h1>
           <a
