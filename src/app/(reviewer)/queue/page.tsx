@@ -55,95 +55,95 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
   // otherwise the queue itself is empty.
   const hasFilters = Boolean(
     query.q ||
-      query.categoryId ||
-      (query.status && query.status.length > 0) ||
-      query.from ||
-      query.to,
+    query.categoryId ||
+    (query.status && query.status.length > 0) ||
+    query.from ||
+    query.to,
   );
 
   return (
-          <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {session.user.role === "ADMIN"
-              ? "Submitted, under-review, and approved ideas. Newest first."
-              : "Submitted and under-review ideas. Newest first."}
-          </p>
-        </div>
+    <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {session.user.role === "ADMIN"
+            ? "Submitted, under-review, and approved ideas. Newest first."
+            : "Submitted and under-review ideas. Newest first."}
+        </p>
+      </div>
 
-        <IdeaFilterBar
-          categories={cats.map((c) => ({ id: c.id, name: c.name }))}
-          showStatuses={true}
-          availableStatuses={
-            session.user.role === "ADMIN"
-              ? ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]
-              : ["SUBMITTED", "UNDER_REVIEW"]
-          }
-        />
+      <IdeaFilterBar
+        categories={cats.map((c) => ({ id: c.id, name: c.name }))}
+        showStatuses={true}
+        availableStatuses={
+          session.user.role === "ADMIN"
+            ? ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]
+            : ["SUBMITTED", "UNDER_REVIEW"]
+        }
+      />
 
-        {page.total === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-              <div
-                aria-hidden="true"
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-accent-foreground"
-              >
-                ✓
-              </div>
-              <p className="text-base font-medium">
-                {hasFilters ? "No ideas match your filters" : "Queue is empty"}
-              </p>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                {hasFilters
-                  ? "Adjust the filters above to broaden the search, or clear all filters."
-                  : "There are no ideas awaiting review right now. Sit tight — new submissions will appear here."}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Submitted</TableHead>
+      {page.total === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+            <div
+              aria-hidden="true"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-accent-foreground"
+            >
+              ✓
+            </div>
+            <p className="text-base font-medium">
+              {hasFilters ? "No ideas match your filters" : "Queue is empty"}
+            </p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {hasFilters
+                ? "Adjust the filters above to broaden the search, or clear all filters."
+                : "There are no ideas awaiting review right now. Sit tight — new submissions will appear here."}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {page.rows.map((i) => (
+                  <TableRow key={i.id} className="transition-colors hover:bg-accent/40">
+                    <TableCell>
+                      <Link href={`/ideas/${i.id}`} className="font-medium hover:underline">
+                        {i.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{i.authorName}</TableCell>
+                    <TableCell>{i.categoryName}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={i.status} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(new Date(i.createdAt))}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {page.rows.map((i) => (
-                    <TableRow key={i.id} className="transition-colors hover:bg-accent/40">
-                      <TableCell>
-                        <Link href={`/ideas/${i.id}`} className="font-medium hover:underline">
-                          {i.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{i.authorName}</TableCell>
-                      <TableCell>{i.categoryName}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={i.status} />
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(new Date(i.createdAt))}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
-        <IdeaPagination
-          page={page.page}
-          pageSize={page.pageSize}
-          totalPages={page.totalPages}
-          total={page.total}
-        />
-      </main>
+      <IdeaPagination
+        page={page.page}
+        pageSize={page.pageSize}
+        totalPages={page.totalPages}
+        total={page.total}
+      />
+    </main>
   );
 }

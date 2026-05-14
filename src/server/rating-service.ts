@@ -1,10 +1,7 @@
 import { AppError } from "@/lib/errors/AppError";
 import { SystemClock, type Clock } from "@/server/infra/clock";
 import { SystemIdGenerator, type IdGenerator } from "@/server/infra/id-generator";
-import {
-  listDimensionsForCategory,
-  listDimensionsByIds,
-} from "@/db/repositories/dimension-repo";
+import { listDimensionsForCategory, listDimensionsByIds } from "@/db/repositories/dimension-repo";
 import {
   upsertRating,
   listRatingsForIdea,

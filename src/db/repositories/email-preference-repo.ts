@@ -9,14 +9,16 @@ import { emailPreferences } from "@/db/schema";
 export async function findPreferencesByUserId(
   userId: string,
 ): Promise<typeof emailPreferences.$inferSelect | undefined> {
-  const r = await db.select().from(emailPreferences).where(eq(emailPreferences.userId, userId)).limit(1);
+  const r = await db
+    .select()
+    .from(emailPreferences)
+    .where(eq(emailPreferences.userId, userId))
+    .limit(1);
   return r[0];
 }
 
 /** Phase 5 — Upsert preferences; bumps `updatedAt`. */
-export async function upsertPreferences(
-  row: typeof emailPreferences.$inferInsert,
-): Promise<void> {
+export async function upsertPreferences(row: typeof emailPreferences.$inferInsert): Promise<void> {
   await db
     .insert(emailPreferences)
     .values(row)

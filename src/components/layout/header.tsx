@@ -13,8 +13,7 @@ export async function Header(): Promise<JSX.Element | null> {
   if (!session?.user) return null;
   const role = session.user.role;
   const homeHref = role === "EMPLOYEE" ? "/my-ideas" : "/queue";
-  const displayName =
-    session.user.displayName ?? session.user.name ?? session.user.email ?? "User";
+  const displayName = session.user.displayName ?? session.user.name ?? session.user.email ?? "User";
   const initials = displayName
     .split(/\s+/)
     .map((part) => part[0])

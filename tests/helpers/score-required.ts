@@ -11,12 +11,13 @@ import { putRatings } from "@/server/rating-service";
  * defaults to `4`. Used from integration tests that pre-date the
  * rating gate.
  */
-export async function scoreRequiredForApprove(
-  ideaId: string,
-  evaluator: string,
-): Promise<void> {
+export async function scoreRequiredForApprove(ideaId: string, evaluator: string): Promise<void> {
   const idea = (
-    await db.select().from(ideas).where(sql`${ideas.id} = ${ideaId}`).limit(1)
+    await db
+      .select()
+      .from(ideas)
+      .where(sql`${ideas.id} = ${ideaId}`)
+      .limit(1)
   )[0];
   if (!idea) throw new Error(`scoreRequiredForApprove: idea ${ideaId} not found`);
   const dims = await listDimensionsForCategory(idea.categoryId!);

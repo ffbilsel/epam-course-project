@@ -195,18 +195,21 @@ export async function submitDraft(
   const ideaId = ids.next();
 
   withTx(() => {
-    void db.insert(ideas).values({
-      id: ideaId,
-      authorId: actor.id,
-      title: parsed.data.title,
-      description: parsed.data.description,
-      categoryId: parsed.data.categoryId,
-      status: "SUBMITTED",
-      createdAt: now,
-      updatedAt: now,
-      categoryAnswers: JSON.stringify(answers),
-      anonymous: category.anonymousDefault ? 1 : 0,
-    }).run();
+    void db
+      .insert(ideas)
+      .values({
+        id: ideaId,
+        authorId: actor.id,
+        title: parsed.data.title,
+        description: parsed.data.description,
+        categoryId: parsed.data.categoryId,
+        status: "SUBMITTED",
+        createdAt: now,
+        updatedAt: now,
+        categoryAnswers: JSON.stringify(answers),
+        anonymous: category.anonymousDefault ? 1 : 0,
+      })
+      .run();
     void db.delete(ideaDrafts).where(eq(ideaDrafts.id, id)).run();
   });
 

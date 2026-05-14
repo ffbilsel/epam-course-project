@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.github
+coverage
+test-results
+playwright-report
+data
+*.db
+*.db-journal
+*.log
+.env*
+screenshots
+README.md
+PRESENTATION.html
+PROJECT_SUMMARY.md
+specs

@@ -121,7 +121,9 @@ function CommentItem({
           ) : null}
         </div>
       ) : null}
-      {replying ? <CommentComposer ideaId={ideaId} parentId={c.id} onPosted={() => setReplying(false)} /> : null}
+      {replying ? (
+        <CommentComposer ideaId={ideaId} parentId={c.id} onPosted={() => setReplying(false)} />
+      ) : null}
     </article>
   );
 }

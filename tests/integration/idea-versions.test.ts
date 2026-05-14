@@ -55,10 +55,7 @@ beforeEach(async () => {
     },
   ]);
   const cat = await activeCategoryId();
-  const idea = await createIdea(
-    { title: "First", description: "Desc", categoryId: cat },
-    authorId,
-  );
+  const idea = await createIdea({ title: "First", description: "Desc", categoryId: cat }, authorId);
   ideaId = idea.id;
 });
 
@@ -84,9 +81,9 @@ describe("version-service", () => {
   });
 
   it("non-author non-reviewer cannot see versions (IDEA_NOT_FOUND)", async () => {
-    await expect(
-      listVersions(ideaId, { id: strangerId, role: "EMPLOYEE" }),
-    ).rejects.toMatchObject({ code: "IDEA_NOT_FOUND" });
+    await expect(listVersions(ideaId, { id: strangerId, role: "EMPLOYEE" })).rejects.toMatchObject({
+      code: "IDEA_NOT_FOUND",
+    });
   });
 
   it("evaluator can see versions", async () => {
@@ -95,8 +92,8 @@ describe("version-service", () => {
   });
 
   it("getVersion returns IDEA_VERSION_NOT_FOUND for unknown version", async () => {
-    await expect(
-      getVersion(ideaId, 999, { id: authorId, role: "EMPLOYEE" }),
-    ).rejects.toMatchObject({ code: "IDEA_VERSION_NOT_FOUND" });
+    await expect(getVersion(ideaId, 999, { id: authorId, role: "EMPLOYEE" })).rejects.toMatchObject(
+      { code: "IDEA_VERSION_NOT_FOUND" },
+    );
   });
 });

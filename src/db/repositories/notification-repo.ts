@@ -33,14 +33,16 @@ export async function countUnreadForUser(recipientId: string): Promise<number> {
   const r = await db
     .select({ c: count() })
     .from(notificationEvents)
-    .where(
-      and(eq(notificationEvents.recipientId, recipientId), isNull(notificationEvents.readAt)),
-    );
+    .where(and(eq(notificationEvents.recipientId, recipientId), isNull(notificationEvents.readAt)));
   return Number(r[0]?.c ?? 0);
 }
 
 /** Phase 5 — Idempotent mark-read. */
-export async function markRead(notificationId: string, recipientId: string, when: number): Promise<number> {
+export async function markRead(
+  notificationId: string,
+  recipientId: string,
+  when: number,
+): Promise<number> {
   const r = await db
     .update(notificationEvents)
     .set({ readAt: when })

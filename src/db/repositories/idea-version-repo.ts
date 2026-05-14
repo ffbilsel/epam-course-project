@@ -3,9 +3,7 @@ import { db } from "@/db/client";
 import { ideaVersions } from "@/db/schema";
 
 /** Phase 5 — Insert one version snapshot row. */
-export async function insertVersion(
-  row: typeof ideaVersions.$inferInsert,
-): Promise<void> {
+export async function insertVersion(row: typeof ideaVersions.$inferInsert): Promise<void> {
   await db.insert(ideaVersions).values(row);
 }
 

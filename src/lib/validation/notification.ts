@@ -42,7 +42,14 @@ const RatingAddedPayload = z.object({
     .array(
       z.object({
         label: z.string().min(1).max(200),
-        score: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(null)]),
+        score: z.union([
+          z.literal(1),
+          z.literal(2),
+          z.literal(3),
+          z.literal(4),
+          z.literal(5),
+          z.literal(null),
+        ]),
       }),
     )
     .max(20),

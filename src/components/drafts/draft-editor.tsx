@@ -82,7 +82,12 @@ export function DraftEditor({ draftId, initial, categories }: Props): JSX.Elemen
       </div>
       <div className="space-y-1">
         <Label htmlFor="title">Title</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />
+        <Input
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={120}
+        />
       </div>
       <div className="space-y-1">
         <Label htmlFor="description">Description</Label>

@@ -115,8 +115,7 @@ export function redactPayloadForRecipient(
   event: RedactableNotificationEvent,
   recipientRole: Role,
 ): NotificationPayload {
-  const hide =
-    event.ideaAnonymous && event.actorIsAuthor && recipientRole === "EVALUATOR";
+  const hide = event.ideaAnonymous && event.actorIsAuthor && recipientRole === "EVALUATOR";
   if (!hide) return event.payload;
   if (event.payload.kind === "BULK_DIGEST") return event.payload;
   return { ...event.payload, actorDisplayName: ANONYMOUS_SUBMITTER_LABEL };

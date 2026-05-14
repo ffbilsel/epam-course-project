@@ -57,10 +57,7 @@ beforeEach(async () => {
     },
   ]);
   categoryId = await activeCategoryId();
-  const idea = await createIdea(
-    { title: "T", description: "D", categoryId },
-    authorId,
-  );
+  const idea = await createIdea({ title: "T", description: "D", categoryId }, authorId);
   ideaId = idea.id;
 });
 

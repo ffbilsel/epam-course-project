@@ -1,11 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { withErrorHandler } from "@/lib/errors/with-error-handler";
 import { requireSession } from "@/server/role-guard";
-import {
-  attachToIdea,
-  listForIdea,
-  reorderAttachments,
-} from "@/server/attachment-service";
+import { attachToIdea, listForIdea, reorderAttachments } from "@/server/attachment-service";
 import { AttachmentReorderSchema } from "@/lib/validation/attachment";
 import { AppError } from "@/lib/errors/AppError";
 

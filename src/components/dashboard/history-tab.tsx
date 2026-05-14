@@ -33,8 +33,8 @@ export function HistoryTab({ rows }: { rows: ReadonlyArray<EmployeeHistoryRow> }
           </div>
           <p className="text-base font-medium">No ideas yet</p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Ideas across the organisation will show up here as they
-            are submitted, reviewed, approved, rejected, or implemented.
+            Ideas across the organisation will show up here as they are submitted, reviewed,
+            approved, rejected, or implemented.
           </p>
         </CardContent>
       </Card>

@@ -3,11 +3,7 @@
  */
 
 export type { Draft, DraftSummary } from "@/server/draft-service";
-export type {
-  InsightsBucket,
-  InsightsPreset,
-  InsightsRangeInput,
-} from "@/lib/validation/insights";
+export type { InsightsBucket, InsightsPreset, InsightsRangeInput } from "@/lib/validation/insights";
 
 // Phase 5 — Validation-derived types
 export type { NotificationKind, NotificationPayload } from "@/lib/validation/notification";
@@ -58,10 +54,7 @@ export interface IdeaVersion {
 }
 
 /** Phase 5 — Lightweight summary used by the version-timeline UI. */
-export type IdeaVersionSummary = Pick<
-  IdeaVersion,
-  "id" | "versionNo" | "actorId" | "createdAt"
->;
+export type IdeaVersionSummary = Pick<IdeaVersion, "id" | "versionNo" | "actorId" | "createdAt">;
 
 /** Phase 5 — One contiguous run of equal / added / removed words in a prose diff hunk. */
 export interface ProseHunk {
@@ -123,4 +116,3 @@ export interface EmailPreference {
   repliesOnIdeasIReview: boolean;
   updatedAt: string;
 }
-

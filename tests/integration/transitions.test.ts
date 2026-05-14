@@ -66,7 +66,13 @@ async function makeIdea(): Promise<string> {
 
 /** Score every required dimension for an idea so APPROVE can land. */
 async function scoreRequired(ideaId: string, evaluator: string): Promise<void> {
-  const idea = (await db.select().from(ideas).where(sql`${ideas.id} = ${ideaId}`).limit(1))[0]!;
+  const idea = (
+    await db
+      .select()
+      .from(ideas)
+      .where(sql`${ideas.id} = ${ideaId}`)
+      .limit(1)
+  )[0]!;
   const dims = await listDimensionsForCategory(idea.categoryId!);
   const required = dims.filter((d) => d.required === 1);
   await putRatings(

@@ -10,10 +10,7 @@ export const dynamic = "force-dynamic";
  * one attachment from an editable idea.
  */
 export const DELETE = withErrorHandler(
-  async (
-    _req: NextRequest,
-    { params }: { params: { id: string; attachmentId: string } },
-  ) => {
+  async (_req: NextRequest, { params }: { params: { id: string; attachmentId: string } }) => {
     const session = await requireSession();
     await removeAttachment({
       attachmentId: params.attachmentId,

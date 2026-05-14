@@ -62,9 +62,7 @@ export function RatingPanel({ ideaId, dimensions, myScores, locked }: Props): JS
             <div key={d.id} className="space-y-1">
               <Label className="flex items-center gap-2">
                 {d.label}
-                {d.required ? (
-                  <span className="text-xs text-destructive">(required)</span>
-                ) : null}
+                {d.required ? <span className="text-xs text-destructive">(required)</span> : null}
               </Label>
               {d.description ? (
                 <p className="text-xs text-muted-foreground">{d.description}</p>
@@ -135,7 +133,8 @@ export function RatingSummary({
             <li key={d.id} className="flex justify-between">
               <span>{d.label}</span>
               <span className="font-mono">
-                {display} <span className="text-xs text-muted-foreground">({a?.count ?? 0} reviewers)</span>
+                {display}{" "}
+                <span className="text-xs text-muted-foreground">({a?.count ?? 0} reviewers)</span>
               </span>
             </li>
           );

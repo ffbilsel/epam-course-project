@@ -14,9 +14,7 @@ export async function insertComment(row: typeof comments.$inferInsert): Promise<
 }
 
 /** Get one comment by id. */
-export async function getComment(
-  id: string,
-): Promise<typeof comments.$inferSelect | undefined> {
+export async function getComment(id: string): Promise<typeof comments.$inferSelect | undefined> {
   const r = await db.select().from(comments).where(eq(comments.id, id)).limit(1);
   return r[0];
 }
@@ -27,10 +25,7 @@ export async function softDeleteComment(
   deletedById: string,
   now: number,
 ): Promise<void> {
-  await db
-    .update(comments)
-    .set({ deletedAt: now, deletedById })
-    .where(eq(comments.id, id));
+  await db.update(comments).set({ deletedAt: now, deletedById }).where(eq(comments.id, id));
 }
 
 /** Edit a comment body. */
@@ -39,9 +34,7 @@ export async function editComment(id: string, body: string, now: number): Promis
 }
 
 /** List every comment row for one idea, chronological. */
-export async function listForIdea(
-  ideaId: string,
-): Promise<Array<typeof comments.$inferSelect>> {
+export async function listForIdea(ideaId: string): Promise<Array<typeof comments.$inferSelect>> {
   return db
     .select()
     .from(comments)

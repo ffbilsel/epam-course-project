@@ -52,7 +52,5 @@ export async function countDraftsByAuthor(authorId: string): Promise<number> {
 
 /** Hard-delete a draft. The caller verifies ownership first. */
 export async function deleteDraft(id: string, authorId: string): Promise<void> {
-  await db
-    .delete(ideaDrafts)
-    .where(and(eq(ideaDrafts.id, id), eq(ideaDrafts.authorId, authorId)));
+  await db.delete(ideaDrafts).where(and(eq(ideaDrafts.id, id), eq(ideaDrafts.authorId, authorId)));
 }

@@ -67,9 +67,11 @@ export const errorMessages: Record<ErrorCode, string> = {
   ATTACHMENT_QUOTA_EXCEEDED: "Attachments for an idea cannot exceed 100 MB in total.",
   ATTACHMENT_ORDER_INVALID: "The attachment reorder request is invalid.",
   ATTACHMENT_FORBIDDEN: "You do not have permission to modify these attachments.",
-  ATTACHMENT_PREVIEW_UNSUPPORTED: "This attachment cannot be previewed inline. Please download it instead.",
+  ATTACHMENT_PREVIEW_UNSUPPORTED:
+    "This attachment cannot be previewed inline. Please download it instead.",
   IDEA_VERSION_NOT_FOUND: "That idea version does not exist.",
-  IDEA_VERSION_RANGE_INVALID: "Pick two different versions where the first comes before the second.",
+  IDEA_VERSION_RANGE_INVALID:
+    "Pick two different versions where the first comes before the second.",
   NOTIFICATION_NOT_FOUND: "Notification not found.",
   NOTIFICATION_FORBIDDEN: "You do not have permission to view this notification.",
   EMAIL_PREFERENCE_INVALID: "Email preferences payload is invalid.",

@@ -48,11 +48,7 @@ export const GET = withErrorHandler(
     }
 
     if (att.mimeType === "image/svg+xml") {
-      return errorResponse(
-        "ATTACHMENT_PREVIEW_UNSUPPORTED",
-        undefined,
-        { mimeType: att.mimeType },
-      );
+      return errorResponse("ATTACHMENT_PREVIEW_UNSUPPORTED", undefined, { mimeType: att.mimeType });
     }
 
     if (att.mimeType === "text/markdown" || att.mimeType === "text/plain") {

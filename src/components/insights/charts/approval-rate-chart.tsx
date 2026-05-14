@@ -49,7 +49,12 @@ export function ApprovalRateChart({ data }: { data: Summary }): JSX.Element {
             <ComposedChart data={data.series} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
               <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="bucket" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} allowDecimals={false} width={32} />
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                allowDecimals={false}
+                width={32}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",

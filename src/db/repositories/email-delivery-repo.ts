@@ -3,9 +3,7 @@ import { db } from "@/db/client";
 import { emailDeliveries } from "@/db/schema";
 
 /** Phase 5 — Insert one email delivery row (status defaults to `pending`). */
-export async function insertDelivery(
-  row: typeof emailDeliveries.$inferInsert,
-): Promise<void> {
+export async function insertDelivery(row: typeof emailDeliveries.$inferInsert): Promise<void> {
   await db.insert(emailDeliveries).values(row);
 }
 

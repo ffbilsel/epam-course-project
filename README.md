@@ -81,12 +81,12 @@ from a clean checkout.
   rendered via sandboxed iframe; Markdown / plain text sanitised on
   the server with `Content-Security-Policy: sandbox`,
   `X-Content-Type-Options: nosniff`, `Cache-Control: private,
-  no-store`; SVG is **never** previewed and returns `415
-  ATTACHMENT_PREVIEW_UNSUPPORTED`); a **transactional in-app +
+no-store`; SVG is **never** previewed and returns `415
+ATTACHMENT_PREVIEW_UNSUPPORTED`); a **transactional in-app +
   email notification fan-out** (status changes, comments, ratings,
   replies, admin bulk-transition digest) running on a pure
   `dispatchPending(now, deps)` worker with a `30 s / 2 m / 15 m /
-  1 h / 6 h` back-off and terminal `failed` at attempt 6, plus
+1 h / 6 h` back-off and terminal `failed` at attempt 6, plus
   per-user **email preferences** that drop deliveries to
   `suppressed` without losing the in-app badge; and an **immutable
   version history** that snapshots `v1` on submit and `v(N+1)` on
@@ -143,6 +143,27 @@ Phase 3 / Phase 4 / Phase 5 walkthroughs live alongside their specs at
 [specs/004-advanced-evaluation-experience/quickstart.md](specs/004-advanced-evaluation-experience/quickstart.md),
 and
 [specs/005-attachments-history-notifications/quickstart.md](specs/005-attachments-history-notifications/quickstart.md).
+
+## Docker
+
+For a self-contained production-style run:
+
+```powershell
+# 1. Build the image
+docker build -t innovatepam-portal:latest .
+
+# 2. Run via compose (mounts named volumes for SQLite + uploads)
+$env:NEXTAUTH_SECRET = "change-me"
+$env:AUTH_SECRET     = "change-me"
+docker compose up -d
+
+# 3. Open http://localhost:3000
+```
+
+The container migrates the SQLite database at boot, serves the
+Next.js standalone build on port 3000, and persists the
+`innovatepam.db` and `data/uploads/` directories to named volumes
+(`innovatepam-db`, `innovatepam-uploads`).
 
 ## Scripts
 

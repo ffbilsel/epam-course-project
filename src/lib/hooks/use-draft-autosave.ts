@@ -18,7 +18,9 @@ type Status = "idle" | "saving" | "saved" | "error";
  * wins; tracks a tiny `status` string for the "Saved · just now"
  * affordance.
  */
-export function useDraftAutosave<T extends object>(opts: AutosaveOptions<T>): {
+export function useDraftAutosave<T extends object>(
+  opts: AutosaveOptions<T>,
+): {
   status: Status;
   lastSavedAt: number | null;
   draftId: string | null;

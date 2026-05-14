@@ -8,10 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** GET /api/ideas/:id/versions/:versionNo — one snapshot. */
 export const GET = withErrorHandler(
-  async (
-    _req: NextRequest,
-    { params }: { params: { id: string; versionNo: string } },
-  ) => {
+  async (_req: NextRequest, { params }: { params: { id: string; versionNo: string } }) => {
     const session = await requireSession();
     const n = Number.parseInt(params.versionNo, 10);
     if (!Number.isFinite(n) || n < 1) {

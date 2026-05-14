@@ -77,21 +77,24 @@ export function sanitizeMarkdownHtml(html: string): string {
     "",
   );
   // 3. Walk every remaining tag and rewrite or strip.
-  return cleaned.replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g, (_match, raw: string, attrs: string) => {
-    const name = raw.toLowerCase();
-    if (!ALLOWED_TAGS.has(name)) return "";
-    const isClose = _match.startsWith("</");
-    if (isClose) return `</${name}>`;
-    if (VOID_TAGS.has(name)) return `<${name} />`;
-    if (name === "a") {
-      const hrefMatch = /\bhref\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs);
-      const href = hrefMatch ? (hrefMatch[2] ?? hrefMatch[3] ?? hrefMatch[4] ?? "") : "";
-      const safe = /^(https?:|mailto:)/i.test(href);
-      if (!safe) return "<a>";
-      return `<a href="${escapeAttr(href)}" rel="noopener noreferrer" target="_blank">`;
-    }
-    return `<${name}>`;
-  });
+  return cleaned.replace(
+    /<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g,
+    (_match, raw: string, attrs: string) => {
+      const name = raw.toLowerCase();
+      if (!ALLOWED_TAGS.has(name)) return "";
+      const isClose = _match.startsWith("</");
+      if (isClose) return `</${name}>`;
+      if (VOID_TAGS.has(name)) return `<${name} />`;
+      if (name === "a") {
+        const hrefMatch = /\bhref\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs);
+        const href = hrefMatch ? (hrefMatch[2] ?? hrefMatch[3] ?? hrefMatch[4] ?? "") : "";
+        const safe = /^(https?:|mailto:)/i.test(href);
+        if (!safe) return "<a>";
+        return `<a href="${escapeAttr(href)}" rel="noopener noreferrer" target="_blank">`;
+      }
+      return `<${name}>`;
+    },
+  );
 }
 
 /**

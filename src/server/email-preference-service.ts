@@ -28,14 +28,16 @@ const DEFAULTS = {
 } as const;
 
 function rowToPrefs(
-  row: {
-    userId: string;
-    statusChanges: number;
-    commentsOnMyIdeas: number;
-    ratingsOnMyIdeas: number;
-    repliesOnIdeasIReview: number;
-    updatedAt: number;
-  } | undefined,
+  row:
+    | {
+        userId: string;
+        statusChanges: number;
+        commentsOnMyIdeas: number;
+        ratingsOnMyIdeas: number;
+        repliesOnIdeasIReview: number;
+        updatedAt: number;
+      }
+    | undefined,
   fallbackUserId: string,
 ): EmailPreferences {
   if (!row) {

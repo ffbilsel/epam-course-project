@@ -1,17 +1,11 @@
 import { describe, expect, it } from "vitest";
-import {
-  resolveRange,
-  rollUpBuckets,
-} from "@/server/insights-service";
+import { resolveRange, rollUpBuckets } from "@/server/insights-service";
 import type { DailyCountRow } from "@/db/repositories/insights-repo";
 import { AppError } from "@/lib/errors/AppError";
 
 describe("resolveRange", () => {
   it("computes a 30-day window from a stable reference date", () => {
-    const r = resolveRange(
-      { preset: "30d", bucket: "day" },
-      new Date("2026-05-14T10:00:00.000Z"),
-    );
+    const r = resolveRange({ preset: "30d", bucket: "day" }, new Date("2026-05-14T10:00:00.000Z"));
     expect(r.fromIso).toBe("2026-04-15");
     expect(r.toIso).toBe("2026-05-14");
     expect(r.bucket).toBe("day");

@@ -19,14 +19,7 @@ export const RatingPutSchema = z.object({
       z.object({
         dimensionId: z.string().min(1),
         score: z.union(
-          [
-            z.literal(null),
-            z.literal(1),
-            z.literal(2),
-            z.literal(3),
-            z.literal(4),
-            z.literal(5),
-          ],
+          [z.literal(null), z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)],
           { errorMap: () => ({ message: "RATING_INVALID_SCORE" }) },
         ),
       }),

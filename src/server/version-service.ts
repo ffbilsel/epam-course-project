@@ -151,16 +151,11 @@ export async function getVersion(
   };
 }
 
-async function assertCanRead(
-  ideaId: string,
-  viewer: { id: string; role: Role },
-): Promise<void> {
+async function assertCanRead(ideaId: string, viewer: { id: string; role: Role }): Promise<void> {
   const idea = await findIdeaById(ideaId);
   if (!idea) throw AppError.notFound("IDEA_NOT_FOUND");
   const canSee =
-    viewer.role === "ADMIN" ||
-    viewer.role === "EVALUATOR" ||
-    idea.authorId === viewer.id;
+    viewer.role === "ADMIN" || viewer.role === "EVALUATOR" || idea.authorId === viewer.id;
   if (!canSee) throw AppError.notFound("IDEA_NOT_FOUND");
 }
 

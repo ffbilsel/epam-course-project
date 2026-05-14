@@ -424,4 +424,3 @@ export const emailPreferences = sqliteTable("email_preferences", {
   repliesOnIdeasIReview: integer("replies_on_ideas_i_review").notNull().default(1),
   updatedAt: integer("updated_at").notNull(),
 });
-

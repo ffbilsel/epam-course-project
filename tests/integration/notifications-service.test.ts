@@ -4,16 +4,9 @@ import { db } from "@/db/client";
 import { categories, users, notificationEvents, emailDeliveries } from "@/db/schema";
 import { hashPassword } from "@/server/password";
 import { createIdea, applyTransition } from "@/server/idea-service";
-import {
-  enqueue,
-  listForUser,
-  markNotificationRead,
-} from "@/server/notification-service";
+import { enqueue, listForUser, markNotificationRead } from "@/server/notification-service";
 import { dispatchPending } from "@/server/email-dispatcher";
-import {
-  getPreferences,
-  updatePreferences,
-} from "@/server/email-preference-service";
+import { getPreferences, updatePreferences } from "@/server/email-preference-service";
 import { FakeEmailTransport } from "../helpers/fake-email-transport";
 
 let authorId: string;

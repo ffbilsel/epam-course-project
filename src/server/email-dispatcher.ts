@@ -11,9 +11,7 @@ import type { EmailTransport, OutboundMail } from "@/server/infra/email-transpor
 import { logSecurityEvent } from "@/server/infra/logger";
 import type { NotificationPayload } from "@/lib/validation/notification";
 
-async function findUserById(
-  id: string,
-): Promise<{ id: string; email: string } | undefined> {
+async function findUserById(id: string): Promise<{ id: string; email: string } | undefined> {
   const r = await db
     .select({ id: users.id, email: users.email })
     .from(users)
@@ -66,7 +64,9 @@ function bodyFor(payload: NotificationPayload): { text: string; html: string } {
     };
   }
   // BULK_DIGEST
-  const lines = payload.items.map((i) => `- ${i.ideaTitle}: ${i.fromState} → ${i.toState}`).join("\n");
+  const lines = payload.items
+    .map((i) => `- ${i.ideaTitle}: ${i.fromState} → ${i.toState}`)
+    .join("\n");
   return {
     text: `${payload.actorDisplayName} updated ${payload.items.length} ideas:\n${lines}`,
     html: `<p><strong>${payload.actorDisplayName}</strong> updated ${payload.items.length} ideas:</p><ul>${payload.items

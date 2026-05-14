@@ -51,69 +51,67 @@ export default async function AdminIdeasPage({ searchParams }: PageProps): Promi
   const cats = await listCategories("ACTIVE");
 
   return (
-          <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-semibold tracking-tight">All ideas</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cross-tenant view for administrators.
-          </p>
-        </div>
+    <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold tracking-tight">All ideas</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Cross-tenant view for administrators.</p>
+      </div>
 
-        <IdeaFilterBar categories={cats.map((c) => ({ id: c.id, name: c.name }))} />
+      <IdeaFilterBar categories={cats.map((c) => ({ id: c.id, name: c.name }))} />
 
-        <div className="mb-4 flex justify-end">
-          <ExportIdeasButton />
-        </div>
+      <div className="mb-4 flex justify-end">
+        <ExportIdeasButton />
+      </div>
 
-        {page.total === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center text-sm text-muted-foreground">
-              No ideas match the current filters.
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Updated</TableHead>
+      {page.total === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center text-sm text-muted-foreground">
+            No ideas match the current filters.
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Updated</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {page.rows.map((i) => (
+                  <TableRow key={i.id} className="transition-colors hover:bg-accent/40">
+                    <TableCell>
+                      <Link href={`/ideas/${i.id}`} className="font-medium hover:underline">
+                        {i.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{i.authorName}</TableCell>
+                    <TableCell>{i.categoryName}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={i.status} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(new Date(i.updatedAt))}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {page.rows.map((i) => (
-                    <TableRow key={i.id} className="transition-colors hover:bg-accent/40">
-                      <TableCell>
-                        <Link href={`/ideas/${i.id}`} className="font-medium hover:underline">
-                          {i.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{i.authorName}</TableCell>
-                      <TableCell>{i.categoryName}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={i.status} />
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(new Date(i.updatedAt))}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
-        <IdeaPagination
-          page={page.page}
-          pageSize={page.pageSize}
-          totalPages={page.totalPages}
-          total={page.total}
-        />
-      </main>
+      <IdeaPagination
+        page={page.page}
+        pageSize={page.pageSize}
+        totalPages={page.totalPages}
+        total={page.total}
+      />
+    </main>
   );
 }

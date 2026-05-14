@@ -29,11 +29,13 @@ beforeEach(async () => {
     createdAt: now,
     updatedAt: now,
   });
-  await db.insert(users).values([
-    await mkUser(adminId, "ADMIN", "admin"),
-    await mkUser(evaluatorId, "EVALUATOR", "evaluator"),
-    await mkUser(employeeId, "EMPLOYEE", "employee"),
-  ]);
+  await db
+    .insert(users)
+    .values([
+      await mkUser(adminId, "ADMIN", "admin"),
+      await mkUser(evaluatorId, "EVALUATOR", "evaluator"),
+      await mkUser(employeeId, "EMPLOYEE", "employee"),
+    ]);
   const cats = await db
     .select()
     .from(categories)
@@ -64,7 +66,9 @@ describe("insights-service · role gating", () => {
     const actor = { id: employeeId, role: "EMPLOYEE" as Role };
     expect(() => getSubmissionTrend({ preset: "30d", bucket: "day" }, actor)).toThrow(AppError);
     expect(() => getApprovalRate({ preset: "30d", bucket: "day" }, actor)).toThrow(AppError);
-    expect(() => getCategoryDistribution({ preset: "30d", bucket: "day" }, actor)).toThrow(AppError);
+    expect(() => getCategoryDistribution({ preset: "30d", bucket: "day" }, actor)).toThrow(
+      AppError,
+    );
   });
 
   it("EVALUATOR can read all three charts", () => {
@@ -93,8 +97,6 @@ describe("insights-service · range validation", () => {
         { preset: "custom", from: "2026-05-10", to: "2026-05-01", bucket: "day" },
         actor,
       ),
-    ).toThrow(
-      expect.objectContaining({ code: "INSIGHTS_RANGE_INVALID" }) as unknown as Error,
-    );
+    ).toThrow(expect.objectContaining({ code: "INSIGHTS_RANGE_INVALID" }) as unknown as Error);
   });
 });

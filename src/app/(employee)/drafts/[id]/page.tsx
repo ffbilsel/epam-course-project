@@ -21,24 +21,27 @@ export default async function DraftEditPage({ params }: Props): Promise<JSX.Elem
   try {
     draft = await loadDraft(id, { id: session.user.id });
   } catch (err) {
-    if (err instanceof AppError && (err.code === "DRAFT_NOT_FOUND" || err.code === "DRAFT_FORBIDDEN")) {
+    if (
+      err instanceof AppError &&
+      (err.code === "DRAFT_NOT_FOUND" || err.code === "DRAFT_FORBIDDEN")
+    ) {
       notFound();
     }
     throw err;
   }
   const cats = await listCategories("ACTIVE");
   return (
-          <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Edit draft</h1>
-        <DraftEditor
-          draftId={draft.id}
-          initial={{
-            title: draft.title,
-            description: draft.description,
-            categoryId: draft.categoryId,
-          }}
-          categories={cats.map((c) => ({ id: c.id, name: c.name }))}
-        />
-      </main>
+    <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Edit draft</h1>
+      <DraftEditor
+        draftId={draft.id}
+        initial={{
+          title: draft.title,
+          description: draft.description,
+          categoryId: draft.categoryId,
+        }}
+        categories={cats.map((c) => ({ id: c.id, name: c.name }))}
+      />
+    </main>
   );
 }

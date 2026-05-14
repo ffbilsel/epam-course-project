@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: innovatepam-portal:latest
+    container_name: innovatepam-portal
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/innovatepam.db
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      MAIL_FROM: ${MAIL_FROM:-InnovatEPAM <no-reply@innovatepam.local>}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-stub}
+      SMTP_URL: ${SMTP_URL:-}
+    volumes:
+      - innovatepam-db:/data
+      - innovatepam-uploads:/app/data/uploads
+
+volumes:
+  innovatepam-db:
+  innovatepam-uploads:

@@ -107,8 +107,7 @@ export async function reorder(ideaId: string, orderedIds: string[]): Promise<voi
   db.transaction((tx) => {
     for (let i = 0; i < orderedIds.length; i += 1) {
       const id = orderedIds[i]!;
-      tx
-        .update(attachments)
+      tx.update(attachments)
         .set({ displayOrder: i })
         .where(and(eq(attachments.ideaId, ideaId), eq(attachments.id, id)))
         .run();
@@ -120,9 +119,7 @@ export async function reorder(ideaId: string, orderedIds: string[]): Promise<voi
  * Phase 5 — Loads attachments by an arbitrary id list, preserving
  * insertion order on the result via id-keyed map at call site.
  */
-export async function listByIds(
-  ids: string[],
-): Promise<Array<typeof attachments.$inferSelect>> {
+export async function listByIds(ids: string[]): Promise<Array<typeof attachments.$inferSelect>> {
   if (ids.length === 0) return [];
   return db.select().from(attachments).where(inArray(attachments.id, ids));
 }

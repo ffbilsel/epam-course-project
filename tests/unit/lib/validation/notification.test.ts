@@ -56,9 +56,7 @@ describe("NotificationPayloadSchema", () => {
     const r = NotificationPayloadSchema.safeParse({
       kind: "BULK_DIGEST",
       actorDisplayName: "Admin",
-      items: [
-        { ideaId: "i1", ideaTitle: "Idea 1", fromState: "SUBMITTED", toState: "APPROVED" },
-      ],
+      items: [{ ideaId: "i1", ideaTitle: "Idea 1", fromState: "SUBMITTED", toState: "APPROVED" }],
     });
     expect(r.success).toBe(true);
   });

@@ -47,7 +47,12 @@ export async function deactivateDimension(id: string): Promise<void> {
 /** Update a dimension's label / position / required flag. */
 export async function updateDimension(
   id: string,
-  fields: Partial<Pick<typeof ratingDimensions.$inferSelect, "label" | "description" | "position" | "required" | "active">>,
+  fields: Partial<
+    Pick<
+      typeof ratingDimensions.$inferSelect,
+      "label" | "description" | "position" | "required" | "active"
+    >
+  >,
 ): Promise<void> {
   await db.update(ratingDimensions).set(fields).where(eq(ratingDimensions.id, id));
   // `or` import kept implicit; reference for tree-shaking
