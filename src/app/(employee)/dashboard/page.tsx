@@ -21,7 +21,7 @@ export default async function EmployeeDashboardPage(): Promise<JSX.Element> {
   });
 
   return (
-          <main className="mx-auto max-w-7xl px-4 py-8">
+          <main className="w-full px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">

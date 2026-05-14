@@ -28,7 +28,7 @@ export default async function CategorySchemaPage({ params }: PageProps): Promise
   }
   const fields = parseSchemaJson(cat.fieldSchema);
   return (
-    <main className="mx-auto max-w-7xl space-y-4 px-4 py-6">
+    <main className="w-full space-y-4 px-4 py-6 sm:px-6 lg:px-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{cat.name} — schema</h1>

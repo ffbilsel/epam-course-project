@@ -50,7 +50,7 @@ export default async function MyIdeasPage({ searchParams }: PageProps): Promise<
   const cats = await listCategories("ACTIVE");
 
   return (
-          <main className="mx-auto max-w-7xl px-4 py-8">
+          <main className="w-full px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">My Ideas</h1>

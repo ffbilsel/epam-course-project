@@ -1,5 +1,5 @@
 import type { Role } from "@/db/schema";
-import type { NotificationPayload } from "@/lib/validation/notification";
+import type { NotificationKind, NotificationPayload } from "@/lib/validation/notification";
 
 /**
  * Generic shape consumed by {@link maskAuthor}. Phase 4 idea-listing
@@ -80,4 +80,44 @@ export function maskHistoryEvent<T extends HistoryEventLike>(
     ctx.ideaAnonymous && ctx.viewer.role === "EVALUATOR" && ctx.viewer.id !== ctx.authorId;
   if (!hide) return event;
   return { ...event, actorId: "", actorName: ANONYMOUS_SUBMITTER_LABEL };
+}
+
+/**
+ * Phase 5 — Notification event being enqueued. The `actorIsAuthor`
+ * flag tells us whether the event actor (status changer / commenter
+ * / etc.) is the idea author — which is the only case anonymity can
+ * possibly hide for a reviewer recipient.
+ */
+export interface RedactableNotificationEvent {
+  kind: NotificationKind;
+  payload: NotificationPayload;
+  ideaAnonymous: boolean;
+  actorIsAuthor: boolean;
+}
+
+/**
+ * Phase 5 — Pure function that returns a copy of `event.payload`
+ * with `actorDisplayName` replaced by {@link ANONYMOUS_SUBMITTER_LABEL}
+ * when the recipient is an Evaluator AND the event was authored by
+ * the idea's submitter AND the idea is anonymous (ADR-0018). Other
+ * payload fields are returned verbatim. `BULK_DIGEST` payloads are
+ * never redacted (admin actor is never the submitter).
+ * @example
+ *   redactPayloadForRecipient(
+ *     { kind: 'COMMENT_ADDED', payload: {
+ *         kind: 'COMMENT_ADDED', ideaTitle: 'X', snippet: 'hi',
+ *         actorDisplayName: 'Ada' },
+ *       ideaAnonymous: true, actorIsAuthor: true },
+ *     'EVALUATOR',
+ *   ).actorDisplayName === 'Anonymous Submitter';
+ */
+export function redactPayloadForRecipient(
+  event: RedactableNotificationEvent,
+  recipientRole: Role,
+): NotificationPayload {
+  const hide =
+    event.ideaAnonymous && event.actorIsAuthor && recipientRole === "EVALUATOR";
+  if (!hide) return event.payload;
+  if (event.payload.kind === "BULK_DIGEST") return event.payload;
+  return { ...event.payload, actorDisplayName: ANONYMOUS_SUBMITTER_LABEL };
 }
