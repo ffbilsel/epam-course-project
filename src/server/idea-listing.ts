@@ -68,7 +68,12 @@ export function buildListingPredicate(
     return { ...base, authorScope: session.id };
   }
   if (query.scope === "queue") {
-    return { ...base, statusWhitelist: ["SUBMITTED", "UNDER_REVIEW"] };
+    // ADMIN also sees APPROVED in the queue so they can mark ideas IMPLEMENTED.
+    const queueStatuses: ListingPredicate["statusWhitelist"] =
+      session.role === "ADMIN"
+        ? ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]
+        : ["SUBMITTED", "UNDER_REVIEW"];
+    return { ...base, statusWhitelist: queueStatuses };
   }
   return base;
 }

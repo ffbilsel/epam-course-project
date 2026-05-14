@@ -66,14 +66,20 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
         <div className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Submitted and under-review ideas. Newest first.
+            {session.user.role === "ADMIN"
+              ? "Submitted, under-review, and approved ideas. Newest first."
+              : "Submitted and under-review ideas. Newest first."}
           </p>
         </div>
 
         <IdeaFilterBar
           categories={cats.map((c) => ({ id: c.id, name: c.name }))}
           showStatuses={true}
-          availableStatuses={["SUBMITTED", "UNDER_REVIEW"]}
+          availableStatuses={
+            session.user.role === "ADMIN"
+              ? ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]
+              : ["SUBMITTED", "UNDER_REVIEW"]
+          }
         />
 
         {page.total === 0 ? (
