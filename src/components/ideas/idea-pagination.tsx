@@ -29,9 +29,7 @@ export function IdeaPagination({
   return (
     <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
       <p className="text-xs text-muted-foreground" aria-live="polite">
-        {total === 0
-          ? "No results"
-          : `Showing ${start}–${end} of ${total}`}
+        {total === 0 ? "No results" : `Showing ${start}–${end} of ${total}`}
       </p>
       <div className="flex items-center gap-2">
         <label className="flex items-center gap-2 text-xs text-muted-foreground">

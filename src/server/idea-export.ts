@@ -1,6 +1,13 @@
 import { and, desc, eq, gte, inArray, like, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, ideas, statusTransitions, users, type IdeaStatus, type Role } from "@/db/schema";
+import {
+  categories,
+  ideas,
+  statusTransitions,
+  users,
+  type IdeaStatus,
+  type Role,
+} from "@/db/schema";
 import { AppError } from "@/lib/errors/AppError";
 import { formatCsvRow } from "@/lib/format/csv";
 import { logSecurityEvent } from "@/server/infra/logger";
@@ -71,6 +78,7 @@ export async function streamIdeasCsv(
     async start(controller) {
       controller.enqueue(encoder.encode(formatCsvRow(HEADER)));
     },
+    // eslint-disable-next-line complexity -- linear state machine over batch/finished/exhausted branches
     async pull(controller) {
       if (finished) {
         controller.close();
@@ -207,6 +215,7 @@ async function fetchLatestDecisions(ideaIds: string[]): Promise<Map<string, Deci
 // Mirrors src/db/repositories/idea-repo.ts#buildPredicate. Kept in
 // a separate module-private helper so the export path can build a
 // where-clause without depending on Drizzle internals there.
+// eslint-disable-next-line complexity -- one branch per optional filter dimension
 function buildWhereFromPredicate(filter: ListingPredicate) {
   const conds: ReturnType<typeof eq>[] = [];
   if (filter.authorScope) conds.push(eq(ideas.authorId, filter.authorScope));
@@ -223,8 +232,8 @@ function buildWhereFromPredicate(filter: ListingPredicate) {
     const needle = `%${filter.q.toLowerCase()}%`;
     conds.push(
       or(
-        like(sql`lower(${ideas.title})`, needle),
-        like(sql`lower(${ideas.description})`, needle),
+        sql`lower(${ideas.title}) LIKE ${needle}`,
+        sql`lower(${ideas.description}) LIKE ${needle}`,
       ) as ReturnType<typeof eq>,
     );
   }

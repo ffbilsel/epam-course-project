@@ -60,7 +60,10 @@ beforeEach(async () => {
       updatedAt: now,
     },
   ]);
-  const cats = await db.select().from(categories).where(sql`${categories.state} = 'ACTIVE'`);
+  const cats = await db
+    .select()
+    .from(categories)
+    .where(sql`${categories.state} = 'ACTIVE'`);
   // Pick two ACTIVE categories whose field_schema is empty so we
   // can seed ideas without structured-answer payloads.
   const emptySchemaCats = cats.filter((c) => c.fieldSchema === "[]");

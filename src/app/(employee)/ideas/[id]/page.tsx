@@ -81,7 +81,9 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
               <CardHeader>
                 <CardTitle>Description</CardTitle>
               </CardHeader>
-              <CardContent className="whitespace-pre-wrap text-sm">{detail.description}</CardContent>
+              <CardContent className="whitespace-pre-wrap text-sm">
+                {detail.description}
+              </CardContent>
             </Card>
 
             <CategoryDetailsPanel answers={detail.answers} categoryName={detail.categoryName} />
@@ -97,8 +99,8 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
                     href={`/api/ideas/${detail.id}/attachment`}
                     prefetch={false}
                   >
-                    {detail.attachment.originalName} ({Math.round(detail.attachment.sizeBytes / 1024)}{" "}
-                    KB)
+                    {detail.attachment.originalName} (
+                    {Math.round(detail.attachment.sizeBytes / 1024)} KB)
                   </Link>
                 </CardContent>
               </Card>
@@ -111,7 +113,11 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">
                   {canTransition({ ...stateMachineInput, action: "START_REVIEW" }) && (
-                    <TransitionDialog ideaId={detail.id} action="START_REVIEW" label="Start review" />
+                    <TransitionDialog
+                      ideaId={detail.id}
+                      action="START_REVIEW"
+                      label="Start review"
+                    />
                   )}
                   {canTransition({ ...stateMachineInput, action: "APPROVE" }) && (
                     <TransitionDialog
@@ -130,7 +136,11 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
                     />
                   )}
                   {canTransition({ ...stateMachineInput, action: "IMPLEMENT" }) && (
-                    <TransitionDialog ideaId={detail.id} action="IMPLEMENT" label="Mark implemented" />
+                    <TransitionDialog
+                      ideaId={detail.id}
+                      action="IMPLEMENT"
+                      label="Mark implemented"
+                    />
                   )}
                   {detail.categoryState === "PROPOSED" && (
                     <p className="text-sm text-muted-foreground">

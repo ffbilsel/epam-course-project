@@ -10,6 +10,7 @@ from a clean checkout.
 >
 > - Phase 1 MVP — [001-innovatepam-portal-mvp](specs/001-innovatepam-portal-mvp/)
 > - Phase 2 Smart Forms — [002-smart-forms](specs/002-smart-forms/)
+> - Phase 3 Idea Listing & Management — [003-idea-listing-management](specs/003-idea-listing-management/)
 >
 > A presentation-ready overview lives in
 > [../PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md).
@@ -40,6 +41,16 @@ from a clean checkout.
   [0010](specs/002-smart-forms/adr/0010-answer-storage-and-label-snapshot.md),
   [0011](specs/002-smart-forms/adr/0011-dynamic-zod-validation.md),
   [0012](specs/002-smart-forms/adr/0012-field-type-taxonomy.md).
+- **Idea listing & management (Phase 3)** — author self-service
+  edit/delete on `SUBMITTED`, shared server-side filter/search/
+  pagination across My Ideas, the reviewer queue, and the admin
+  cross-tenant view, a unified audit timeline that merges
+  submissions, edits, and reviewer transitions, and a streaming
+  RFC 4180 CSV export for administrators. See ADRs
+  [0013](specs/003-idea-listing-management/adr/0013-edit-delete-cutoff.md),
+  [0014](specs/003-idea-listing-management/adr/0014-listing-query-design.md),
+  [0015](specs/003-idea-listing-management/adr/0015-edited-audit-row.md),
+  [0016](specs/003-idea-listing-management/adr/0016-csv-export-streaming.md).
 
 ## Quick start
 

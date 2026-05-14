@@ -43,10 +43,7 @@ export function TabsList({
   return (
     <div
       role="tablist"
-      className={cn(
-        "inline-flex rounded-md border bg-muted p-1 text-sm",
-        className,
-      )}
+      className={cn("inline-flex rounded-md border bg-muted p-1 text-sm", className)}
     >
       {children}
     </div>

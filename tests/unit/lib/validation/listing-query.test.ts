@@ -61,9 +61,9 @@ describe("parseListingQuery", () => {
   });
 
   it("rejects from > to", () => {
-    expect(() =>
-      parseListingQuery(new URLSearchParams("from=2026-05-10&to=2026-05-01")),
-    ).toThrow(/IDEA_LISTING_RANGE_INVALID/);
+    expect(() => parseListingQuery(new URLSearchParams("from=2026-05-10&to=2026-05-01"))).toThrow(
+      /IDEA_LISTING_RANGE_INVALID/,
+    );
   });
 
   it("treats an empty status param as absent", () => {

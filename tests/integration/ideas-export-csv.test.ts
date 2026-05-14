@@ -61,7 +61,10 @@ beforeEach(async () => {
       updatedAt: now,
     },
   ]);
-  const cats = await db.select().from(categories).where(sql`${categories.state} = 'ACTIVE'`);
+  const cats = await db
+    .select()
+    .from(categories)
+    .where(sql`${categories.state} = 'ACTIVE'`);
   const emptySchemaCats = cats.filter((c) => c.fieldSchema === "[]");
   expect(emptySchemaCats.length).toBeGreaterThanOrEqual(2);
   processCatId = emptySchemaCats[0]!.id;
@@ -117,9 +120,9 @@ describe("streamIdeasCsv", () => {
     await expect(
       streamIdeasCsv(q({}), { id: evaluatorId, role: "EVALUATOR" }),
     ).rejects.toMatchObject({ code: "AUTH_FORBIDDEN_ROLE" });
-    await expect(
-      streamIdeasCsv(q({}), { id: authorA, role: "EMPLOYEE" }),
-    ).rejects.toMatchObject({ code: "AUTH_FORBIDDEN_ROLE" });
+    await expect(streamIdeasCsv(q({}), { id: authorA, role: "EMPLOYEE" })).rejects.toMatchObject({
+      code: "AUTH_FORBIDDEN_ROLE",
+    });
   });
 
   it("emits a header row matching the data-model contract", async () => {
@@ -163,10 +166,10 @@ describe("streamIdeasCsv", () => {
       categoryId: costCatId,
       createdAt: new Date("2026-04-03"),
     });
-    const stream = await streamIdeasCsv(
-      q({ categoryId: processCatId }),
-      { id: adminId, role: "ADMIN" },
-    );
+    const stream = await streamIdeasCsv(q({ categoryId: processCatId }), {
+      id: adminId,
+      role: "ADMIN",
+    });
     const csv = await drain(stream);
     const lines = csv.split("\r\n").filter((l) => l.length > 0);
     // header + 2 data rows for the process category

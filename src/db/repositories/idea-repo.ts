@@ -185,6 +185,7 @@ export interface IdeaListingRow {
   updatedAt: number;
 }
 
+// eslint-disable-next-line complexity -- one branch per optional filter dimension
 function buildPredicate(filter: ListingPredicate) {
   const conds = [] as Array<ReturnType<typeof eq>>;
   if (filter.authorScope) conds.push(eq(ideas.authorId, filter.authorScope));
@@ -201,8 +202,8 @@ function buildPredicate(filter: ListingPredicate) {
     const needle = `%${filter.q.toLowerCase()}%`;
     conds.push(
       or(
-        like(sql`lower(${ideas.title})`, needle),
-        like(sql`lower(${ideas.description})`, needle),
+        sql`lower(${ideas.title}) LIKE ${needle}`,
+        sql`lower(${ideas.description}) LIKE ${needle}`,
       ) as ReturnType<typeof eq>,
     );
   }
@@ -275,4 +276,3 @@ export async function countFiltered(filter: ListingPredicate): Promise<number> {
     .where(where);
   return r[0]?.n ?? 0;
 }
-

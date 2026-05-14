@@ -43,9 +43,9 @@ export interface ListingPage<T> {
  * | mine   | EMPLOYEE, EVALUATOR, ADMIN | `authorId = session.userId`                    |
  * | queue  | EVALUATOR, ADMIN           | `status IN (SUBMITTED, UNDER_REVIEW)`          |
  * | all    | ADMIN                       | none                                           |
- *
  * @throws AUTH_FORBIDDEN_ROLE when the role isn't allowed for the scope.
  */
+// eslint-disable-next-line complexity -- linear scope guards + one branch per optional listing filter
 export function buildListingPredicate(
   query: ListingQuery,
   session: { id: string; role: Role },
@@ -56,13 +56,12 @@ export function buildListingPredicate(
   if (query.scope === "queue" && session.role === "EMPLOYEE") {
     throw new AppError("AUTH_FORBIDDEN_ROLE");
   }
-  const base: ListingPredicate = {
-    q: query.q || undefined,
-    categoryId: query.categoryId,
-    status: query.status as ListingPredicate["status"],
-    from: query.from,
-    to: query.to,
-  };
+  const base: ListingPredicate = {};
+  if (query.q) base.q = query.q;
+  if (query.categoryId) base.categoryId = query.categoryId;
+  if (query.status) base.status = query.status as NonNullable<ListingPredicate["status"]>;
+  if (query.from) base.from = query.from;
+  if (query.to) base.to = query.to;
   if (query.scope === "mine") {
     return { ...base, authorScope: session.id };
   }

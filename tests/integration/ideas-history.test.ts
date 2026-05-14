@@ -107,12 +107,7 @@ describe("getIdeaHistory", () => {
       role: "EVALUATOR",
     });
     const events = await getIdeaHistory(ideaId, { id: authorId, role: "EMPLOYEE" });
-    expect(events.map((e) => e.kind)).toEqual([
-      "SUBMITTED",
-      "EDITED",
-      "TRANSITION",
-      "TRANSITION",
-    ]);
+    expect(events.map((e) => e.kind)).toEqual(["SUBMITTED", "EDITED", "TRANSITION", "TRANSITION"]);
     const approve = events[3];
     if (approve!.kind !== "TRANSITION") throw new Error("expected TRANSITION");
     expect(approve!.from).toBe("UNDER_REVIEW");
@@ -125,9 +120,7 @@ describe("getIdeaHistory", () => {
     await expect(
       getIdeaHistory(ideaId, { id: evaluatorId, role: "EVALUATOR" }),
     ).resolves.toBeDefined();
-    await expect(
-      getIdeaHistory(ideaId, { id: adminId, role: "ADMIN" }),
-    ).resolves.toBeDefined();
+    await expect(getIdeaHistory(ideaId, { id: adminId, role: "ADMIN" })).resolves.toBeDefined();
   });
 
   it("rejects unrelated employees with AUTH_FORBIDDEN_ROLE", async () => {

@@ -142,9 +142,9 @@ describe("deleteIdea", () => {
 
   it("refuses deletes by another user", async () => {
     const ideaId = await makeSubmittedIdea();
-    await expect(
-      deleteIdea(ideaId, { id: strangerId, role: "EMPLOYEE" }),
-    ).rejects.toMatchObject({ code: "AUTH_FORBIDDEN_ROLE" });
+    await expect(deleteIdea(ideaId, { id: strangerId, role: "EMPLOYEE" })).rejects.toMatchObject({
+      code: "AUTH_FORBIDDEN_ROLE",
+    });
   });
 
   it("refuses deletes past SUBMITTED with IDEA_NOT_DELETABLE", async () => {
@@ -153,8 +153,8 @@ describe("deleteIdea", () => {
       id: evaluatorId,
       role: "EVALUATOR",
     });
-    await expect(
-      deleteIdea(ideaId, { id: authorId, role: "EMPLOYEE" }),
-    ).rejects.toMatchObject({ code: "IDEA_NOT_DELETABLE" });
+    await expect(deleteIdea(ideaId, { id: authorId, role: "EMPLOYEE" })).rejects.toMatchObject({
+      code: "IDEA_NOT_DELETABLE",
+    });
   });
 });

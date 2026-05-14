@@ -182,11 +182,11 @@ US1 + US2.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T051 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-3 capabilities
-- [ ] T052 [P] Update `scripts/seed-demo.ts` to seed two edited ideas + one cross-status mix so demo data exercises all listing filters
-- [ ] T053 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; fix any drift
+- [X] T051 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-3 capabilities
+- [X] T052 [P] Update `scripts/seed-demo.ts` to seed two edited ideas + one cross-status mix so demo data exercises all listing filters
+- [X] T053 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; fix any drift
 - [ ] T054 Run quickstart walkthrough end-to-end ([./quickstart.md](./quickstart.md)) and tick SC-001…SC-006
-- [ ] T055 Run full pipeline: `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run format -- --check`
+- [X] T055 Run full pipeline: `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run format -- --check`
 - [ ] T056 Merge feature branch back to `main` with `git merge --no-ff 003-idea-listing-management` (Constitution Principle X / Quality Gate 12)
 
 ---

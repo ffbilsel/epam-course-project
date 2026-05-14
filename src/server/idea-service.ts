@@ -21,8 +21,17 @@ import {
   readAnswers,
 } from "@/db/repositories/idea-repo";
 import { findAttachmentById, commitAttachmentToIdea } from "@/db/repositories/attachment-repo";
-import { insertTransition, insertEditedMarker, listTransitionsByIdea } from "@/db/repositories/transition-repo";
-import { evaluateTransition, canAuthorEdit, canAuthorDelete, type TransitionAction } from "@/server/idea-state-machine";
+import {
+  insertTransition,
+  insertEditedMarker,
+  listTransitionsByIdea,
+} from "@/db/repositories/transition-repo";
+import {
+  evaluateTransition,
+  canAuthorEdit,
+  canAuthorDelete,
+  type TransitionAction,
+} from "@/server/idea-state-machine";
 import { logSecurityEvent } from "@/server/infra/logger";
 import type { CreateIdeaInput, UpdateIdeaInput } from "@/lib/validation/idea";
 import type { Role } from "@/db/schema";
@@ -307,7 +316,6 @@ export const _internal = {
  * validates structured answers against the live schema. Writes a
  * `from = to = SUBMITTED` audit row inside a single transaction
  * (ADR-0015). Emits an `idea_edited` security event.
- *
  * @throws `IDEA_NOT_FOUND` when the idea doesn't exist.
  * @throws `AUTH_FORBIDDEN_ROLE` when the actor is not the author.
  * @throws `IDEA_NOT_EDITABLE` when the idea is past `SUBMITTED`.
@@ -332,7 +340,8 @@ export async function editIdea(
     throw new AppError("IDEA_CATEGORY_INVALID");
   }
 
-  const fields = targetCategory.state === "ACTIVE" ? parseSchemaJson(targetCategory.fieldSchema) : [];
+  const fields =
+    targetCategory.state === "ACTIVE" ? parseSchemaJson(targetCategory.fieldSchema) : [];
   const answers = fields.length > 0 ? validateAnswers(fields, input.answers ?? {}) : [];
 
   const now = deps.clock.now().getTime();
@@ -371,15 +380,11 @@ export async function editIdea(
  * the attached file row and audit rows; the on-disk attachment
  * directory (if any) is best-effort removed after the transaction
  * commits.
- *
  * @throws `IDEA_NOT_FOUND` when the idea doesn't exist.
  * @throws `AUTH_FORBIDDEN_ROLE` when the actor is not the author.
  * @throws `IDEA_NOT_DELETABLE` when the idea is past `SUBMITTED`.
  */
-export async function deleteIdea(
-  ideaId: string,
-  actor: { id: string; role: Role },
-): Promise<void> {
+export async function deleteIdea(ideaId: string, actor: { id: string; role: Role }): Promise<void> {
   const idea = await findIdeaById(ideaId);
   if (!idea) throw AppError.notFound("IDEA_NOT_FOUND");
   if (idea.authorId !== actor.id) throw new AppError("AUTH_FORBIDDEN_ROLE");

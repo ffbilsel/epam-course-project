@@ -10,7 +10,7 @@ import { sql } from "drizzle-orm";
 import { db, sqliteClient } from "@/db/client";
 import { users, ideas, categories } from "@/db/schema";
 import { hashPassword } from "@/server/password";
-import { createIdea } from "@/server/idea-service";
+import { createIdea, applyTransition, editIdea } from "@/server/idea-service";
 
 async function ensureUser(opts: {
   email: string;
@@ -56,7 +56,7 @@ async function ensureIdea(opts: {
   description: string;
   categoryName: string;
   authorId: string;
-  answers: Record<string, string | number | boolean | null>;
+  answers?: Record<string, string | number | boolean | null>;
 }): Promise<void> {
   const existing = await db
     .select({ id: ideas.id })
@@ -79,7 +79,7 @@ async function ensureIdea(opts: {
       description: opts.description,
       categoryId: cat[0].id,
       attachmentId: null,
-      answers: opts.answers,
+      answers: opts.answers ?? {},
     },
     opts.authorId,
   );
@@ -142,6 +142,75 @@ async function main(): Promise<void> {
       expected_impact: "Drop time-to-first-value by ~30% and reduce onboarding support tickets.",
     },
   });
+
+  // Phase 3 demo data: extra ideas + a couple of transitions/edits so
+  // the filter bar, pagination, and history tab all have content.
+  await ensureIdea({
+    title: "Dark mode for the portal",
+    description: "Add a token-driven dark theme toggle persisted per user.",
+    categoryName: "Product Innovation",
+    authorId: employeeId,
+  });
+  await ensureIdea({
+    title: "Bulk category re-tag",
+    description: "Let admins move a batch of ideas to a different category in one action.",
+    categoryName: "Tooling",
+    authorId: employeeId,
+    answers: {
+      tool_name: "bulk-retagger",
+      replaces_what: "Manual one-by-one category edits.",
+      estimated_setup_hours: 4,
+    },
+  });
+
+  // Run a couple of state transitions so the queue is non-trivial.
+  const evaluator = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`${users.email} = 'evaluator@innovatepam.test'`)
+    .limit(1);
+  const evaluatorId = evaluator[0]?.id;
+  const tooling = await db
+    .select({ id: ideas.id, status: ideas.status })
+    .from(ideas)
+    .where(sql`lower(${ideas.title}) = 'self-service postman collection generator'`)
+    .limit(1);
+  if (evaluatorId && tooling[0] && tooling[0].status === "SUBMITTED") {
+    await applyTransition(tooling[0].id, "START_REVIEW", null, {
+      id: evaluatorId,
+      role: "EVALUATOR",
+    });
+    await applyTransition(tooling[0].id, "APPROVE", "Solid uplift, low risk.", {
+      id: evaluatorId,
+      role: "EVALUATOR",
+    });
+  }
+
+  // Author-side edit so the history tab has an EDITED row.
+  const inlineChecklist = await db
+    .select({ id: ideas.id, status: ideas.status, categoryId: ideas.categoryId })
+    .from(ideas)
+    .where(sql`lower(${ideas.title}) = 'inline customer onboarding checklist'`)
+    .limit(1);
+  if (inlineChecklist[0] && inlineChecklist[0].status === "SUBMITTED") {
+    await editIdea(
+      inlineChecklist[0].id,
+      {
+        title: "Inline customer onboarding checklist (updated)",
+        description:
+          "Show new customers a contextual onboarding checklist directly inside the product, with progressive disclosure for power-user steps.",
+        categoryId: inlineChecklist[0].categoryId,
+        answers: {
+          customer_segment: "New SMB customers in their first 30 days.",
+          current_pain:
+            "Onboarding emails are skipped; users get stuck on configuration steps and contact support.",
+          expected_impact:
+            "Drop time-to-first-value by ~30% and cut onboarding support tickets by half.",
+        },
+      },
+      { id: employeeId, role: "EMPLOYEE" },
+    );
+  }
 }
 
 main()

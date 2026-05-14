@@ -1,12 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { withErrorHandler } from "@/lib/errors/with-error-handler";
 import { requireSession } from "@/server/role-guard";
-import {
-  getIdeaDetail,
-  listIdeaTransitions,
-  editIdea,
-  deleteIdea,
-} from "@/server/idea-service";
+import { getIdeaDetail, listIdeaTransitions, editIdea, deleteIdea } from "@/server/idea-service";
 import { UpdateIdeaSchema } from "@/lib/validation/idea";
 import { AppError } from "@/lib/errors/AppError";
 

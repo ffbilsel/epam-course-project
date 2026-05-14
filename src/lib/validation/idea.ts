@@ -6,6 +6,7 @@ import { IDEA_STATUSES } from "@/db/schema";
  * must not import server-only code from `@/db/schema` at runtime.
  */
 export const IDEA_STATUS_VALUES = IDEA_STATUSES;
+/** Inferred TypeScript type for {@link IDEA_STATUS_VALUES}. */
 export type IdeaStatusValue = (typeof IDEA_STATUS_VALUES)[number];
 
 /**
@@ -107,11 +108,10 @@ function isValidIsoDate(s: string): boolean {
   if (!ISO_DATE.test(s)) return false;
   const [y, m, d] = s.split("-").map(Number);
   const dt = new Date(Date.UTC(y!, m! - 1, d!));
-  return (
-    dt.getUTCFullYear() === y && dt.getUTCMonth() === m! - 1 && dt.getUTCDate() === d
-  );
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m! - 1 && dt.getUTCDate() === d;
 }
 const PAGE_SIZES = [20, 50, 100] as const;
+/** Allowed page sizes for the unified idea listing. */
 export type ListingPageSize = (typeof PAGE_SIZES)[number];
 
 /**
@@ -132,14 +132,8 @@ export const ListingQuerySchema = z
       .array(z.enum(IDEA_STATUS_VALUES as readonly [string, ...string[]]))
       .max(IDEA_STATUS_VALUES.length)
       .optional(),
-    from: z
-      .string()
-      .refine(isValidIsoDate, { message: "IDEA_LISTING_RANGE_INVALID" })
-      .optional(),
-    to: z
-      .string()
-      .refine(isValidIsoDate, { message: "IDEA_LISTING_RANGE_INVALID" })
-      .optional(),
+    from: z.string().refine(isValidIsoDate, { message: "IDEA_LISTING_RANGE_INVALID" }).optional(),
+    to: z.string().refine(isValidIsoDate, { message: "IDEA_LISTING_RANGE_INVALID" }).optional(),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce
       .number()
@@ -165,9 +159,9 @@ export type ListingQuery = z.infer<typeof ListingQuerySchema>;
  * Parses a `URLSearchParams` (or any iterable of key/value pairs)
  * into a {@link ListingQuery}. Repeated `status` keys collapse to an
  * array.
- *
  * @throws ZodError on invalid input (handled by `withErrorHandler`).
  */
+// eslint-disable-next-line complexity -- one branch per optional URL param
 export function parseListingQuery(
   params: URLSearchParams | Iterable<[string, string]>,
 ): ListingQuery {

@@ -17,16 +17,13 @@ const cases = [
 ] as const;
 
 describe("canAuthorEdit / canAuthorDelete", () => {
-  it.each(cases)(
-    "status=%s sameAuthor=%s -> %s",
-    (status, sameAuthor, expected) => {
-      const actor = sameAuthor ? author : stranger;
-      const input = {
-        idea: { status, authorId: author.id },
-        actor,
-      };
-      expect(canAuthorEdit(input)).toBe(expected);
-      expect(canAuthorDelete(input)).toBe(expected);
-    },
-  );
+  it.each(cases)("status=%s sameAuthor=%s -> %s", (status, sameAuthor, expected) => {
+    const actor = sameAuthor ? author : stranger;
+    const input = {
+      idea: { status, authorId: author.id },
+      actor,
+    };
+    expect(canAuthorEdit(input)).toBe(expected);
+    expect(canAuthorDelete(input)).toBe(expected);
+  });
 });
