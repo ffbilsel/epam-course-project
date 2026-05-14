@@ -55,21 +55,21 @@ story needs.
 **⚠️ CRITICAL**: no user-story work may start until this phase is
 complete.
 
-- [ ] T006 Create migration `drizzle/0003_drafts_ratings_comments.sql` — new tables `idea_drafts`, `rating_dimensions`, `ratings`, `comments`; new columns `categories.anonymous_default`, `ideas.anonymous`; composite indexes `idx_ratings_idea`, `idx_comments_idea_created`, `idx_drafts_author_updated`, `idx_ideas_status_created`; seed the default rating dimension set (Feasibility, Impact, Originality, Alignment) with `categoryId = NULL`. Snapshot at `drizzle/meta/0003_snapshot.json`
-- [ ] T007 [P] Mirror the migration in Drizzle schemas — `src/db/schema/drafts.ts`, `src/db/schema/rating-dimensions.ts`, `src/db/schema/ratings.ts`, `src/db/schema/comments.ts`; extend `src/db/schema/categories.ts` and `src/db/schema/ideas.ts` with the new columns; re-export from `src/db/schema/index.ts`
-- [ ] T008 [P] Add `src/styles/tokens.css` (light + dark CSS-variable design tokens per [ADR-0022](./adr/0022-makeover-design-tokens.md)) and import it from `src/app/globals.css`
-- [ ] T009 [P] Add `src/lib/format/plain-text.ts` exporting `escapeAndLinebreak(input: string)` (HTML-escape + `\n → <br>`, NFR-007)
-- [ ] T010 [P] [unit-tests] `tests/unit/lib/format/plain-text.test.ts` — empty, plain, embedded `<`, `>`, `&`, `"`, `'`, single LF, CRLF, mixed, unicode emoji
-- [ ] T011 [P] Add `src/lib/validation/draft.ts` with `SaveDraftSchema` (all fields optional) and `SubmitDraftSchema` (delegates to feature-002 idea-submit schema)
-- [ ] T012 [P] Add `src/lib/validation/rating.ts` with `RatingPutSchema` (per-dimension `score: z.union([z.literal(null), z.number().int().min(1).max(5)])`) and `RATING_SCORE_VALUES`
-- [ ] T013 [P] Add `src/lib/validation/comment.ts` with `CommentPostSchema` (body ≤ 2 000 chars, plain text) and `CommentEditSchema`
-- [ ] T014 [P] Add `src/lib/validation/insights.ts` with `InsightsRangeSchema` (preset enum + custom from/to + bucket: day|week|month)
-- [ ] T015 [P] Add pure `src/server/anonymity.ts` exporting `maskAuthor(idea, viewer)` and `maskHistoryEvent(event, viewer)` — JSDoc `@example` per Principle IV; idempotent and side-effect-free
-- [ ] T016 [P] [unit-tests] `tests/unit/server/anonymity.test.ts` — every (viewerRole × idea.anonymous × authorRole) cell of the truth table; one assertion per case via `it.each`
-- [ ] T017 [P] [unit-tests] `tests/unit/lib/validation/rating.test.ts` and `tests/unit/lib/validation/comment.test.ts` — boundary 1/5, 0 rejects, 6 rejects, `null` accepted, oversize body rejects, plain LF preserved
-- [ ] T018 [P] Re-export `Draft`, `RatingDimension`, `Rating`, `Comment`, `InsightsRange`, `InsightsBucket`, `InsightsSeries` in `src/types/index.ts`
-- [ ] T019 [P] Add `src/components/layout/app-shell.tsx`, `src/components/layout/sidebar.tsx`, and `src/components/layout/theme-toggle.tsx` — shared chrome per [ADR-0022](./adr/0022-makeover-design-tokens.md); add `src/lib/hooks/use-theme.ts`
-- [ ] T020 [P] Wire `AppShell` into `src/app/layout.tsx` (root) and the three role-scoped layouts under `src/app/(employee)/layout.tsx`, `src/app/(reviewer)/layout.tsx`, `src/app/(admin)/layout.tsx`
+- [X] T006 Create migration `drizzle/0003_drafts_ratings_comments.sql` — new tables `idea_drafts`, `rating_dimensions`, `ratings`, `comments`; new columns `categories.anonymous_default`, `ideas.anonymous`; composite indexes `idx_ratings_idea`, `idx_comments_idea_created`, `idx_drafts_author_updated`, `idx_ideas_status_created`; seed the default rating dimension set (Feasibility, Impact, Originality, Alignment) with `categoryId = NULL`. Snapshot at `drizzle/meta/0003_snapshot.json`
+- [X] T007 [P] Mirror the migration in Drizzle schemas — `src/db/schema/drafts.ts`, `src/db/schema/rating-dimensions.ts`, `src/db/schema/ratings.ts`, `src/db/schema/comments.ts`; extend `src/db/schema/categories.ts` and `src/db/schema/ideas.ts` with the new columns; re-export from `src/db/schema/index.ts`
+- [X] T008 [P] Add `src/styles/tokens.css` (light + dark CSS-variable design tokens per [ADR-0022](./adr/0022-makeover-design-tokens.md)) and import it from `src/app/globals.css`
+- [X] T009 [P] Add `src/lib/format/plain-text.ts` exporting `escapeAndLinebreak(input: string)` (HTML-escape + `\n → <br>`, NFR-007)
+- [X] T010 [P] [unit-tests] `tests/unit/lib/format/plain-text.test.ts` — empty, plain, embedded `<`, `>`, `&`, `"`, `'`, single LF, CRLF, mixed, unicode emoji
+- [X] T011 [P] Add `src/lib/validation/draft.ts` with `SaveDraftSchema` (all fields optional) and `SubmitDraftSchema` (delegates to feature-002 idea-submit schema)
+- [X] T012 [P] Add `src/lib/validation/rating.ts` with `RatingPutSchema` (per-dimension `score: z.union([z.literal(null), z.number().int().min(1).max(5)])`) and `RATING_SCORE_VALUES`
+- [X] T013 [P] Add `src/lib/validation/comment.ts` with `CommentPostSchema` (body ≤ 2 000 chars, plain text) and `CommentEditSchema`
+- [X] T014 [P] Add `src/lib/validation/insights.ts` with `InsightsRangeSchema` (preset enum + custom from/to + bucket: day|week|month)
+- [X] T015 [P] Add pure `src/server/anonymity.ts` exporting `maskAuthor(idea, viewer)` and `maskHistoryEvent(event, viewer)` — JSDoc `@example` per Principle IV; idempotent and side-effect-free
+- [X] T016 [P] [unit-tests] `tests/unit/server/anonymity.test.ts` — every (viewerRole × idea.anonymous × authorRole) cell of the truth table; one assertion per case via `it.each`
+- [X] T017 [P] [unit-tests] `tests/unit/lib/validation/rating.test.ts` and `tests/unit/lib/validation/comment.test.ts` — boundary 1/5, 0 rejects, 6 rejects, `null` accepted, oversize body rejects, plain LF preserved
+- [X] T018 [P] Re-export `Draft`, `RatingDimension`, `Rating`, `Comment`, `InsightsRange`, `InsightsBucket`, `InsightsSeries` in `src/types/index.ts`
+- [X] T019 [P] Add `src/components/layout/app-shell.tsx`, `src/components/layout/sidebar.tsx`, and `src/components/layout/theme-toggle.tsx` — shared chrome per [ADR-0022](./adr/0022-makeover-design-tokens.md); add `src/lib/hooks/use-theme.ts`
+- [X] T020 [P] Wire `AppShell` into `src/app/layout.tsx` (root) and the three role-scoped layouts under `src/app/(employee)/layout.tsx`, `src/app/(reviewer)/layout.tsx`, `src/app/(admin)/layout.tsx`
 
 **Checkpoint**: schema, design tokens, validators, anonymity helper, and `AppShell` are ready. User-story phases may now proceed in parallel (subject to capacity).
 
