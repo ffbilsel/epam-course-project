@@ -166,6 +166,16 @@ export async function createIdea(
     await commitStagedAttachment(staged, ideaId);
   }
 
+  // Phase 5 (US3): snapshot v1 right after the idea + (optional)
+  // staged attachment land so the timeline has a coherent root row
+  // (ADR-0024).
+  try {
+    const { snapshotInitial } = await import("@/server/version-service");
+    await snapshotInitial(ideaId, { id: authorId }, deps.ids, now);
+  } catch {
+    // best-effort: snapshot failure must not roll back the idea creation
+  }
+
   return loadDetail(ideaId);
 }
 
@@ -459,6 +469,14 @@ export async function editIdea(
     requestId: null,
     details: { ideaId },
   });
+
+  // Phase 5 (US3): snapshot v(N+1) after the edit lands.
+  try {
+    const { snapshotEdit } = await import("@/server/version-service");
+    await snapshotEdit(ideaId, { id: actor.id }, deps.ids, now);
+  } catch {
+    // best-effort
+  }
 
   return loadDetail(ideaId);
 }
