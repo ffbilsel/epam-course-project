@@ -11,6 +11,7 @@ from a clean checkout.
 > - Phase 1 MVP — [001-innovatepam-portal-mvp](specs/001-innovatepam-portal-mvp/)
 > - Phase 2 Smart Forms — [002-smart-forms](specs/002-smart-forms/)
 > - Phase 3 Idea Listing & Management — [003-idea-listing-management](specs/003-idea-listing-management/)
+> - Phase 4 Advanced Evaluation Experience — [004-advanced-evaluation-experience](specs/004-advanced-evaluation-experience/)
 >
 > A presentation-ready overview lives in
 > [../PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md).
@@ -51,6 +52,28 @@ from a clean checkout.
   [0014](specs/003-idea-listing-management/adr/0014-listing-query-design.md),
   [0015](specs/003-idea-listing-management/adr/0015-edited-audit-row.md),
   [0016](specs/003-idea-listing-management/adr/0016-csv-export-streaming.md).
+- **Advanced evaluation experience (Phase 4)** — private **drafts**
+  with debounced autosave; **multi-dimensional 1–5 ratings** with
+  required-dimension gating and post-decision locking; a one-level
+  **comment thread** (plain text, HTML-escaped + `\n→<br>`) with a
+  5-minute author edit window and soft-delete moderator placeholder;
+  **anonymous evaluation** as a per-idea snapshot (default per
+  category, admin-overridable) that masks the submitter on every
+  reviewer-facing read path while leaving the submitter and admins
+  unaffected; **insight dashboards** for ADMIN (full) and EVALUATOR
+  (aggregate-only) via three Recharts surfaces — submission trend,
+  approval rate, and category distribution — over preset or custom
+  ranges; a **frontend makeover** that re-skins every authenticated
+  page on a single `src/styles/tokens.css` design system with a
+  flash-free dark mode; and the FR-037 / FR-038 **hardening** of the
+  employee dashboard History tab and the reviewer queue status
+  filter. See ADRs
+  [0017](specs/004-advanced-evaluation-experience/adr/0017-drafts-separate-table.md),
+  [0018](specs/004-advanced-evaluation-experience/adr/0018-anonymity-model.md),
+  [0019](specs/004-advanced-evaluation-experience/adr/0019-ratings-schema.md),
+  [0020](specs/004-advanced-evaluation-experience/adr/0020-comment-thread-shape.md),
+  [0021](specs/004-advanced-evaluation-experience/adr/0021-recharts-as-chart-engine.md),
+  [0022](specs/004-advanced-evaluation-experience/adr/0022-makeover-design-tokens.md).
 
 ## Quick start
 
@@ -90,6 +113,10 @@ For end-to-end walkthroughs, see
 [specs/001-innovatepam-portal-mvp/quickstart.md](specs/001-innovatepam-portal-mvp/quickstart.md)
 and
 [specs/002-smart-forms/quickstart.md](specs/002-smart-forms/quickstart.md).
+Phase 3 / Phase 4 walkthroughs live alongside their specs at
+[specs/003-idea-listing-management/quickstart.md](specs/003-idea-listing-management/quickstart.md)
+and
+[specs/004-advanced-evaluation-experience/quickstart.md](specs/004-advanced-evaluation-experience/quickstart.md).
 
 ## Scripts
 
@@ -140,8 +167,9 @@ project/
 │   │   ├── (public)/     # login, register
 │   │   ├── (employee)/   # ideas/new, ideas/[id], my-ideas
 │   │   ├── (reviewer)/   # queue
-│   │   ├── (admin)/      # admin/users, admin/categories
-│   │   └── api/          # auth, attachments, categories, ideas, users
+│   │   ├── (admin)/      # admin/users, admin/categories, admin/ideas
+│   │   └── api/          # auth, attachments, categories, ideas, users,
+│   │                     # drafts, ratings, comments, insights
 │   ├── components/       # ui/ primitives + forms/ + ideas/ + admin/ + layout/
 │   ├── db/               # Drizzle schema, client, repositories, seed, migrate
 │   ├── lib/              # validation (zod), errors, format, hooks
@@ -161,9 +189,19 @@ specs/
 │   ├── spec.md, plan.md, tasks.md, data-model.md, research.md, quickstart.md
 │   ├── adr/                  # 0001..0008
 │   └── contracts/openapi.yaml
-└── 002-smart-forms/
+├── 002-smart-forms/
+│   ├── spec.md, plan.md, tasks.md, data-model.md, research.md, quickstart.md
+│   ├── adr/                  # 0009..0012
+│   ├── checklists/
+│   └── contracts/
+├── 003-idea-listing-management/
+│   ├── spec.md, plan.md, tasks.md, data-model.md, research.md, quickstart.md
+│   ├── adr/                  # 0013..0016
+│   ├── checklists/
+│   └── contracts/
+└── 004-advanced-evaluation-experience/
     ├── spec.md, plan.md, tasks.md, data-model.md, research.md, quickstart.md
-    ├── adr/                  # 0009..0012
+    ├── adr/                  # 0017..0022
     ├── checklists/
     └── contracts/
 ```

@@ -1,0 +1,77 @@
+/**
+ * Phase 4 — Frontend makeover design tokens (ADR-0022).
+ *
+ * These CSS variables extend the Phase 1–3 token set with semantic
+ * surface, brand, and chart tokens used by `AppShell`, the Drafts
+ * editor, the Rating panel, the Comment thread, and the Recharts
+ * surfaces. All values are HSL components so Tailwind utilities can
+ * compose them with `hsl(var(--…) / <alpha>)`.
+ */
+
+:root {
+  /* Brand & neutral palette (light) */
+  --brand-50: 243 100% 97%;
+  --brand-100: 243 100% 94%;
+  --brand-500: 243 75% 58%;
+  --brand-600: 243 75% 48%;
+  --brand-700: 243 75% 38%;
+
+  /* Layout surfaces */
+  --surface-1: 0 0% 100%;
+  --surface-2: 220 33% 98%;
+  --surface-3: 220 14% 96%;
+
+  /* Chart palette (Recharts) — wcag-aware for light theme */
+  --chart-1: 243 75% 58%;
+  --chart-2: 199 89% 48%;
+  --chart-3: 152 60% 40%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 280 67% 55%;
+  --chart-6: 0 72% 51%;
+
+  /* Sidebar */
+  --sidebar-bg: 0 0% 100%;
+  --sidebar-fg: 222 47% 11%;
+  --sidebar-muted: 220 9% 46%;
+  --sidebar-active-bg: 243 100% 96%;
+  --sidebar-active-fg: 243 75% 38%;
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --motion-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.dark {
+  --brand-50: 243 60% 22%;
+  --brand-100: 243 60% 28%;
+  --brand-500: 243 90% 70%;
+  --brand-600: 243 90% 78%;
+  --brand-700: 243 100% 88%;
+
+  --surface-1: 224 47% 9%;
+  --surface-2: 224 71% 4%;
+  --surface-3: 217 32% 17%;
+
+  --chart-1: 243 90% 70%;
+  --chart-2: 199 95% 64%;
+  --chart-3: 152 60% 55%;
+  --chart-4: 38 92% 62%;
+  --chart-5: 280 80% 70%;
+  --chart-6: 0 80% 65%;
+
+  --sidebar-bg: 224 47% 9%;
+  --sidebar-fg: 210 40% 98%;
+  --sidebar-muted: 215 20% 65%;
+  --sidebar-active-bg: 243 60% 22%;
+  --sidebar-active-fg: 243 100% 88%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+  }
+}

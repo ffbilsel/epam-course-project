@@ -10,14 +10,18 @@ import { CategoryDetailsPanel } from "@/components/ideas/category-details-panel"
 import { EditIdeaButton } from "@/components/ideas/edit-idea-button";
 import { DeleteIdeaDialog } from "@/components/ideas/delete-idea-dialog";
 import { IdeaHistoryTab } from "@/components/ideas/idea-history-tab";
+import { RatingPanel, RatingSummary } from "@/components/ratings/rating-panel";
+import { CommentThread } from "@/components/comments/comment-thread";
 import { auth } from "@/server/auth-options";
 import { getIdeaDetail } from "@/server/idea-service";
 import { getIdeaHistory } from "@/server/idea-history";
+import { getRatings } from "@/server/rating-service";
+import { listThread } from "@/server/comment-service";
 import { formatDateTime } from "@/lib/format/date";
 import { canTransition, canAuthorEdit } from "@/server/idea-state-machine";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -26,12 +30,13 @@ interface PageProps {
  * reviewers see transition controls when allowed.
  */
 export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX.Element> {
+  const { id } = await params;
   const session = await auth();
-  if (!session?.user) redirect(`/login?callbackUrl=/ideas/${params.id}`);
+  if (!session?.user) redirect(`/login?callbackUrl=/ideas/${id}`);
 
   let detail;
   try {
-    detail = await getIdeaDetail(params.id);
+    detail = await getIdeaDetail(id);
   } catch {
     notFound();
   }
@@ -44,6 +49,17 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
     id: session.user.id,
     role: session.user.role,
   });
+  const ratings = await getRatings(detail.id);
+  const thread = await listThread(detail.id);
+  const myScores = new Map(
+    ratings.rows
+      .filter((r) => r.evaluatorId === session.user.id)
+      .map((r) => [r.dimensionId, r.score] as const),
+  );
+  const myLocked = ratings.rows.some(
+    (r) => r.evaluatorId === session.user.id && r.lockedAt !== null,
+  );
+  const isDecided = ["APPROVED", "REJECTED", "IMPLEMENTED"].includes(detail.status);
 
   const stateMachineInput = {
     idea: { status: detail.status, authorId: detail.authorId, categoryState: detail.categoryState },
@@ -166,6 +182,26 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
                   </CardContent>
                 </Card>
               )}
+
+            {isReviewer && !isAuthor && !isDecided ? (
+              <RatingPanel
+                ideaId={detail.id}
+                evaluatorId={session.user.id}
+                dimensions={ratings.dimensions}
+                myScores={myScores}
+                locked={myLocked}
+              />
+            ) : null}
+
+            {(isDecided || ratings.rows.some((r) => r.score !== null)) ? (
+              <RatingSummary dimensions={ratings.dimensions} rows={ratings.rows} />
+            ) : null}
+
+            <CommentThread
+              ideaId={detail.id}
+              viewer={{ id: session.user.id, role: session.user.role }}
+              comments={thread}
+            />
           </TabsContent>
 
           <TabsContent value="history">

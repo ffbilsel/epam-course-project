@@ -16,7 +16,7 @@ InnovatEPAM Portal is an internal **employee innovation management platform** fo
 
 Built as the capstone for the EPAM A201 course as a **Spec-Driven Development (SDD)** exercise using **GitHub SpecKit + GitHub Copilot**. The repository contains formal specs, ADRs, a constitution with quality gates, and a fully runnable Next.js app with offline SQLite storage.
 
-Phase 1 covers the MVP (auth, submission, review). Phase 2 adds **Smart Submission Forms** (admin-defined per-category dynamic field schemas with runtime Zod validation and label snapshots). Phase 3 adds **Idea Listing & Management** (author self-service edit/delete, server-side filtering/search/pagination, a combined audit timeline, and an admin CSV export).
+Phase 1 covers the MVP (auth, submission, review). Phase 2 adds **Smart Submission Forms** (admin-defined per-category dynamic field schemas with runtime Zod validation and label snapshots). Phase 3 adds **Idea Listing & Management** (author self-service edit/delete, server-side filtering/search/pagination, a combined audit timeline, and an admin CSV export). Phase 4 adds the **Advanced Evaluation Experience** — private drafts with autosave, multi-dimensional 1–5 ratings with required-dimension gating and post-decision locking, a one-level comment thread, per-idea anonymous evaluation snapshots, role-scoped Recharts insight dashboards, a tokens-driven frontend makeover with dark mode, and the FR-037 / FR-038 hardening (employee dashboard History tab + reviewer queue status filter).
 
 ---
 
@@ -49,17 +49,27 @@ Phase 1 covers the MVP (auth, submission, review). Phase 2 adds **Smart Submissi
 - **History tab**: a unified audit timeline that folds the synthesised submission event, author edits, and reviewer transitions into one chronological feed; author plus reviewers/admins can read, everyone else gets `AUTH_FORBIDDEN_ROLE`.
 - **Admin CSV export**: RFC 4180-quoted streaming download from `/api/ideas/export`, scoped to the current filter set, with a `idea_export` security log entry on completion (ADR-0016).
 
-### Phases 4–7
+### Phase 4 — Advanced Evaluation Experience (complete)
 
-Not implemented in this codebase (no multi-attachment, draft, multi-stage, blind-review, or scoring features).
+- **Drafts (US1)**: a dedicated `idea_drafts` table separate from `ideas` (ADR-0017). Employees save, list, edit, delete, and submit their own drafts; drafts are strictly private and never enter any aggregate or reviewer surface. Autosave debounced at 300 ms via `useDraftAutosave` with a “Saved · just now” status. Submitting a draft snapshots the category's `anonymous_default` into `ideas.anonymous` in a single transaction and emits a `draft_submitted` audit event.
+- **Multi-dimensional ratings (US2)**: per-category 1–5 scoring on a configurable dimension set (Feasibility, Impact, Originality, Alignment seeded as defaults). Required dimensions gate Approve/Reject; on decision every deciding reviewer's rows receive a non-null `lockedAt`. Each evaluator only updates their own rows; cross-evaluator scores are untouched (ADR-0019).
+- **Comment threads (US2)**: one-level nested threads, plain text capped at 2 000 chars, rendered through `escapeAndLinebreak` (HTML-escape + `\n→<br>`, NFR-007). Authors may edit within 5 minutes; moderators can soft-delete (with a placeholder shown) and trigger a `comment_moderated` audit event. The decision comment posts into the thread as `kind = 'DECISION'` in the same transaction as the state change (ADR-0020).
+- **Anonymous evaluation (US3)**: anonymity is a **snapshot on the idea** (ADR-0018), taken from `categories.anonymous_default` at submit time and overridable per-idea by Admins via `PATCH /api/ideas/[id]`. Every reviewer-facing read path (queue list, idea detail, history tab, comment thread, ratings panel, insights tooltips) runs through pure `maskAuthor` / `maskHistoryEvent` helpers and emits no `authorName`, `authorEmail`, `authorId`, or `authorAvatarUrl` for anonymous ideas viewed by a Reviewer. Submitters and Admins always see full identity; reviewer identity is never masked.
+- **Insight dashboards (US4)**: three Recharts surfaces (Submission Trend `AreaChart`, Approval Rate `ComposedChart`, Category Distribution `BarChart`) backed by three pure aggregator services and covering queries against `ideas` + `status_transitions` via `idx_ideas_status_created`. ADMIN gets full data, EVALUATOR gets the aggregate-only projection, EMPLOYEE is forbidden with `INSIGHTS_FORBIDDEN`. Range presets (7d / 30d / quarter / year / custom) are URL-bound; an explicit empty payload covers FR-030; each request emits an `insights_viewed` audit event (ADR-0021).
+- **Frontend makeover (US5)**: a single `src/styles/tokens.css` design system (light + dark CSS variables) imported from `globals.css`; a shared `AppShell` + `Sidebar` + `ThemeToggle` driving every authenticated layout (`(employee)`, `(reviewer)`, `(admin)`). All pages from features 001–003 are re-skinned to consume tokens only; `prefers-reduced-motion` is honoured on every transition; `check:ui-tokens` fails on any hex/`rgb()`/inline-style colour outside the shadcn primitives and the chart components (ADR-0022).
+- **Hardening**: the **employee dashboard History tab** lists the author's `APPROVED` / `REJECTED` / `IMPLEMENTED` ideas with title, category, concluded date, and final decision (FR-037). The **reviewer queue status filter** is restricted to the queue's actual status set, empty selection means “no filter” (no `status` query param), and the two empty-states (“queue empty” vs. “no matches”) render distinct copy (FR-038). `ListingQuerySchema` strips empty `status` arrays so the URL round-trip is lossless.
+
+### Phases 5+
+
+Not in scope for this submission — see the workspace TODO file for the queued Phase 5 backlog (multi-attachment with previews, email notifications on status / feedback, version diff, dark-mode coverage for any new Phase 5 surfaces).
 
 ### Implemented routes (App Router)
 
 - `(public)/login`, `(public)/register`
-- `(employee)/ideas/new`, `(employee)/ideas/[id]`, `(employee)/my-ideas`
-- `(reviewer)/queue`
-- `(admin)/admin/users`, `(admin)/admin/categories`
-- API routes: `auth/register`, `auth/[...nextauth]`, `attachments`, `categories`, `categories/[id]`, `categories/[id]/schema`, `ideas`, `ideas/[id]`, `ideas/[id]/attachment`, `ideas/[id]/transitions`, `users/[id]/role`
+- `(employee)/ideas/new`, `(employee)/ideas/[id]`, `(employee)/my-ideas`, `(employee)/dashboard`, `(employee)/drafts`, `(employee)/drafts/[id]`
+- `(reviewer)/queue`, `(reviewer)/insights`
+- `(admin)/admin/users`, `(admin)/admin/categories`, `(admin)/admin/ideas`, `(admin)/categories/[id]`
+- API routes: `auth/register`, `auth/[...nextauth]`, `attachments`, `categories`, `categories/[id]`, `categories/[id]/schema`, `categories/[id]/dimensions`, `ideas`, `ideas/[id]`, `ideas/[id]/attachment`, `ideas/[id]/transitions`, `ideas/[id]/ratings`, `ideas/[id]/comments`, `ideas/[id]/comments/[commentId]`, `drafts`, `drafts/[id]`, `insights/trend`, `insights/approval-rate`, `insights/category-distribution`, `users/[id]/role`
 
 ---
 
@@ -69,7 +79,7 @@ Not implemented in this codebase (no multi-attachment, draft, multi-stage, blind
 | --- | --- |
 | Framework | **Next.js 14** (App Router, RSC-first) |
 | Language | **TypeScript 5** strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) |
-| UI | **React 18**, **Tailwind CSS**, **shadcn/ui** (Radix primitives), `lucide-react`, `sonner` |
+| UI | **React 18**, **Tailwind CSS**, **shadcn/ui** (Radix primitives), `lucide-react`, `sonner`, **Recharts 2** (insight dashboards, Phase 4) |
 | Forms | **react-hook-form** + `@hookform/resolvers` + **Zod** |
 | Auth | **NextAuth v5 beta** (Credentials provider) + **@auth/drizzle-adapter**, DB sessions, **argon2** |
 | Database | **SQLite** (`better-sqlite3`) — local file `data/innovatepam.db` |
@@ -104,6 +114,14 @@ Phase 3 (`specs/003-idea-listing-management/adr/`):
 - 0014 Shared listing query design
 - 0015 Edit audit marker (`from = to` row)
 - 0016 Streaming CSV export
+
+Phase 4 (`specs/004-advanced-evaluation-experience/adr/`):
+- 0017 Drafts as a separate table
+- 0018 Anonymity as a per-idea snapshot
+- 0019 Ratings schema (per-dimension, locked on decision)
+- 0020 Comment thread shape (one-level nesting, decision comment)
+- 0021 Recharts as the chart engine
+- 0022 Makeover design tokens + dark mode
 
 ---
 

@@ -42,7 +42,12 @@ export interface SecurityEvent {
     | "idea_edited"
     | "idea_deleted"
     | "idea_export"
-    | "internal_error";
+    | "internal_error"
+    | "draft_submitted"
+    | "rating_locked"
+    | "comment_moderated"
+    | "anonymity_overridden"
+    | "insights_viewed";
   userId: string | null;
   actorRole: Role | null;
   ip: string | null;

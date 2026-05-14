@@ -102,6 +102,7 @@ export const categories = sqliteTable(
     createdAt: integer("created_at").notNull(),
     isProtected: integer("is_protected").notNull().default(0),
     fieldSchema: text("field_schema").notNull().default("[]"),
+    anonymousDefault: integer("anonymous_default").notNull().default(0),
   },
   (t) => ({
     nameLower: uniqueIndex("uniq_categories_name_lower").on(sql`lower(${t.name})`),
@@ -129,11 +130,13 @@ export const ideas = sqliteTable(
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
     categoryAnswers: text("category_answers").notNull().default("[]"),
+    anonymous: integer("anonymous").notNull().default(0),
   },
   (t) => ({
     authorUpdatedIdx: index("idx_ideas_author_updated").on(t.authorId, t.updatedAt),
     statusIdx: index("idx_ideas_status").on(t.status),
     categoryIdx: index("idx_ideas_category").on(t.categoryId),
+    statusCreatedIdx: index("idx_ideas_status_created").on(t.status, t.createdAt),
     statusCheck: check(
       "ideas_status_check",
       sql`${t.status} IN ('SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','IMPLEMENTED')`,
@@ -187,3 +190,115 @@ export const statusTransitions = sqliteTable(
     ),
   }),
 );
+
+/**
+ * Phase 4 — Author-private draft of an idea. Submitting a draft
+ * promotes it into an {@link ideas} row in `SUBMITTED` (ADR-0017).
+ */
+export const ideaDrafts = sqliteTable(
+  "idea_drafts",
+  {
+    id: text("id").primaryKey(),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull().default(""),
+    description: text("description").notNull().default(""),
+    categoryId: text("category_id").references(() => categories.id, { onDelete: "set null" }),
+    categoryAnswers: text("category_answers").notNull().default("[]"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (t) => ({
+    authorUpdatedIdx: index("idx_drafts_author_updated").on(t.authorId, t.updatedAt),
+  }),
+);
+
+/**
+ * Phase 4 — Per-category rating dimensions. Rows with
+ * `categoryId IS NULL` form the default set returned when a category
+ * has no dimensions of its own.
+ */
+export const ratingDimensions = sqliteTable(
+  "rating_dimensions",
+  {
+    id: text("id").primaryKey(),
+    categoryId: text("category_id").references(() => categories.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    description: text("description"),
+    position: integer("position").notNull().default(0),
+    required: integer("required").notNull().default(0),
+    active: integer("active").notNull().default(1),
+    createdAt: integer("created_at").notNull(),
+  },
+  (t) => ({
+    categoryPositionIdx: index("idx_dimensions_category").on(t.categoryId, t.position),
+  }),
+);
+
+/**
+ * Phase 4 — Per-(idea, evaluator, dimension) rating row. `lockedAt`
+ * non-null marks the row as read-only after a decision (ADR-0019).
+ */
+export const ratings = sqliteTable(
+  "ratings",
+  {
+    id: text("id").primaryKey(),
+    ideaId: text("idea_id")
+      .notNull()
+      .references(() => ideas.id, { onDelete: "cascade" }),
+    evaluatorId: text("evaluator_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    dimensionId: text("dimension_id")
+      .notNull()
+      .references(() => ratingDimensions.id, { onDelete: "restrict" }),
+    score: integer("score"),
+    lockedAt: integer("locked_at"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (t) => ({
+    uniq: uniqueIndex("uniq_ratings_idea_eval_dim").on(t.ideaId, t.evaluatorId, t.dimensionId),
+    ideaIdx: index("idx_ratings_idea").on(t.ideaId),
+    evaluatorIdx: index("idx_ratings_evaluator").on(t.evaluatorId),
+  }),
+);
+
+/**
+ * Comment kinds. `DECISION` rows are written by the idea-service in
+ * the same transaction as an APPROVE / REJECT transition.
+ */
+export const COMMENT_KINDS = ["COMMENT", "DECISION"] as const;
+/** Comment kind: regular comment or decision-note inserted with an APPROVE/REJECT. */
+export type CommentKind = (typeof COMMENT_KINDS)[number];
+
+/**
+ * Phase 4 — Comment thread row. One level of nesting only (enforced
+ * in service). Soft-delete via `deletedAt` (ADR-0020).
+ */
+export const comments = sqliteTable(
+  "comments",
+  {
+    id: text("id").primaryKey(),
+    ideaId: text("idea_id")
+      .notNull()
+      .references(() => ideas.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    authorRoleAtPost: text("author_role_at_post", { enum: ROLES }).notNull(),
+    parentId: text("parent_id"),
+    kind: text("kind", { enum: COMMENT_KINDS }).notNull().default("COMMENT"),
+    body: text("body").notNull(),
+    createdAt: integer("created_at").notNull(),
+    editedAt: integer("edited_at"),
+    deletedAt: integer("deleted_at"),
+    deletedById: text("deleted_by_id").references(() => users.id, { onDelete: "restrict" }),
+  },
+  (t) => ({
+    ideaCreatedIdx: index("idx_comments_idea_created").on(t.ideaId, t.createdAt),
+    parentIdx: index("idx_comments_parent").on(t.parentId),
+  }),
+);
+

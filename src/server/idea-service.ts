@@ -59,6 +59,8 @@ const defaultDeps: IdeaServiceDeps = {
 export interface IdeaDetail {
   id: string;
   authorId: string;
+  authorName: string;
+  anonymous: boolean;
   title: string;
   description: string;
   categoryId: string;
@@ -87,9 +89,19 @@ async function loadDetail(ideaId: string): Promise<IdeaDetail> {
   const rawAnswers = await readAnswers(idea.id);
   const fields = parseSchemaJson(cat.fieldSchema);
   const answers = orderAnswersForDisplay(rawAnswers, fields);
+  const { db } = await import("@/db/client");
+  const { users } = await import("@/db/schema");
+  const { eq } = await import("drizzle-orm");
+  const authorRows = await db
+    .select({ displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, idea.authorId))
+    .limit(1);
   return {
     id: idea.id,
     authorId: idea.authorId,
+    authorName: authorRows[0]?.displayName ?? "Unknown",
+    anonymous: Boolean((idea as { anonymous?: number | boolean }).anonymous),
     title: idea.title,
     description: idea.description,
     categoryId: idea.categoryId,
@@ -221,9 +233,27 @@ export async function listQueueIdeas(): Promise<IdeaDetail[]> {
 
 /**
  * Loads a single idea detail (no auth check — caller enforces).
+ * When `viewer` is provided, applies the anonymity projection
+ * (ADR-0018) so the returned author fields are masked for
+ * Evaluators viewing an anonymous idea.
  */
-export async function getIdeaDetail(ideaId: string): Promise<IdeaDetail> {
-  return loadDetail(ideaId);
+export async function getIdeaDetail(
+  ideaId: string,
+  viewer?: { id: string; role: import("@/db/schema").Role },
+): Promise<IdeaDetail> {
+  const detail = await loadDetail(ideaId);
+  if (!viewer) return detail;
+  const { maskAuthor } = await import("@/server/anonymity");
+  const masked = maskAuthor(
+    {
+      id: detail.id,
+      authorId: detail.authorId,
+      authorName: detail.authorName,
+      anonymous: detail.anonymous,
+    },
+    viewer,
+  );
+  return { ...detail, authorId: masked.authorId, authorName: masked.authorName };
 }
 
 /**
@@ -253,6 +283,10 @@ export async function listIdeaTransitions(ideaId: string): Promise<
 /**
  * Applies a state-machine transition: verifies via {@link evaluateTransition},
  * writes the new status, and records a `status_transitions` row in one tx.
+ * On APPROVE/REJECT the call also (1) requires every required
+ * rating dimension to be scored, (2) locks the deciding reviewer's
+ * ratings, and (3) inserts a `DECISION` comment with the decision
+ * note — all in the same transaction (US2 / ADRs 0019, 0020).
  */
 export async function applyTransition(
   ideaId: string,
@@ -276,6 +310,12 @@ export async function applyTransition(
     throw new AppError(decision.code);
   }
 
+  // US2: require all required dimensions before a decision lands.
+  if (action === "APPROVE" || action === "REJECT") {
+    const { requireRequiredDimensions } = await import("@/server/rating-service");
+    await requireRequiredDimensions(ideaId, actor.id);
+  }
+
   const now = deps.clock.now().getTime();
   withTx(() => {
     void updateIdeaStatus(ideaId, decision.toState, now);
@@ -289,6 +329,16 @@ export async function applyTransition(
       recordedAt: now,
     });
   });
+
+  // Lock ratings + insert decision comment after the status flip.
+  if (action === "APPROVE" || action === "REJECT") {
+    const { lockOnDecision } = await import("@/server/rating-service");
+    const { postComment } = await import("@/server/comment-service");
+    await lockOnDecision(ideaId, actor, deps);
+    if (comment?.trim()) {
+      await postComment(ideaId, actor, { body: comment.trim() }, { kind: "DECISION" }, deps);
+    }
+  }
 
   logSecurityEvent({
     event: "idea_transition",
@@ -415,4 +465,35 @@ export async function deleteIdea(ideaId: string, actor: { id: string; role: Role
     requestId: null,
     details: { ideaId },
   });
+}
+
+/**
+ * US3 / ADR-0018: Admin-only per-idea anonymity override. Flips the
+ * `ideas.anonymous` snapshot column and emits an
+ * `anonymity_overridden` audit event. Returns the refreshed detail
+ * with the admin viewer applied (admins always see real identities).
+ * @throws `IDEA_NOT_FOUND` when the idea doesn't exist.
+ * @throws `AUTH_FORBIDDEN_ROLE` when the actor is not an ADMIN.
+ */
+export async function setIdeaAnonymity(
+  ideaId: string,
+  anonymous: boolean,
+  actor: { id: string; role: Role },
+  deps: IdeaServiceDeps = defaultDeps,
+): Promise<IdeaDetail> {
+  if (actor.role !== "ADMIN") throw new AppError("AUTH_FORBIDDEN_ROLE");
+  const idea = await findIdeaById(ideaId);
+  if (!idea) throw AppError.notFound("IDEA_NOT_FOUND");
+  const { setIdeaAnonymous } = await import("@/db/repositories/idea-repo");
+  const now = deps.clock.now().getTime();
+  await setIdeaAnonymous(ideaId, anonymous, now);
+  logSecurityEvent({
+    event: "anonymity_overridden",
+    userId: actor.id,
+    actorRole: actor.role,
+    ip: null,
+    requestId: null,
+    details: { ideaId, anonymous },
+  });
+  return getIdeaDetail(ideaId, actor);
 }

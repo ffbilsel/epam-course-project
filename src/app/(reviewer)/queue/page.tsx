@@ -51,6 +51,17 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
   });
   const cats = await listCategories("ACTIVE");
 
+  // FR-038: distinguish "queue empty" from "no matches" — if the
+  // viewer has applied any filter, an empty result is "no matches";
+  // otherwise the queue itself is empty.
+  const hasFilters = Boolean(
+    query.q ||
+      query.categoryId ||
+      (query.status && query.status.length > 0) ||
+      query.from ||
+      query.to,
+  );
+
   return (
     <>
       <Header />
@@ -65,6 +76,7 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
         <IdeaFilterBar
           categories={cats.map((c) => ({ id: c.id, name: c.name }))}
           showStatuses={true}
+          availableStatuses={["SUBMITTED", "UNDER_REVIEW"]}
         />
 
         {page.total === 0 ? (
@@ -76,9 +88,13 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
               >
                 ✓
               </div>
-              <p className="text-base font-medium">All caught up</p>
+              <p className="text-base font-medium">
+                {hasFilters ? "No ideas match your filters" : "Queue is empty"}
+              </p>
               <p className="max-w-sm text-sm text-muted-foreground">
-                No ideas match the current filters.
+                {hasFilters
+                  ? "Adjust the filters above to broaden the search, or clear all filters."
+                  : "There are no ideas awaiting review right now. Sit tight — new submissions will appear here."}
               </p>
             </CardContent>
           </Card>

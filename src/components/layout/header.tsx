@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/server/auth-options";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 /**
  * Top navigation bar — RSC reads the session and renders the user
@@ -39,6 +40,12 @@ export async function Header(): Promise<JSX.Element | null> {
             My Ideas
           </Link>
           <Link
+            href="/dashboard"
+            className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            Dashboard
+          </Link>
+          <Link
             href="/categories/propose"
             className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >
@@ -50,6 +57,14 @@ export async function Header(): Promise<JSX.Element | null> {
               className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               Review Queue
+            </Link>
+          )}
+          {(role === "EVALUATOR" || role === "ADMIN") && (
+            <Link
+              href="/insights"
+              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              Insights
             </Link>
           )}
           {role === "ADMIN" && (
@@ -70,6 +85,7 @@ export async function Header(): Promise<JSX.Element | null> {
           )}
         </nav>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <div className="hidden items-center gap-2 sm:flex">
             <span
               aria-hidden="true"

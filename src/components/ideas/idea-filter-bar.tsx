@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { IDEA_STATUS_VALUES } from "@/lib/validation/idea";
+import { IDEA_STATUS_VALUES, type IdeaStatusValue } from "@/lib/validation/idea";
 import { useListingQuery } from "@/lib/hooks/use-listing-query";
 
 interface CategoryOption {
@@ -17,13 +17,20 @@ interface CategoryOption {
  * status checkboxes, and a from/to date range. All edits write
  * straight into the URL via {@link useListingQuery}, which the
  * parent RSC re-renders from.
+ *
+ * `availableStatuses` lets a caller restrict the status pills to a
+ * subset of {@link IDEA_STATUS_VALUES} (FR-038 — the Reviewer
+ * queue only allows SUBMITTED + UNDER_REVIEW). An empty selection
+ * always means "no status filter", never "no results".
  */
 export function IdeaFilterBar({
   categories,
   showStatuses = true,
+  availableStatuses = IDEA_STATUS_VALUES,
 }: {
   categories: CategoryOption[];
   showStatuses?: boolean;
+  availableStatuses?: ReadonlyArray<IdeaStatusValue>;
 }): JSX.Element {
   const { state, update, reset } = useListingQuery();
   const [localQ, setLocalQ] = useState(state.q);
@@ -109,7 +116,7 @@ export function IdeaFilterBar({
         <fieldset>
           <legend className="mb-2 text-sm font-medium">Status</legend>
           <div className="flex flex-wrap gap-2">
-            {IDEA_STATUS_VALUES.map((s) => {
+            {availableStatuses.map((s) => {
               const active = state.status.includes(s);
               return (
                 <button

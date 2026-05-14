@@ -7,6 +7,7 @@ import {
 } from "@/db/repositories/idea-repo";
 import type { ListingQuery, ListingPageSize } from "@/lib/validation/idea";
 import type { Role } from "@/db/schema";
+import { maskAuthor } from "@/server/anonymity";
 
 /**
  * The narrow projection sent to listing UIs. ISO date strings keep
@@ -20,6 +21,7 @@ export interface IdeaSummary {
   categoryName: string;
   authorId: string;
   authorName: string;
+  anonymous: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,7 +91,7 @@ export async function runListingQuery(
   const offset = (page - 1) * query.pageSize;
   const rows = await listFiltered(predicate, offset, query.pageSize);
   return {
-    rows: rows.map(toSummary),
+    rows: rows.map((r) => toSummary(r, session)),
     total,
     page,
     pageSize: query.pageSize as ListingPageSize,
@@ -97,16 +99,76 @@ export async function runListingQuery(
   };
 }
 
-function toSummary(r: IdeaListingRow): IdeaSummary {
+function toSummary(r: IdeaListingRow, viewer: { id: string; role: Role }): IdeaSummary {
+  const masked = maskAuthor(
+    {
+      id: r.id,
+      authorId: r.authorId,
+      authorName: r.authorName,
+      anonymous: r.anonymous,
+    },
+    viewer,
+  );
   return {
     id: r.id,
     title: r.title,
     status: r.status,
     categoryId: r.categoryId,
     categoryName: r.categoryName,
-    authorId: r.authorId,
-    authorName: r.authorName,
+    authorId: masked.authorId,
+    authorName: masked.authorName,
+    anonymous: r.anonymous,
     createdAt: new Date(r.createdAt).toISOString(),
     updatedAt: new Date(r.updatedAt).toISOString(),
   };
+}
+
+/**
+ * Terminal statuses shown in the Employee dashboard History tab
+ * (FR-037). Ideas in these states are "concluded" from the
+ * Employee's perspective and no longer actionable by the author.
+ */
+export const CONCLUDED_STATUSES = ["APPROVED", "REJECTED", "IMPLEMENTED"] as const;
+
+/**
+ * Wire payload for one row in the Employee History tab (FR-037).
+ * Carries only what the tab renders — title, category, the
+ * concluded date (= idea.updatedAt at terminal status), and the
+ * final decision (= status).
+ */
+export interface EmployeeHistoryRow {
+  id: string;
+  title: string;
+  categoryName: string;
+  concludedAt: string;
+  decision: "APPROVED" | "REJECTED" | "IMPLEMENTED";
+}
+
+/**
+ * Lists the caller's own ideas that have reached a terminal
+ * status. Excludes DRAFT (drafts live in a separate table) and any
+ * idea still in `SUBMITTED` or `UNDER_REVIEW`. Newest concluded
+ * first. Used by the Employee dashboard History tab (FR-037).
+ * @example
+ *   const rows = await listConcludedByAuthor({ id: session.user.id, role: 'EMPLOYEE' });
+ */
+export async function listConcludedByAuthor(viewer: {
+  id: string;
+  role: Role;
+}): Promise<EmployeeHistoryRow[]> {
+  const rows = await listFiltered(
+    {
+      authorScope: viewer.id,
+      statusWhitelist: CONCLUDED_STATUSES,
+    },
+    0,
+    100,
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    categoryName: r.categoryName,
+    concludedAt: new Date(r.updatedAt).toISOString(),
+    decision: r.status as EmployeeHistoryRow["decision"],
+  }));
 }
