@@ -220,14 +220,14 @@ theme re-themes the diff red/green live.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T076 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-5 capabilities (multi-attachment + preview, transactional email + in-app badge + preferences, version history + diff viewer)
-- [ ] T077 [P] Update `scripts/seed-demo.ts` per [./quickstart.md §3](./quickstart.md#3-seed-sample-data-recommended) — extend two ideas with three attachments each (PNG / PDF / `.md`); one idea edited four times to populate `v1..v5`; seeded notification events for the demo users so the badge is non-empty at first render
-- [ ] T078 [P] Add `scripts/perf/perf-diff.ts`, `scripts/perf/perf-notifications.ts` plus npm scripts `perf:diff`, `perf:notifications` for the NFR-001 / NFR-002 smoke
-- [ ] T079 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; extend `check-ui-tokens.ts` if needed so the new `attachments/`, `versions/`, `notifications/`, `account/` component folders are scanned (no hex outside `src/components/ui/**`); fix any drift
-- [ ] T080 [P] Add JSDoc on every new export (`@param` + `@returns` + `@throws`; `@example` on `diffIdeaVersions`, `redactPayloadForRecipient`, `dispatchPending`) and run the JSDoc lint (Quality Gate 5)
-- [ ] T081 [P] **[Dark mode]** Manual responsive walkthrough of every new surface at 360 px / 768 px / 1280 px in **both `light` and `dark` themes**: attachment manager, gallery, preview dialog, queue thumb, notification badge + dropdown, email-preferences page, Versions tab, diff viewer; fix any overflow / contrast / token drift (FR-030..033, SC-006, Constitution VI)
-- [ ] T082 Run quickstart walkthrough end-to-end ([./quickstart.md](./quickstart.md)) and tick SC-001…SC-007
-- [ ] T083 Run full pipeline: `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run format -- --check && npm run check:error-codes && npm run check:ui-tokens`
+- [X] T076 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-5 capabilities (multi-attachment + preview, transactional email + in-app badge + preferences, version history + diff viewer)
+- [!] T077 [P] Update `scripts/seed-demo.ts` per [./quickstart.md §3](./quickstart.md#3-seed-sample-data-recommended) — extend two ideas with three attachments each (PNG / PDF / `.md`); one idea edited four times to populate `v1..v5`; seeded notification events for the demo users so the badge is non-empty at first render
+- [!] T078 [P] Add `scripts/perf/perf-diff.ts`, `scripts/perf/perf-notifications.ts` plus npm scripts `perf:diff`, `perf:notifications` for the NFR-001 / NFR-002 smoke
+- [X] T079 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; extend `check-ui-tokens.ts` if needed so the new `attachments/`, `versions/`, `notifications/`, `account/` component folders are scanned (no hex outside `src/components/ui/**`); fix any drift
+- [!] T080 [P] Add JSDoc on every new export (`@param` + `@returns` + `@throws`; `@example` on `diffIdeaVersions`, `redactPayloadForRecipient`, `dispatchPending`) and run the JSDoc lint (Quality Gate 5)
+- [!] T081 [P] **[Dark mode]** Manual responsive walkthrough of every new surface at 360 px / 768 px / 1280 px in **both `light` and `dark` themes**: attachment manager, gallery, preview dialog, queue thumb, notification badge + dropdown, email-preferences page, Versions tab, diff viewer; fix any overflow / contrast / token drift (FR-030..033, SC-006, Constitution VI)
+- [!] T082 Run quickstart walkthrough end-to-end ([./quickstart.md](./quickstart.md)) and tick SC-001…SC-007
+- [X] T083 Run full pipeline: `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run format -- --check && npm run check:error-codes && npm run check:ui-tokens`
 - [ ] T084 Merge feature branch back to `main` with `git merge --no-ff 005-attachments-history-notifications` (Constitution Principle X / Quality Gate 12)
 
 ---
