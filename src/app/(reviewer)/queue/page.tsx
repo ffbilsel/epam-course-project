@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ideas/status-badge";
 import { IdeaFilterBar } from "@/components/ideas/idea-filter-bar";
@@ -63,20 +62,24 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
   );
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+          <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Submitted and under-review ideas. Newest first.
+            {session.user.role === "ADMIN"
+              ? "Submitted, under-review, and approved ideas. Newest first."
+              : "Submitted and under-review ideas. Newest first."}
           </p>
         </div>
 
         <IdeaFilterBar
           categories={cats.map((c) => ({ id: c.id, name: c.name }))}
           showStatuses={true}
-          availableStatuses={["SUBMITTED", "UNDER_REVIEW"]}
+          availableStatuses={
+            session.user.role === "ADMIN"
+              ? ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]
+              : ["SUBMITTED", "UNDER_REVIEW"]
+          }
         />
 
         {page.total === 0 ? (
@@ -142,6 +145,5 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
           total={page.total}
         />
       </main>
-    </>
   );
 }

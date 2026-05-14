@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { DraftEditor } from "@/components/drafts/draft-editor";
 import { auth } from "@/server/auth-options";
 import { loadDraft } from "@/server/draft-service";
@@ -29,9 +28,7 @@ export default async function DraftEditPage({ params }: Props): Promise<JSX.Elem
   }
   const cats = await listCategories("ACTIVE");
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-2xl px-4 py-8">
+          <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">Edit draft</h1>
         <DraftEditor
           draftId={draft.id}
@@ -43,6 +40,5 @@ export default async function DraftEditPage({ params }: Props): Promise<JSX.Elem
           categories={cats.map((c) => ({ id: c.id, name: c.name }))}
         />
       </main>
-    </>
   );
 }

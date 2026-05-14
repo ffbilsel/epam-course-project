@@ -13,7 +13,9 @@ export async function Header(): Promise<JSX.Element | null> {
   if (!session?.user) return null;
   const role = session.user.role;
   const homeHref = role === "EMPLOYEE" ? "/my-ideas" : "/queue";
-  const initials = session.user.displayName
+  const displayName =
+    session.user.displayName ?? session.user.name ?? session.user.email ?? "User";
+  const initials = displayName
     .split(/\s+/)
     .map((part) => part[0])
     .filter(Boolean)
@@ -22,8 +24,8 @@ export async function Header(): Promise<JSX.Element | null> {
     .toUpperCase();
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <nav className="flex items-center gap-1 sm:gap-2">
+      <div className="mx-auto flex w-full max-w-screen-2xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6 lg:px-10">
+        <nav className="flex min-w-0 flex-wrap items-center gap-1 sm:gap-2">
           <Link href={homeHref} className="mr-2 flex items-center gap-2">
             <span
               aria-hidden="true"
@@ -93,7 +95,7 @@ export async function Header(): Promise<JSX.Element | null> {
             >
               {initials || "?"}
             </span>
-            <span className="text-sm font-medium">{session.user.displayName}</span>
+            <span className="text-sm font-medium">{displayName}</span>
           </div>
           <form
             action={async () => {

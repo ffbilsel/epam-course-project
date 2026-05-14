@@ -11,6 +11,8 @@ import { db, sqliteClient } from "@/db/client";
 import { users, ideas, categories } from "@/db/schema";
 import { hashPassword } from "@/server/password";
 import { createIdea, applyTransition, editIdea } from "@/server/idea-service";
+import { listDimensionsForCategory } from "@/db/repositories/dimension-repo";
+import { putRatings } from "@/server/rating-service";
 
 async function ensureUser(opts: {
   email: string;
@@ -150,6 +152,12 @@ async function main(): Promise<void> {
     description: "Add a token-driven dark theme toggle persisted per user.",
     categoryName: "Product Innovation",
     authorId: employeeId,
+    answers: {
+      target_users: "All portal users, particularly those working in low-light environments.",
+      differentiator:
+        "Token-driven theming respects OS preference, persists per user, and meets WCAG AA contrast in both modes.",
+      audience: "everyone",
+    },
   });
   await ensureIdea({
     title: "Bulk category re-tag",
@@ -180,6 +188,20 @@ async function main(): Promise<void> {
       id: evaluatorId,
       role: "EVALUATOR",
     });
+    // Phase 4: score required dimensions before deciding.
+    const toolingCat = await db
+      .select({ categoryId: ideas.categoryId })
+      .from(ideas)
+      .where(sql`${ideas.id} = ${tooling[0].id}`)
+      .limit(1);
+    if (toolingCat[0]) {
+      const dims = await listDimensionsForCategory(toolingCat[0].categoryId);
+      await putRatings(
+        tooling[0].id,
+        { id: evaluatorId, role: "EVALUATOR" },
+        { scores: dims.map((d) => ({ dimensionId: d.id, score: 4 })) },
+      );
+    }
     await applyTransition(tooling[0].id, "APPROVE", "Solid uplift, low risk.", {
       id: evaluatorId,
       role: "EVALUATOR",

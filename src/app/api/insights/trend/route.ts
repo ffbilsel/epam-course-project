@@ -4,6 +4,8 @@ import { requireRole } from "@/server/role-guard";
 import { InsightsRangeSchema } from "@/lib/validation/insights";
 import { getSubmissionTrend } from "@/server/insights-service";
 
+export const dynamic = "force-dynamic";
+
 /** GET /api/insights/trend — Submission count per bucket. */
 export const GET = withErrorHandler(async (req: NextRequest) => {
   const session = await requireRole(["EVALUATOR", "ADMIN"]);

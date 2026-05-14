@@ -4,6 +4,8 @@ import { requireSession } from "@/server/role-guard";
 import { parseListingQuery } from "@/lib/validation/idea";
 import { streamIdeasCsv } from "@/server/idea-export";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/ideas/export — admin-only RFC 4180 CSV stream of the
  * current filter set (ADR-0016). Filters mirror the listing API.

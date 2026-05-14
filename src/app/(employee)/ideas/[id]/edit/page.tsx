@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { IdeaForm } from "@/components/forms/idea-form";
 import { auth } from "@/server/auth-options";
 import { listCategories, parseSchemaJson } from "@/db/repositories/category-repo";
@@ -44,9 +43,7 @@ export default async function EditIdeaPage({ params }: PageProps): Promise<JSX.E
   const answersRecord = Object.fromEntries(detail.answers.map((a) => [a.key, a.value]));
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-2xl px-4 py-6">
+          <main className="mx-auto w-full max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-10">
         <h1 className="mb-1 text-2xl font-semibold">Edit idea</h1>
         <p className="mb-4 text-sm text-muted-foreground">
           You can edit your idea while it is still Submitted. Once a reviewer starts the evaluation,
@@ -64,6 +61,5 @@ export default async function EditIdeaPage({ params }: PageProps): Promise<JSX.E
           }}
         />
       </main>
-    </>
   );
 }

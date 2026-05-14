@@ -12,6 +12,7 @@ from a clean checkout.
 > - Phase 2 Smart Forms — [002-smart-forms](specs/002-smart-forms/)
 > - Phase 3 Idea Listing & Management — [003-idea-listing-management](specs/003-idea-listing-management/)
 > - Phase 4 Advanced Evaluation Experience — [004-advanced-evaluation-experience](specs/004-advanced-evaluation-experience/)
+> - Phase 5 Attachments, History, Notifications — [005-attachments-history-notifications](specs/005-attachments-history-notifications/)
 >
 > A presentation-ready overview lives in
 > [../PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md).
@@ -74,6 +75,29 @@ from a clean checkout.
   [0020](specs/004-advanced-evaluation-experience/adr/0020-comment-thread-shape.md),
   [0021](specs/004-advanced-evaluation-experience/adr/0021-recharts-as-chart-engine.md),
   [0022](specs/004-advanced-evaluation-experience/adr/0022-makeover-design-tokens.md).
+- **Attachments, history, notifications (Phase 5)** — ideas now
+  carry up to **10 ordered attachments per idea** (≤ 10 MB each)
+  with inline preview for safe MIME types (PNG / JPEG / GIF / PDF
+  rendered via sandboxed iframe; Markdown / plain text sanitised on
+  the server with `Content-Security-Policy: sandbox`,
+  `X-Content-Type-Options: nosniff`, `Cache-Control: private,
+  no-store`; SVG is **never** previewed and returns `415
+  ATTACHMENT_PREVIEW_UNSUPPORTED`); a **transactional in-app +
+  email notification fan-out** (status changes, comments, ratings,
+  replies, admin bulk-transition digest) running on a pure
+  `dispatchPending(now, deps)` worker with a `30 s / 2 m / 15 m /
+  1 h / 6 h` back-off and terminal `failed` at attempt 6, plus
+  per-user **email preferences** that drop deliveries to
+  `suppressed` without losing the in-app badge; and an **immutable
+  version history** that snapshots `v1` on submit and `v(N+1)` on
+  every author edit (cascade-deleted with the idea), exposed via a
+  pure `diff-service` producing word-level prose diffs, opaque
+  before / after for structured answers, `+/-`/`reordered` flags
+  for attachments, and graceful 200 KB truncation. See ADRs
+  [0023](specs/005-attachments-history-notifications/adr/0023-nodemailer-smtp-transport.md),
+  [0024](specs/005-attachments-history-notifications/adr/0024-version-history-and-diff-strategy.md),
+  [0025](specs/005-attachments-history-notifications/adr/0025-attachment-preview-sandbox.md),
+  [0026](specs/005-attachments-history-notifications/adr/0026-in-app-notification-polling.md).
 
 ## Quick start
 
@@ -101,7 +125,8 @@ $env:BOOTSTRAP_ADMIN_PASSWORD = "Passw0rd!2024"
 npm run db:seed:admin
 
 # 5. Run the dev server
-npm run dev
+npm run build
+npm run start
 # open http://localhost:3000
 ```
 
@@ -113,10 +138,11 @@ For end-to-end walkthroughs, see
 [specs/001-innovatepam-portal-mvp/quickstart.md](specs/001-innovatepam-portal-mvp/quickstart.md)
 and
 [specs/002-smart-forms/quickstart.md](specs/002-smart-forms/quickstart.md).
-Phase 3 / Phase 4 walkthroughs live alongside their specs at
-[specs/003-idea-listing-management/quickstart.md](specs/003-idea-listing-management/quickstart.md)
+Phase 3 / Phase 4 / Phase 5 walkthroughs live alongside their specs at
+[specs/003-idea-listing-management/quickstart.md](specs/003-idea-listing-management/quickstart.md),
+[specs/004-advanced-evaluation-experience/quickstart.md](specs/004-advanced-evaluation-experience/quickstart.md),
 and
-[specs/004-advanced-evaluation-experience/quickstart.md](specs/004-advanced-evaluation-experience/quickstart.md).
+[specs/005-attachments-history-notifications/quickstart.md](specs/005-attachments-history-notifications/quickstart.md).
 
 ## Scripts
 

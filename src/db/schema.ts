@@ -157,9 +157,10 @@ export const attachments = sqliteTable(
     mimeType: text("mime_type").notNull(),
     sizeBytes: integer("size_bytes").notNull(),
     uploadedAt: integer("uploaded_at").notNull(),
+    displayOrder: integer("display_order").notNull().default(0),
   },
   (t) => ({
-    ideaUniq: uniqueIndex("uniq_attachments_idea").on(t.ideaId),
+    ideaOrderIdx: index("idx_attachments_idea_order").on(t.ideaId, t.displayOrder),
   }),
 );
 
@@ -301,4 +302,126 @@ export const comments = sqliteTable(
     parentIdx: index("idx_comments_parent").on(t.parentId),
   }),
 );
+
+/**
+ * Phase 5 — Append-only whole-idea snapshot (ADR-0024). One row per
+ * (idea, version_no); v1 is written in the same transaction as the
+ * originating ideas INSERT, v(N+1) on every successful author edit.
+ */
+export const ideaVersions = sqliteTable(
+  "idea_versions",
+  {
+    id: text("id").primaryKey(),
+    ideaId: text("idea_id")
+      .notNull()
+      .references(() => ideas.id, { onDelete: "cascade" }),
+    versionNo: integer("version_no").notNull(),
+    actorId: text("actor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: integer("created_at").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    categoryId: text("category_id").references(() => categories.id, { onDelete: "set null" }),
+    categoryAnswers: text("category_answers").notNull().default("[]"),
+    attachmentIds: text("attachment_ids").notNull().default("[]"),
+  },
+  (t) => ({
+    ideaVersionUniq: uniqueIndex("uniq_idea_versions_idea_version").on(t.ideaId, t.versionNo),
+    ideaCreatedIdx: index("idx_idea_versions_idea_created").on(t.ideaId, t.createdAt),
+  }),
+);
+
+/**
+ * Phase 5 — Notification kinds emitted by the domain when state /
+ * comment / rating events fire (ADR-0026).
+ */
+export const NOTIFICATION_KINDS = [
+  "STATUS_CHANGED",
+  "COMMENT_ADDED",
+  "RATING_ADDED",
+  "REPLY_ON_REVIEW",
+  "BULK_DIGEST",
+] as const;
+/** Union type of {@link NOTIFICATION_KINDS}. */
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+
+/**
+ * Phase 5 — One in-app notification per recipient. The `payload`
+ * column carries a JSON blob whose actor display name was already
+ * redacted at enqueue time per the recipient's role (ADR-0018).
+ */
+export const notificationEvents = sqliteTable(
+  "notification_events",
+  {
+    id: text("id").primaryKey(),
+    recipientId: text("recipient_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    ideaId: text("idea_id").references(() => ideas.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: NOTIFICATION_KINDS }).notNull(),
+    payload: text("payload").notNull(),
+    createdAt: integer("created_at").notNull(),
+    readAt: integer("read_at"),
+  },
+  (t) => ({
+    recipientCreatedIdx: index("idx_notifications_recipient_created").on(
+      t.recipientId,
+      t.createdAt,
+    ),
+    kindCheck: check(
+      "notification_events_kind_check",
+      sql`${t.kind} IN ('STATUS_CHANGED','COMMENT_ADDED','RATING_ADDED','REPLY_ON_REVIEW','BULK_DIGEST')`,
+    ),
+  }),
+);
+
+/** Allowed states for an email delivery row. */
+export const EMAIL_DELIVERY_STATUSES = ["pending", "sent", "failed", "suppressed"] as const;
+/** Union type of {@link EMAIL_DELIVERY_STATUSES}. */
+export type EmailDeliveryStatus = (typeof EMAIL_DELIVERY_STATUSES)[number];
+
+/**
+ * Phase 5 — One outbound email attempt per notification event. The
+ * dispatcher retries `pending` rows on a fixed back-off schedule
+ * (ADR-0023) and writes terminal `failed` after attempt 6.
+ */
+export const emailDeliveries = sqliteTable(
+  "email_deliveries",
+  {
+    id: text("id").primaryKey(),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => notificationEvents.id, { onDelete: "cascade" }),
+    status: text("status", { enum: EMAIL_DELIVERY_STATUSES }).notNull().default("pending"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    lastError: text("last_error"),
+    lastAttemptAt: integer("last_attempt_at"),
+    nextAttemptAt: integer("next_attempt_at"),
+    createdAt: integer("created_at").notNull(),
+  },
+  (t) => ({
+    dueIdx: index("idx_email_deliveries_due").on(t.status, t.nextAttemptAt),
+    statusCheck: check(
+      "email_deliveries_status_check",
+      sql`${t.status} IN ('pending','sent','failed','suppressed')`,
+    ),
+  }),
+);
+
+/**
+ * Phase 5 — Per-user opt-in preferences for transactional email.
+ * Missing row ⇒ all-on defaults (FR-014).
+ */
+export const emailPreferences = sqliteTable("email_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  statusChanges: integer("status_changes").notNull().default(1),
+  commentsOnMyIdeas: integer("comments_on_my_ideas").notNull().default(1),
+  ratingsOnMyIdeas: integer("ratings_on_my_ideas").notNull().default(1),
+  repliesOnIdeasIReview: integer("replies_on_ideas_i_review").notNull().default(1),
+  updatedAt: integer("updated_at").notNull(),
+});
 

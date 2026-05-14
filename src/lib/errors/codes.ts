@@ -62,6 +62,18 @@ export const ERROR_CODES = {
   CSRF_INVALID: { httpStatus: 403 },
   VALIDATION_ERROR: { httpStatus: 400 },
   INTERNAL_ERROR: { httpStatus: 500 },
+  // Phase 5 — Attachments, Version History & Notifications
+  ATTACHMENT_LIMIT_EXCEEDED: { httpStatus: 422 },
+  ATTACHMENT_QUOTA_EXCEEDED: { httpStatus: 422 },
+  ATTACHMENT_ORDER_INVALID: { httpStatus: 400 },
+  ATTACHMENT_FORBIDDEN: { httpStatus: 403 },
+  ATTACHMENT_PREVIEW_UNSUPPORTED: { httpStatus: 415 },
+  IDEA_VERSION_NOT_FOUND: { httpStatus: 404 },
+  IDEA_VERSION_RANGE_INVALID: { httpStatus: 400 },
+  NOTIFICATION_NOT_FOUND: { httpStatus: 404 },
+  NOTIFICATION_FORBIDDEN: { httpStatus: 403 },
+  EMAIL_PREFERENCE_INVALID: { httpStatus: 400 },
+  EMAIL_DELIVERY_PERMANENT_FAILURE: { httpStatus: 500 },
 } as const satisfies Record<string, { httpStatus: number }>;
 
 /**

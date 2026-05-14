@@ -31,10 +31,10 @@ export function HistoryTab({ rows }: { rows: ReadonlyArray<EmployeeHistoryRow> }
           >
             ✓
           </div>
-          <p className="text-base font-medium">No concluded ideas yet</p>
+          <p className="text-base font-medium">No ideas yet</p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Ideas you submit will appear here once a reviewer approves, rejects, or marks them
-            implemented.
+            Ideas across the organisation will show up here as they
+            are submitted, reviewed, approved, rejected, or implemented.
           </p>
         </CardContent>
       </Card>
@@ -48,8 +48,8 @@ export function HistoryTab({ rows }: { rows: ReadonlyArray<EmployeeHistoryRow> }
             <TableRow>
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Decision</TableHead>
-              <TableHead>Concluded</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last update</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -47,7 +47,14 @@ export interface SecurityEvent {
     | "rating_locked"
     | "comment_moderated"
     | "anonymity_overridden"
-    | "insights_viewed";
+    | "insights_viewed"
+    | "attachment_added"
+    | "attachment_removed"
+    | "attachment_reordered"
+    | "idea_version_snapshotted"
+    | "notification_enqueued"
+    | "email_dispatch_failed_permanent"
+    | "email_preferences_updated";
   userId: string | null;
   actorRole: Role | null;
   ip: string | null;

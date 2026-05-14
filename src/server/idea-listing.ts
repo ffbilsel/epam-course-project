@@ -68,7 +68,12 @@ export function buildListingPredicate(
     return { ...base, authorScope: session.id };
   }
   if (query.scope === "queue") {
-    return { ...base, statusWhitelist: ["SUBMITTED", "UNDER_REVIEW"] };
+    // ADMIN also sees APPROVED in the queue so they can mark ideas IMPLEMENTED.
+    const queueStatuses: ListingPredicate["statusWhitelist"] =
+      session.role === "ADMIN"
+        ? ["SUBMITTED", "UNDER_REVIEW", "APPROVED"]
+        : ["SUBMITTED", "UNDER_REVIEW"];
+    return { ...base, statusWhitelist: queueStatuses };
   }
   return base;
 }
@@ -124,46 +129,42 @@ function toSummary(r: IdeaListingRow, viewer: { id: string; role: Role }): IdeaS
 }
 
 /**
- * Terminal statuses shown in the Employee dashboard History tab
- * (FR-037). Ideas in these states are "concluded" from the
- * Employee's perspective and no longer actionable by the author.
+ * Statuses shown in the dashboard History tab. Everyone — every
+ * role — sees every idea regardless of state (FR-037 reinterpreted
+ * per stakeholder request: History is the org-wide idea log).
  */
-export const CONCLUDED_STATUSES = ["APPROVED", "REJECTED", "IMPLEMENTED"] as const;
+export const CONCLUDED_STATUSES = [
+  "SUBMITTED",
+  "UNDER_REVIEW",
+  "APPROVED",
+  "REJECTED",
+  "IMPLEMENTED",
+] as const;
 
 /**
- * Wire payload for one row in the Employee History tab (FR-037).
- * Carries only what the tab renders — title, category, the
- * concluded date (= idea.updatedAt at terminal status), and the
- * final decision (= status).
+ * Wire payload for one row in the dashboard History tab. Carries
+ * title, category, the last-updated date, and the current status.
  */
 export interface EmployeeHistoryRow {
   id: string;
   title: string;
   categoryName: string;
   concludedAt: string;
-  decision: "APPROVED" | "REJECTED" | "IMPLEMENTED";
+  decision: "SUBMITTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "IMPLEMENTED";
 }
 
 /**
- * Lists the caller's own ideas that have reached a terminal
- * status. Excludes DRAFT (drafts live in a separate table) and any
- * idea still in `SUBMITTED` or `UNDER_REVIEW`. Newest concluded
- * first. Used by the Employee dashboard History tab (FR-037).
+ * Lists every idea in the org (any status) for the dashboard
+ * History tab. Visible to every role; anonymity masking still
+ * applies at the per-row read paths.
  * @example
  *   const rows = await listConcludedByAuthor({ id: session.user.id, role: 'EMPLOYEE' });
  */
-export async function listConcludedByAuthor(viewer: {
+export async function listConcludedByAuthor(_viewer: {
   id: string;
   role: Role;
 }): Promise<EmployeeHistoryRow[]> {
-  const rows = await listFiltered(
-    {
-      authorScope: viewer.id,
-      statusWhitelist: CONCLUDED_STATUSES,
-    },
-    0,
-    100,
-  );
+  const rows = await listFiltered({ statusWhitelist: CONCLUDED_STATUSES }, 0, 200);
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
