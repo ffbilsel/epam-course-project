@@ -145,14 +145,14 @@ US1 + US2.
 ### Tests for User Story 4 ⚠️
 
 - [ ] T039 [P] [US4] Unit tests `tests/unit/server/idea-history.test.ts` for `getIdeaHistory` — empty (still emits SUBMITTED), edit-only, transition-only, mixed; ordering stable; classification by `from = to`
-- [ ] T040 [P] [US4] Integration tests `tests/integration/ideas-history.test.ts` — author can read own history; reviewer can read queue-scope history; unrelated employee → 403; admin reads any
+- [X] T040 [P] [US4] Integration tests `tests/integration/ideas-history.test.ts` — author can read own history; reviewer can read queue-scope history; unrelated employee → 403; admin reads any
 
 ### Implementation for User Story 4
 
-- [ ] T041 [P] [US4] Add `src/server/idea-history.ts` (`getIdeaHistory(ideaId, actor)` → `IdeaHistoryEvent[]`)
-- [ ] T042 [P] [US4] Add `src/components/ideas/idea-history-tab.tsx` (renders the three event kinds; empty/loading/error states; relative-time tooltips)
-- [ ] T043 [US4] Add `GET` handler `src/app/api/ideas/[id]/history/route.ts`. Depends on T041
-- [ ] T044 [US4] Add History tab to `src/app/(employee)/ideas/[id]/page.tsx` using shadcn `Tabs`. Depends on T042
+- [X] T041 [P] [US4] Add `src/server/idea-history.ts` (`getIdeaHistory(ideaId, actor)` → `IdeaHistoryEvent[]`)
+- [X] T042 [P] [US4] Add `src/components/ideas/idea-history-tab.tsx` (renders the three event kinds; empty/loading/error states; relative-time tooltips)
+- [X] T043 [US4] Add `GET` handler `src/app/api/ideas/[id]/history/route.ts`. Depends on T041
+- [X] T044 [US4] Add History tab to `src/app/(employee)/ideas/[id]/page.tsx` using shadcn `Tabs`. Depends on T042
 
 **Checkpoint**: US4 complete; every meaningful event is visible to the right roles.
 
