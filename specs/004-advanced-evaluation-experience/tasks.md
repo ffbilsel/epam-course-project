@@ -201,18 +201,18 @@ EMPLOYEE access is forbidden (FR-025, FR-031, NFR-001, SC-006).
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T060 [P] [US4] `tests/unit/server/insights-service.test.ts` — bucket math (day/week/month) on a deterministic 60-day window; approval-rate formula on hand-picked status mixes; category-distribution sums to 100 %; empty-range emits the explicit empty payload (FR-030); EVALUATOR scope omits any submitter-identifying field
-- [ ] T061 [P] [US4] `tests/integration/insights-endpoints.test.ts` — ADMIN gets all three endpoints; EVALUATOR gets restricted variants; EMPLOYEE gets 403 `INSIGHTS_FORBIDDEN`; `InsightsRangeSchema` rejects `from > to` with `INSIGHTS_RANGE_INVALID`
+- [X] T060 [P] [US4] `tests/unit/server/insights-service.test.ts` — bucket math (day/week/month) on a deterministic 60-day window; approval-rate formula on hand-picked status mixes; category-distribution sums to 100 %; empty-range emits the explicit empty payload (FR-030); EVALUATOR scope omits any submitter-identifying field
+- [X] T061 [P] [US4] `tests/integration/insights-endpoints.test.ts` — ADMIN gets all three endpoints; EVALUATOR gets restricted variants; EMPLOYEE gets 403 `INSIGHTS_FORBIDDEN`; `InsightsRangeSchema` rejects `from > to` with `INSIGHTS_RANGE_INVALID`
 
 ### Implementation for User Story 4
 
-- [ ] T062 [P] [US4] `src/db/repositories/insights-repo.ts` — three covering queries against `ideas` + `status_transitions` using the new `idx_ideas_status_created` index
-- [ ] T063 [US4] `src/server/insights-service.ts` — `getSubmissionTrend`, `getApprovalRate`, `getCategoryDistribution`; each is a pure function over the repo + range; applies role-scope (EVALUATOR-restricted projection). Depends on T062
-- [ ] T064 [P] [US4] `src/components/insights/charts/submission-trend-chart.tsx` (Recharts `AreaChart`), `approval-rate-chart.tsx` (`ComposedChart`), `category-distribution-chart.tsx` (`BarChart`) — Tailwind-token themed, hover tooltip with exact numbers, empty-state panel
-- [ ] T065 [P] [US4] `src/components/insights/range-picker.tsx` — presets (7d / 30d / quarter / year / custom) + URL-bound state
-- [ ] T066 [US4] `src/components/insights/insights-page.tsx` — wraps `RangePicker` + three charts, parallel `Promise.all` fetch, per-chart loading skeleton. Depends on T064, T065
-- [ ] T067 [US4] API `src/app/api/insights/trend/route.ts`, `src/app/api/insights/approval-rate/route.ts`, `src/app/api/insights/category-distribution/route.ts` — role-guarded, parses `InsightsRangeSchema`, emits `insights_viewed` audit. Depends on T063
-- [ ] T068 [US4] Admin page `src/app/(admin)/insights/page.tsx` and reviewer page `src/app/(reviewer)/insights/page.tsx` (restricted view). Depends on T066
+- [X] T062 [P] [US4] `src/db/repositories/insights-repo.ts` — three covering queries against `ideas` + `status_transitions` using the new `idx_ideas_status_created` index
+- [X] T063 [US4] `src/server/insights-service.ts` — `getSubmissionTrend`, `getApprovalRate`, `getCategoryDistribution`; each is a pure function over the repo + range; applies role-scope (EVALUATOR-restricted projection). Depends on T062
+- [X] T064 [P] [US4] `src/components/insights/charts/submission-trend-chart.tsx` (Recharts `AreaChart`), `approval-rate-chart.tsx` (`ComposedChart`), `category-distribution-chart.tsx` (`BarChart`) — Tailwind-token themed, hover tooltip with exact numbers, empty-state panel
+- [X] T065 [P] [US4] `src/components/insights/range-picker.tsx` — presets (7d / 30d / quarter / year / custom) + URL-bound state
+- [X] T066 [US4] `src/components/insights/insights-page.tsx` — wraps `RangePicker` + three charts, parallel `Promise.all` fetch, per-chart loading skeleton. Depends on T064, T065
+- [X] T067 [US4] API `src/app/api/insights/trend/route.ts`, `src/app/api/insights/approval-rate/route.ts`, `src/app/api/insights/category-distribution/route.ts` — role-guarded, parses `InsightsRangeSchema`, emits `insights_viewed` audit. Depends on T063
+- [X] T068 [US4] Single `/insights` route at `src/app/(reviewer)/insights/page.tsx` shared by ADMIN (full) and EVALUATOR (aggregate-only via service); EMPLOYEE redirects to `/my-ideas`. Avoids a route collision between two route groups. Depends on T066
 
 **Checkpoint**: US4 complete; charts honour anonymity (US3) and the role-scope rule.
 
