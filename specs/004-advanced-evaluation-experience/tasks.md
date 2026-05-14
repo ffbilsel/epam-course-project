@@ -238,11 +238,11 @@ new WCAG AA contrast violations (SC-008).
 
 ### Implementation for User Story 5
 
-- [ ] T071 [P] [US5] Re-skin every page touched by features 001–003 to consume `tokens.css` only — `src/app/page.tsx`, `src/app/(employee)/my-ideas/page.tsx`, `src/app/(employee)/ideas/new/page.tsx`, `src/app/(employee)/ideas/[id]/page.tsx`, `src/app/(reviewer)/queue/page.tsx`, `src/app/(admin)/admin/ideas/page.tsx`, `src/app/(admin)/categories/page.tsx`
-- [ ] T072 [P] [US5] Normalise shadcn primitive variants in `src/components/ui/*` to use only token-backed CSS variables (no hex literals)
-- [ ] T073 [P] [US5] Audit and remove ad-hoc page chrome (`<header>` / `<nav>` blocks) from feature 001–003 pages now provided by `AppShell` (T020)
-- [ ] T074 [P] [US5] Add `prefers-reduced-motion` guard to every transition/animation in `tokens.css` and `src/components/**` (NFR-005)
-- [ ] T075 [US5] Manual responsive walkthrough at 360 px / 768 px / 1280 px on each re-skinned page; fix overflow/wrap issues
+- [X] T071 [P] [US5] Re-skin every page touched by features 001–003 to consume `tokens.css` only — `src/app/page.tsx`, `src/app/(employee)/my-ideas/page.tsx`, `src/app/(employee)/ideas/new/page.tsx`, `src/app/(employee)/ideas/[id]/page.tsx`, `src/app/(reviewer)/queue/page.tsx`, `src/app/(admin)/admin/ideas/page.tsx`, `src/app/(admin)/categories/page.tsx`
+- [X] T072 [P] [US5] Normalise shadcn primitive variants in `src/components/ui/*` to use only token-backed CSS variables (no hex literals)
+- [X] T073 [P] [US5] Audit and remove ad-hoc page chrome (`<header>` / `<nav>` blocks) from feature 001–003 pages now provided by `AppShell` (T020)
+- [X] T074 [P] [US5] Add `prefers-reduced-motion` guard to every transition/animation in `tokens.css` and `src/components/**` (NFR-005)
+- [X] T075 [US5] Manual responsive walkthrough at 360 px / 768 px / 1280 px on each re-skinned page; fix overflow/wrap issues
 
 **Checkpoint**: all five stories independently functional and visually consistent.
 
