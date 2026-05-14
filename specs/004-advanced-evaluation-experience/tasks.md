@@ -274,7 +274,7 @@ must ship with Phase 4.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T085 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-4 capabilities (Drafts, Ratings, Comments, Anonymity, Insights, Makeover, Hardening)
+- [X] T085 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-4 capabilities (Drafts, Ratings, Comments, Anonymity, Insights, Makeover, Hardening)
 - [ ] T086 [P] Update `scripts/seed-demo.ts` to seed: 5 drafts on one Employee, 20 ideas spanning every status, 1 anonymous category, 200 ratings, 80 comments (incl. replies and 1 soft-deleted), 1 concluded idea per terminal status for the History tab
 - [ ] T087 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; fix any drift
 - [ ] T088 [P] Add JSDoc on every new export and run the JSDoc lint (Quality Gate 5)
