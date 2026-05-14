@@ -12,12 +12,18 @@ RUN npm ci
 # ── builder ─────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    DATABASE_URL=file:/tmp/build.db \
+    NEXTAUTH_SECRET=build-time-placeholder \
+    AUTH_SECRET=build-time-placeholder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Drizzle migrations + seeds are run at boot, not at build, so the
-# build container needs no database.
-RUN npm run build
+# Next 14 statically inspects route handlers at build time, which
+# transitively imports the Drizzle client and opens a SQLite file.
+# Point that import at a throwaway path under /tmp and run migrations
+# so any incidental query during "Collecting page data" succeeds.
+RUN node node_modules/tsx/dist/cli.mjs src/db/migrate.ts \
+ && npm run build
 
 # ── runner ──────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim AS runner

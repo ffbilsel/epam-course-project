@@ -2,6 +2,8 @@ import Link from "next/link";
 import { listCategories } from "@/db/repositories/category-repo";
 import { CategoriesTable } from "@/components/admin/categories-table";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Admin → Categories page. Renders the PROPOSED queue (decision
  * actions) and the ACTIVE list (with a link to each category's

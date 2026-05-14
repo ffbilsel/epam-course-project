@@ -1,6 +1,8 @@
 import { listAllUsers } from "@/server/user-service";
 import { UsersTable } from "@/components/admin/users-table";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Admin → Users page.
  */

@@ -4,6 +4,8 @@ import { auth } from "@/server/auth-options";
 import { findCategoryById, parseSchemaJson } from "@/db/repositories/category-repo";
 import { CategorySchemaEditor } from "@/components/admin/category-schema-editor";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: { id: string };
 }

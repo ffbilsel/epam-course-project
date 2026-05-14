@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { auth } from "@/server/auth-options";
 
+// Admin pages depend on the live DB session and must never be
+// statically pre-rendered at build time.
+export const dynamic = "force-dynamic";
+
 /**
  * Admin section layout — guards every nested page with `requireRole('ADMIN')`.
  */
