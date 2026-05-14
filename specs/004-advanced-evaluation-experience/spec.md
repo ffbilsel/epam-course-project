@@ -511,6 +511,30 @@ WCAG AA contrast checks in both light and dark mode.
   via keyboard alone, with visible focus indicators, descriptive
   labels, and ARIA semantics where appropriate.
 
+#### Hardening — fixes to features 001–003 surfaces
+
+- **FR-037**: The Employee dashboard MUST include a "History" tab (or
+  equivalent panel) listing the signed-in Employee's **concluded
+  submissions** — that is, every idea they authored whose current
+  status is a terminal/post-review state (`APPROVED`, `REJECTED`, or
+  `IMPLEMENTED`). The list MUST show title, category, concluded date,
+  and final decision, link through to the idea's detail page, and
+  honour anonymity rules for any per-idea data shown to the submitter
+  (the submitter always sees their own identity). Ideas still in
+  `DRAFT`, `SUBMITTED`, or `UNDER_REVIEW` MUST NOT appear in History.
+- **FR-038**: The Reviewer review-queue filters introduced in feature
+  003 MUST be corrected so that **status filters work end-to-end**: the
+  set of selectable statuses MUST match exactly the statuses that can
+  appear in the queue (`SUBMITTED`, `UNDER_REVIEW`, and the terminal
+  statuses for read-only reference); selecting one or more statuses
+  MUST scope the queue result to that set; deselecting all statuses
+  MUST behave as "no status filter" (not as "no results"); the active
+  filter MUST be reflected in the URL so it survives reload and is
+  shareable; combining status with the other queue filters (category,
+  search) MUST produce the logical intersection; and the empty state
+  MUST clearly distinguish "no ideas match the filter" from "queue is
+  empty".
+
 ### Non-Functional Requirements
 
 - **NFR-001 (Performance — Insights)**: Each chart on the Insights page
