@@ -5,6 +5,8 @@ import { HistoryTab } from "@/components/dashboard/history-tab";
 import { auth } from "@/server/auth-options";
 import { listConcludedByAuthor } from "@/server/idea-listing";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Employee dashboard with an Active / History tab split (FR-037).
  * The History tab lists the caller's concluded ideas (APPROVED,
@@ -25,15 +27,19 @@ export default async function EmployeeDashboardPage(): Promise<JSX.Element> {
         <div className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your active work and concluded ideas.
+            Browse every idea in the organisation and your quick actions.
           </p>
         </div>
 
-        <Tabs defaultValue="active" className="space-y-4">
+        <Tabs defaultValue="history" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="active">Quick actions</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="history">
+            <HistoryTab rows={history} />
+          </TabsContent>
 
           <TabsContent value="active">
             <div className="grid gap-4 md:grid-cols-2">
@@ -86,10 +92,6 @@ export default async function EmployeeDashboardPage(): Promise<JSX.Element> {
                 </Card>
               )}
             </div>
-          </TabsContent>
-
-          <TabsContent value="history">
-            <HistoryTab rows={history} />
           </TabsContent>
         </Tabs>
       </main>
