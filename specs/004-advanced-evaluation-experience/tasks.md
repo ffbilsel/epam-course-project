@@ -88,22 +88,22 @@ role can list or fetch the draft.
 
 ### Tests for User Story 1 ⚠️ (write first, ensure they fail)
 
-- [ ] T021 [P] [US1] `tests/unit/server/draft-service.test.ts` — create/update/delete/submit happy paths; `DRAFT_FORBIDDEN` when actor ≠ author; `DRAFT_VALIDATION` propagated from submit; idempotent update
-- [ ] T022 [P] [US1] `tests/integration/drafts-lifecycle.test.ts` — author-only visibility (reviewer/admin GETs return 404); submit creates an `ideas` row in `SUBMITTED` and removes the draft in a single transaction; deleting a draft cascades to its draft-only attachments
+- [X] T021 [P] [US1] `tests/unit/server/draft-service.test.ts` — create/update/delete/submit happy paths; `DRAFT_FORBIDDEN` when actor ≠ author; `DRAFT_VALIDATION` propagated from submit; idempotent update
+- [X] T022 [P] [US1] `tests/integration/drafts-lifecycle.test.ts` — author-only visibility (reviewer/admin GETs return 404); submit creates an `ideas` row in `SUBMITTED` and removes the draft in a single transaction; deleting a draft cascades to its draft-only attachments
 - [ ] T023 [P] [US1] `tests/e2e/employee-save-and-submit-draft.spec.ts` (Playwright + axe) — save → reopen → edit → submit → reviewer queue contains the idea
 
 ### Implementation for User Story 1
 
-- [ ] T024 [P] [US1] `src/db/repositories/draft-repo.ts` — `createDraft`, `updateDraft`, `getDraft`, `listDraftsByAuthor`, `deleteDraft`
-- [ ] T025 [US1] `src/server/draft-service.ts` — `saveDraft`, `loadDraft`, `listMyDrafts`, `deleteDraft`, `submitDraft`; `submitDraft` runs feature-002 validators, snapshots `categories.anonymous_default` into the new `ideas.anonymous` column (ADR-0018), and emits `draft_submitted` audit. Depends on T024
-- [ ] T026 [P] [US1] `src/lib/hooks/use-draft-autosave.ts` — debounced PUT (300 ms) with last-write-wins and "Saved · just now" status
-- [ ] T027 [P] [US1] `src/components/drafts/save-draft-button.tsx`, `src/components/drafts/draft-list.tsx`, `src/components/drafts/draft-editor.tsx` (wraps the feature-002 smart form and the autosave hook)
-- [ ] T028 [US1] Page `src/app/(employee)/drafts/page.tsx` (RSC: auth, list author drafts, empty/loading/error states). Depends on T027
-- [ ] T029 [US1] Page `src/app/(employee)/drafts/[id]/page.tsx` (RSC: auth, ownership check, render `DraftEditor`). Depends on T027
-- [ ] T030 [US1] Add "Save draft" affordance to `src/app/(employee)/ideas/new/page.tsx`. Depends on T027
-- [ ] T031 [US1] API `src/app/api/drafts/route.ts` — `POST` create, `GET` list (author scope only). Depends on T025
-- [ ] T032 [US1] API `src/app/api/drafts/[id]/route.ts` — `GET`, `PUT` update, `DELETE`, `POST /submit`. Depends on T025
-- [ ] T033 [US1] Sidebar entry "My Drafts" with badge count in `src/components/layout/sidebar.tsx` (Employee role only). Depends on T019, T031
+- [X] T024 [P] [US1] `src/db/repositories/draft-repo.ts` — `createDraft`, `updateDraft`, `getDraft`, `listDraftsByAuthor`, `deleteDraft`
+- [X] T025 [US1] `src/server/draft-service.ts` — `saveDraft`, `loadDraft`, `listMyDrafts`, `deleteDraft`, `submitDraft`; `submitDraft` runs feature-002 validators, snapshots `categories.anonymous_default` into the new `ideas.anonymous` column (ADR-0018), and emits `draft_submitted` audit. Depends on T024
+- [X] T026 [P] [US1] `src/lib/hooks/use-draft-autosave.ts` — debounced PUT (300 ms) with last-write-wins and "Saved · just now" status
+- [X] T027 [P] [US1] `src/components/drafts/save-draft-button.tsx`, `src/components/drafts/draft-list.tsx`, `src/components/drafts/draft-editor.tsx` (wraps the feature-002 smart form and the autosave hook)
+- [X] T028 [US1] Page `src/app/(employee)/drafts/page.tsx` (RSC: auth, list author drafts, empty/loading/error states). Depends on T027
+- [X] T029 [US1] Page `src/app/(employee)/drafts/[id]/page.tsx` (RSC: auth, ownership check, render `DraftEditor`). Depends on T027
+- [X] T030 [US1] Add "Save draft" affordance to `src/app/(employee)/ideas/new/page.tsx`. Depends on T027
+- [X] T031 [US1] API `src/app/api/drafts/route.ts` — `POST` create, `GET` list (author scope only). Depends on T025
+- [X] T032 [US1] API `src/app/api/drafts/[id]/route.ts` — `GET`, `PUT` update, `DELETE`, `POST /submit`. Depends on T025
+- [X] T033 [US1] Sidebar entry "My Drafts" with badge count in `src/components/layout/sidebar.tsx` (Employee role only). Depends on T019, T031
 
 **Checkpoint**: US1 demoable end-to-end; drafts are invisible to every other role.
 

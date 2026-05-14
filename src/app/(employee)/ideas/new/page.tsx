@@ -21,7 +21,15 @@ export default async function NewIdeaPage(): Promise<JSX.Element> {
     <>
       <Header />
       <main className="mx-auto max-w-2xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-semibold">Submit a new idea</h1>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold">Submit a new idea</h1>
+          <a
+            href="/drafts"
+            className="text-sm text-primary underline underline-offset-4 hover:no-underline"
+          >
+            Save and continue later → drafts
+          </a>
+        </div>
         <IdeaForm categories={options} />
       </main>
     </>
