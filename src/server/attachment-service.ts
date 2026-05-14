@@ -47,7 +47,10 @@ export async function stageUpload(
   if (bytes.byteLength > MAX_BYTES) {
     throw new AppError("ATTACHMENT_TOO_LARGE", { maxBytes: MAX_BYTES });
   }
-  const sniff = await fileTypeFromBuffer(bytes.subarray(0, 4096));
+  // Sniff against the full buffer: OOXML (.docx/.pptx) are ZIP archives whose
+  // discriminator lives in the central directory at the END of the file, so a
+  // truncated buffer would only resolve to `application/zip` and be rejected.
+  const sniff = await fileTypeFromBuffer(bytes);
   const mime = sniff?.mime;
   if (!mime || !ALLOWED_MIME.has(mime)) {
     throw new AppError("ATTACHMENT_TYPE_NOT_ALLOWED", { detected: mime ?? null });
