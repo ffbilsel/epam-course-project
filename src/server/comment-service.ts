@@ -156,9 +156,16 @@ export async function deleteComment(
 
 /**
  * List every comment for one idea as a one-level thread. Author
- * display names are resolved in one query.
+ * display names are resolved in one query. When `viewer` is
+ * provided, applies the anonymity projection (ADR-0018) to comments
+ * authored by the idea's submitter for Evaluator viewers.
  */
-export async function listThread(ideaId: string): Promise<CommentNode[]> {
+export async function listThread(
+  ideaId: string,
+  viewer?: { id: string; role: Role },
+): Promise<CommentNode[]> {
+  const idea = await findIdeaById(ideaId);
+  if (!idea) throw AppError.notFound("IDEA_NOT_FOUND");
   const rows = await listForIdea(ideaId);
   const authorIds = [...new Set(rows.map((r) => r.authorId))];
   const userRows = authorIds.length
@@ -171,12 +178,17 @@ export async function listThread(ideaId: string): Promise<CommentNode[]> {
 
   const byId = new Map<string, CommentNode>();
   const top: CommentNode[] = [];
+  const ideaAnonymous = Boolean((idea as { anonymous?: number | boolean }).anonymous);
+  const shouldMaskSubmitter =
+    ideaAnonymous && viewer?.role === "EVALUATOR" && viewer.id !== idea.authorId;
   for (const r of rows) {
+    const isSubmitter = r.authorId === idea.authorId;
+    const mask = shouldMaskSubmitter && isSubmitter;
     const node: CommentNode = {
       id: r.id,
       ideaId: r.ideaId,
-      authorId: r.authorId,
-      authorName: nameById.get(r.authorId) ?? "Unknown",
+      authorId: mask ? "" : r.authorId,
+      authorName: mask ? "Anonymous Submitter" : (nameById.get(r.authorId) ?? "Unknown"),
       authorRoleAtPost: r.authorRoleAtPost,
       parentId: r.parentId,
       kind: r.kind,

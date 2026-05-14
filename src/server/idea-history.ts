@@ -4,6 +4,7 @@ import { users, type IdeaStatus, type Role } from "@/db/schema";
 import { AppError } from "@/lib/errors/AppError";
 import { findIdeaById } from "@/db/repositories/idea-repo";
 import { listTransitionsByIdea } from "@/db/repositories/transition-repo";
+import { maskHistoryEvent } from "@/server/anonymity";
 
 /**
  * One row in an idea's combined history feed. The lifecycle splits
@@ -94,5 +95,11 @@ export async function getIdeaHistory(
     };
   });
 
-  return [submitted, ...events];
+  return [submitted, ...events].map((e) =>
+    maskHistoryEvent(e, {
+      ideaAnonymous: Boolean((idea as { anonymous?: number | boolean }).anonymous),
+      authorId: idea.authorId,
+      viewer: actor,
+    }),
+  );
 }

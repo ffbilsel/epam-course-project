@@ -7,6 +7,7 @@ import {
 } from "@/db/repositories/idea-repo";
 import type { ListingQuery, ListingPageSize } from "@/lib/validation/idea";
 import type { Role } from "@/db/schema";
+import { maskAuthor } from "@/server/anonymity";
 
 /**
  * The narrow projection sent to listing UIs. ISO date strings keep
@@ -20,6 +21,7 @@ export interface IdeaSummary {
   categoryName: string;
   authorId: string;
   authorName: string;
+  anonymous: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,7 +91,7 @@ export async function runListingQuery(
   const offset = (page - 1) * query.pageSize;
   const rows = await listFiltered(predicate, offset, query.pageSize);
   return {
-    rows: rows.map(toSummary),
+    rows: rows.map((r) => toSummary(r, session)),
     total,
     page,
     pageSize: query.pageSize as ListingPageSize,
@@ -97,15 +99,25 @@ export async function runListingQuery(
   };
 }
 
-function toSummary(r: IdeaListingRow): IdeaSummary {
+function toSummary(r: IdeaListingRow, viewer: { id: string; role: Role }): IdeaSummary {
+  const masked = maskAuthor(
+    {
+      id: r.id,
+      authorId: r.authorId,
+      authorName: r.authorName,
+      anonymous: r.anonymous,
+    },
+    viewer,
+  );
   return {
     id: r.id,
     title: r.title,
     status: r.status,
     categoryId: r.categoryId,
     categoryName: r.categoryName,
-    authorId: r.authorId,
-    authorName: r.authorName,
+    authorId: masked.authorId,
+    authorName: masked.authorName,
+    anonymous: r.anonymous,
     createdAt: new Date(r.createdAt).toISOString(),
     updatedAt: new Date(r.updatedAt).toISOString(),
   };

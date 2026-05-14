@@ -148,6 +148,17 @@ export async function hardDeleteIdea(id: string): Promise<void> {
 }
 
 /**
+ * Sets the `anonymous` flag on an idea (Admin-only override,
+ * US3 / ADR-0018).
+ */
+export async function setIdeaAnonymous(id: string, anonymous: boolean, now: number): Promise<void> {
+  await db
+    .update(ideas)
+    .set({ anonymous: anonymous ? 1 : 0, updatedAt: now })
+    .where(eq(ideas.id, id));
+}
+
+/**
  * Listing predicate shared by `listFiltered`, `countFiltered`, and
  * the streaming CSV export (Phase 3 / US2).
  *
@@ -181,6 +192,7 @@ export interface IdeaListingRow {
   categoryName: string;
   authorId: string;
   authorName: string;
+  anonymous: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -251,6 +263,7 @@ export async function listFiltered(
       categoryName: categories.name,
       authorId: ideas.authorId,
       authorName: users.displayName,
+      anonymous: ideas.anonymous,
       createdAt: ideas.createdAt,
       updatedAt: ideas.updatedAt,
     })
@@ -261,7 +274,7 @@ export async function listFiltered(
     .orderBy(desc(ideas.createdAt), asc(ideas.id))
     .limit(limit)
     .offset(offset);
-  return rows as IdeaListingRow[];
+  return rows.map((r) => ({ ...r, anonymous: Boolean(r.anonymous) })) as IdeaListingRow[];
 }
 
 /**
