@@ -19,26 +19,20 @@ import {
 } from "@/lib/validation/category-fields";
 import { DynamicFieldRenderer } from "@/components/forms/dynamic-field-renderer";
 
-const CoreSchema = z
-  .object({
-    title: z
-      .string()
-      .trim()
-      .min(1, errorMessages.IDEA_TITLE_REQUIRED)
-      .max(120, errorMessages.IDEA_TITLE_TOO_LONG),
-    description: z
-      .string()
-      .trim()
-      .min(1, errorMessages.IDEA_DESCRIPTION_REQUIRED)
-      .max(2000, errorMessages.IDEA_DESCRIPTION_TOO_LONG),
-    categoryChoice: z.string().min(1, errorMessages.IDEA_CATEGORY_INVALID),
-    proposedCategoryName: z.string().trim().max(40).optional().or(z.literal("")),
-    answers: z.record(z.unknown()).default({}),
-  })
-  .refine(
-    (v) => v.categoryChoice !== "__propose__" || (v.proposedCategoryName ?? "").trim().length > 0,
-    { message: errorMessages.IDEA_CATEGORY_INVALID, path: ["proposedCategoryName"] },
-  );
+const CoreSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, errorMessages.IDEA_TITLE_REQUIRED)
+    .max(120, errorMessages.IDEA_TITLE_TOO_LONG),
+  description: z
+    .string()
+    .trim()
+    .min(1, errorMessages.IDEA_DESCRIPTION_REQUIRED)
+    .max(2000, errorMessages.IDEA_DESCRIPTION_TOO_LONG),
+  categoryChoice: z.string().min(1, errorMessages.IDEA_CATEGORY_INVALID),
+  answers: z.record(z.unknown()).default({}),
+});
 type FormValues = z.infer<typeof CoreSchema>;
 
 /** A category surface for the form, with its Phase 2 schema. */
@@ -88,7 +82,6 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
       title: "",
       description: "",
       categoryChoice: "",
-      proposedCategoryName: "",
       answers: {},
     },
   });
@@ -129,15 +122,12 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
         attachmentId = upJson.id;
       }
 
-      const isPropose = values.categoryChoice === "__propose__";
       const body = {
         title: values.title,
         description: values.description,
-        ...(isPropose
-          ? { proposedCategoryName: values.proposedCategoryName }
-          : { categoryId: values.categoryChoice }),
+        categoryId: values.categoryChoice,
         attachmentId,
-        ...(isPropose ? {} : { answers: values.answers ?? {} }),
+        answers: values.answers ?? {},
       };
 
       const res = await fetch("/api/ideas", {
@@ -206,28 +196,18 @@ export function IdeaForm({ categories }: { categories: CategoryWithSchema[] }): 
               {c.name}
             </option>
           ))}
-          <option value="__propose__">Propose new category…</option>
         </select>
         {errors.categoryChoice && (
           <p className="text-sm text-destructive">{errors.categoryChoice.message}</p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Don&apos;t see a fit?{" "}
+          <a href="/categories/propose" className="underline">
+            Propose a new category
+          </a>{" "}
+          (separate from this submission).
+        </p>
       </div>
-      {choice === "__propose__" && (
-        <div className="space-y-2">
-          <Label htmlFor="proposedCategoryName">Proposed category name</Label>
-          <Input
-            id="proposedCategoryName"
-            {...register("proposedCategoryName")}
-            aria-invalid={!!errors.proposedCategoryName}
-          />
-          {errors.proposedCategoryName && (
-            <p className="text-sm text-destructive">{errors.proposedCategoryName.message}</p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            Your idea will sit pending an Admin review of this category.
-          </p>
-        </div>
-      )}
       {currentFields.length > 0 && (
         <section
           aria-labelledby="category-fields-heading"

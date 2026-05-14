@@ -2,6 +2,8 @@ import { withTx } from "@/db/client";
 import { AppError } from "@/lib/errors/AppError";
 import {
   findCategoryById,
+  findCategoryByLowerName,
+  insertProposedCategory,
   decideCategory,
   findOtherCategoryId,
   readSchema,
@@ -10,8 +12,55 @@ import {
 import { relinkCategory } from "@/db/repositories/idea-repo";
 import { logSecurityEvent } from "@/server/infra/logger";
 import { SystemClock, type Clock } from "@/server/infra/clock";
+import { SystemIdGenerator, type IdGenerator } from "@/server/infra/id-generator";
 import { validateSchema } from "@/server/category-schema";
 import type { CategoryFieldDefinition } from "@/lib/validation/category-fields";
+import type { Role } from "@/db/schema";
+
+/**
+ * Proposes a new category by name. Any authenticated user can call
+ * this; the category lands in `PROPOSED` state and waits for an
+ * Admin decision (see {@link approveCategory} / {@link rejectCategory}).
+ *
+ * Throws `CATEGORY_NAME_TAKEN` (409) if a category with the same
+ * case-insensitive name already exists in any state.
+ */
+export async function proposeCategory(
+  name: string,
+  proposerId: string,
+  proposerRole: Role,
+  deps: { clock?: Clock; ids?: IdGenerator } = {},
+): Promise<{ id: string; name: string; state: "PROPOSED" }> {
+  const clock = deps.clock ?? SystemClock;
+  const ids = deps.ids ?? SystemIdGenerator;
+  const trimmed = name.trim();
+  if (trimmed.length === 0 || trimmed.length > 40) {
+    throw new AppError("IDEA_CATEGORY_INVALID");
+  }
+  const dup = await findCategoryByLowerName(trimmed);
+  if (dup) throw AppError.conflict("CATEGORY_NAME_TAKEN");
+  const id = ids.next();
+  const now = clock.now().getTime();
+  await insertProposedCategory({
+    id,
+    name: trimmed,
+    state: "PROPOSED",
+    proposedById: proposerId,
+    decidedById: null,
+    decidedAt: null,
+    createdAt: now,
+    isProtected: 0,
+  });
+  logSecurityEvent({
+    event: "category_proposed",
+    userId: proposerId,
+    actorRole: proposerRole,
+    ip: null,
+    requestId: null,
+    details: { categoryId: id, name: trimmed },
+  });
+  return { id, name: trimmed, state: "PROPOSED" };
+}
 
 /**
  * Approves a PROPOSED category (FR-016). Admin-only.

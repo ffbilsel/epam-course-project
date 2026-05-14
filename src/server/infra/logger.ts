@@ -35,6 +35,7 @@ export interface SecurityEvent {
     | "login_failure"
     | "logout"
     | "role_change"
+    | "category_proposed"
     | "category_decision"
     | "category_schema_update"
     | "idea_transition"

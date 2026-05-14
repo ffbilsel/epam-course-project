@@ -4,6 +4,7 @@ import { categories, users } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { hashPassword } from "@/server/password";
 import { createIdea, listMineIdeas, getIdeaDetail } from "@/server/idea-service";
+import { proposeCategory } from "@/server/category-service";
 import { FixedClock } from "@/server/infra/clock";
 import { StaticIdGenerator } from "@/server/infra/id-generator";
 import { AppError } from "@/lib/errors/AppError";
@@ -53,21 +54,20 @@ describe("idea-service.createIdea", () => {
     expect(detail.categoryId).toBe(catId);
   });
 
-  it("proposes a new category and surfaces CATEGORY_NAME_TAKEN on dup", async () => {
+  it("proposeCategory creates a PROPOSED category and rejects duplicates", async () => {
+    const proposed = await proposeCategory("Sustainability", authorId, "EMPLOYEE");
+    expect(proposed.state).toBe("PROPOSED");
     const idea = await createIdea(
-      { title: "P", description: "D", proposedCategoryName: "Sustainability" },
+      { title: "P", description: "D", categoryId: proposed.id },
       authorId,
     );
     expect(idea.categoryState).toBe("PROPOSED");
-    await expect(
-      createIdea(
-        { title: "P2", description: "D", proposedCategoryName: "sustainability" },
-        authorId,
-      ),
-    ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
+    await expect(proposeCategory("sustainability", authorId, "EMPLOYEE")).rejects.toMatchObject({
+      code: "CATEGORY_NAME_TAKEN",
+    });
   });
 
-  it("throws IDEA_CATEGORY_INVALID when neither categoryId nor proposedCategoryName provided", async () => {
+  it("throws IDEA_CATEGORY_INVALID when categoryId is missing", async () => {
     await expect(
       createIdea({ title: "x", description: "y" } as never, authorId),
     ).rejects.toBeInstanceOf(AppError);

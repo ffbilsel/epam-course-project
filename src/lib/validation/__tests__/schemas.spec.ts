@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { CreateIdeaSchema, TransitionSchema } from "@/lib/validation/idea";
+import { CreateIdeaSchema, ProposeCategorySchema, TransitionSchema } from "@/lib/validation/idea";
 import { RegisterSchema, LoginSchema } from "@/lib/validation/auth";
 
 describe("validation schemas", () => {
-  it("CreateIdeaSchema rejects missing both categoryId and proposedCategoryName", () => {
+  it("CreateIdeaSchema rejects missing categoryId", () => {
     const r = CreateIdeaSchema.safeParse({ title: "t", description: "d" });
     expect(r.success).toBe(false);
+  });
+
+  it("CreateIdeaSchema rejects a non-uuid categoryId (IDEA_CATEGORY_INVALID)", () => {
+    const r = CreateIdeaSchema.safeParse({
+      title: "t",
+      description: "d",
+      categoryId: "not-a-uuid",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.map((i) => i.message)).toContain("IDEA_CATEGORY_INVALID");
+    }
+  });
+
+  it("ProposeCategorySchema accepts a 1–40 char name, rejects empty/too-long", () => {
+    expect(ProposeCategorySchema.safeParse({ name: "Sustainability" }).success).toBe(true);
+    expect(ProposeCategorySchema.safeParse({ name: "" }).success).toBe(false);
+    expect(ProposeCategorySchema.safeParse({ name: "x".repeat(41) }).success).toBe(false);
   });
 
   it("CreateIdeaSchema rejects too-long title (IDEA_TITLE_TOO_LONG message)", () => {

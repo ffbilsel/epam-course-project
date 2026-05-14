@@ -4,7 +4,7 @@ import { db } from "@/db/client";
 import { categories, users, ideas } from "@/db/schema";
 import { hashPassword } from "@/server/password";
 import { createIdea } from "@/server/idea-service";
-import { approveCategory, rejectCategory } from "@/server/category-service";
+import { approveCategory, proposeCategory, rejectCategory } from "@/server/category-service";
 
 let adminId: string;
 let authorId: string;
@@ -38,8 +38,9 @@ beforeEach(async () => {
 
 describe("categories decisions", () => {
   it("approve happy path → ACTIVE", async () => {
+    const proposed = await proposeCategory(`Cat-${Date.now()}`, authorId, "EMPLOYEE");
     const idea = await createIdea(
-      { title: "x", description: "y", proposedCategoryName: `Cat-${Date.now()}` },
+      { title: "x", description: "y", categoryId: proposed.id },
       authorId,
     );
     await approveCategory(idea.categoryId, adminId);
@@ -52,8 +53,9 @@ describe("categories decisions", () => {
 
   it("reject relinks ideas to Other and marks REJECTED", async () => {
     const name = `Cat-${Date.now()}`;
+    const proposed = await proposeCategory(name, authorId, "EMPLOYEE");
     const idea1 = await createIdea(
-      { title: "1", description: "y", proposedCategoryName: name },
+      { title: "1", description: "y", categoryId: proposed.id },
       authorId,
     );
     // second idea on same category
@@ -81,8 +83,9 @@ describe("categories decisions", () => {
   });
 
   it("approve already-decided → CATEGORY_NOT_PENDING", async () => {
+    const proposed = await proposeCategory(`Done-${Date.now()}`, authorId, "EMPLOYEE");
     const idea = await createIdea(
-      { title: "x", description: "y", proposedCategoryName: `Done-${Date.now()}` },
+      { title: "x", description: "y", categoryId: proposed.id },
       authorId,
     );
     await approveCategory(idea.categoryId, adminId);

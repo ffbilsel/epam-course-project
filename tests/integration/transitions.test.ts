@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { categories, ideas, statusTransitions, users } from "@/db/schema";
 import { hashPassword } from "@/server/password";
 import { createIdea, applyTransition } from "@/server/idea-service";
+import { proposeCategory } from "@/server/category-service";
 import { FixedClock } from "@/server/infra/clock";
 
 let authorId: string;
@@ -118,9 +119,10 @@ describe("transitions", () => {
   });
 
   it("category PROPOSED → IDEA_CATEGORY_PENDING blocks transition", async () => {
-    // create idea with a proposed category
+    // propose a fresh category, then create an idea against it
+    const proposed = await proposeCategory(`Pending-Cat-${Date.now()}`, authorId, "EMPLOYEE");
     const idea = await createIdea(
-      { title: "p", description: "d", proposedCategoryName: "Pending-Cat-" + Date.now() },
+      { title: "p", description: "d", categoryId: proposed.id },
       authorId,
     );
     await expect(

@@ -38,6 +38,12 @@ export async function Header(): Promise<JSX.Element | null> {
           >
             My Ideas
           </Link>
+          <Link
+            href="/categories/propose"
+            className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            Propose category
+          </Link>
           {(role === "EVALUATOR" || role === "ADMIN") && (
             <Link
               href="/queue"

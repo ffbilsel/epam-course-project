@@ -1,30 +1,41 @@
 import { z } from "zod";
 
 /**
- * Body schema for `POST /api/ideas` (FR-008). Either an existing
- * categoryId or a proposed category name MUST be provided.
+ * Body schema for `POST /api/ideas` (FR-008). An existing
+ * `categoryId` is required — proposing a new category is now a
+ * separate workflow (`POST /api/categories`, see
+ * {@link ProposeCategorySchema}).
  */
-export const CreateIdeaSchema = z
-  .object({
-    title: z.string().trim().min(1, { message: "IDEA_TITLE_REQUIRED" }).max(120, {
-      message: "IDEA_TITLE_TOO_LONG",
-    }),
-    description: z
-      .string()
-      .trim()
-      .min(1, { message: "IDEA_DESCRIPTION_REQUIRED" })
-      .max(2000, { message: "IDEA_DESCRIPTION_TOO_LONG" }),
-    categoryId: z.string().uuid().optional(),
-    proposedCategoryName: z.string().trim().min(1).max(40).optional(),
-    attachmentId: z.string().uuid().nullable().optional(),
-    answers: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
-  })
-  .refine((v) => Boolean(v.categoryId) !== Boolean(v.proposedCategoryName), {
-    message: "IDEA_CATEGORY_INVALID",
-    path: ["categoryId"],
-  });
+export const CreateIdeaSchema = z.object({
+  title: z.string().trim().min(1, { message: "IDEA_TITLE_REQUIRED" }).max(120, {
+    message: "IDEA_TITLE_TOO_LONG",
+  }),
+  description: z
+    .string()
+    .trim()
+    .min(1, { message: "IDEA_DESCRIPTION_REQUIRED" })
+    .max(2000, { message: "IDEA_DESCRIPTION_TOO_LONG" }),
+  categoryId: z.string().uuid({ message: "IDEA_CATEGORY_INVALID" }),
+  attachmentId: z.string().uuid().nullable().optional(),
+  answers: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
+});
 /** Inferred TypeScript type for {@link CreateIdeaSchema}. */
 export type CreateIdeaInput = z.infer<typeof CreateIdeaSchema>;
+
+/**
+ * Body schema for `POST /api/categories` — any authenticated user
+ * can propose a new category. The proposal lands in `PROPOSED`
+ * state pending Admin approval.
+ */
+export const ProposeCategorySchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "IDEA_CATEGORY_INVALID" })
+    .max(40, { message: "IDEA_CATEGORY_INVALID" }),
+});
+/** Inferred TypeScript type for {@link ProposeCategorySchema}. */
+export type ProposeCategoryInput = z.infer<typeof ProposeCategorySchema>;
 
 /**
  * Body schema for `POST /api/ideas/:id/transitions`.

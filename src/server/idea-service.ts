@@ -6,8 +6,6 @@ import { SystemClock, type Clock } from "@/server/infra/clock";
 import { SystemIdGenerator, type IdGenerator } from "@/server/infra/id-generator";
 import {
   findCategoryById,
-  findCategoryByLowerName,
-  insertProposedCategory,
   findOtherCategoryId,
   parseSchemaJson,
 } from "@/db/repositories/category-repo";
@@ -161,22 +159,9 @@ async function resolveCategoryId(
     }
     return input.categoryId;
   }
-  if (input.proposedCategoryName) {
-    const dup = await findCategoryByLowerName(input.proposedCategoryName);
-    if (dup) throw AppError.conflict("CATEGORY_NAME_TAKEN");
-    const id = deps.ids.next();
-    await insertProposedCategory({
-      id,
-      name: input.proposedCategoryName,
-      state: "PROPOSED",
-      proposedById: authorId,
-      decidedById: null,
-      decidedAt: null,
-      createdAt: now,
-      isProtected: 0,
-    });
-    return id;
-  }
+  void authorId;
+  void now;
+  void deps;
   throw new AppError("IDEA_CATEGORY_INVALID");
 }
 
