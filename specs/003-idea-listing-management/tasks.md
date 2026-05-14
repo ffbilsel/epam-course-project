@@ -98,20 +98,20 @@ US1 + US2.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T025 [P] [US2] Unit tests `tests/unit/server/idea-listing.test.ts` for `buildListingQuery` — every filter combination, per-role scope rules
-- [ ] T026 [P] [US2] Integration tests `tests/integration/ideas-listing.test.ts` — employee scope hides others' rows; reviewer scope returns only SUBMITTED+UNDER_REVIEW; admin scope unrestricted; AND semantics; `q` is case-insensitive; date range inclusive
+- [X] T025 [P] [US2] Unit tests `tests/unit/server/idea-listing.test.ts` for `buildListingQuery` — every filter combination, per-role scope rules
+- [X] T026 [P] [US2] Integration tests `tests/integration/ideas-listing.test.ts` — employee scope hides others' rows; reviewer scope returns only SUBMITTED+UNDER_REVIEW; admin scope unrestricted; AND semantics; `q` is case-insensitive; date range inclusive
 - [ ] T027 [P] [US2] E2E `tests/e2e/reviewer-filter-and-export.spec.ts` (filter half, axe pass)
 
 ### Implementation for User Story 2
 
-- [ ] T028 [P] [US2] Add `listFiltered(query, scope)` + `countFiltered(query, scope)` to `src/db/repositories/idea-repo.ts`
-- [ ] T029 [P] [US2] Add `src/server/idea-listing.ts` exposing `runListingQuery(query, session)` returning `ListingPage<IdeaSummary>` (applies per-role scope, joins categories + authors)
-- [ ] T030 [P] [US2] Add `src/lib/hooks/use-listing-query.ts` (URL-state hook, debounced `q`)
-- [ ] T031 [P] [US2] Add `src/components/ideas/idea-filter-bar.tsx` (search input + category select + status chips + date range; mobile accordion below `sm:`)
-- [ ] T032 [US2] Update `GET` handler in `src/app/api/ideas/route.ts` to parse `ListingQuerySchema` and delegate to `runListingQuery`. Depends on T029
-- [ ] T033 [US2] Wire filter bar into `src/app/(employee)/my-ideas/page.tsx`. Depends on T031, T032
-- [ ] T034 [US2] Wire filter bar into `src/app/(reviewer)/queue/page.tsx`. Depends on T031, T032
-- [ ] T035 [US2] Add `src/app/(admin)/admin/ideas/page.tsx` (admin all-ideas listing using same filter bar). Depends on T031, T032
+- [X] T028 [P] [US2] Add `listFiltered(query, scope)` + `countFiltered(query, scope)` to `src/db/repositories/idea-repo.ts`
+- [X] T029 [P] [US2] Add `src/server/idea-listing.ts` exposing `runListingQuery(query, session)` returning `ListingPage<IdeaSummary>` (applies per-role scope, joins categories + authors)
+- [X] T030 [P] [US2] Add `src/lib/hooks/use-listing-query.ts` (URL-state hook, debounced `q`)
+- [X] T031 [P] [US2] Add `src/components/ideas/idea-filter-bar.tsx` (search input + category select + status chips + date range; mobile accordion below `sm:`)
+- [X] T032 [US2] Update `GET` handler in `src/app/api/ideas/route.ts` to parse `ListingQuerySchema` and delegate to `runListingQuery`. Depends on T029
+- [X] T033 [US2] Wire filter bar into `src/app/(employee)/my-ideas/page.tsx`. Depends on T031, T032
+- [X] T034 [US2] Wire filter bar into `src/app/(reviewer)/queue/page.tsx`. Depends on T031, T032
+- [X] T035 [US2] Add `src/app/(admin)/admin/ideas/page.tsx` (admin all-ideas listing using same filter bar). Depends on T031, T032
 
 **Checkpoint**: MVP slice (US1 + US2) demoable end-to-end.
 
@@ -125,12 +125,12 @@ US1 + US2.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T036 [P] [US3] Extend `tests/integration/ideas-listing.test.ts` with pagination cases (defaults, clamp on overflow, illegal `pageSize`, `totalPages` math, stable order with ties)
+- [X] T036 [P] [US3] Extend `tests/integration/ideas-listing.test.ts` with pagination cases (defaults, clamp on overflow, illegal `pageSize`, `totalPages` math, stable order with ties)
 
 ### Implementation for User Story 3
 
-- [ ] T037 [P] [US3] Add `src/components/ideas/idea-pagination.tsx` (prev/next, numeric pages, page-size select; URL-bound)
-- [ ] T038 [US3] Wire pagination into the three listing pages — `src/app/(employee)/my-ideas/page.tsx`, `src/app/(reviewer)/queue/page.tsx`, `src/app/(admin)/admin/ideas/page.tsx`. Depends on T037
+- [X] T037 [P] [US3] Add `src/components/ideas/idea-pagination.tsx` (prev/next, numeric pages, page-size select; URL-bound)
+- [X] T038 [US3] Wire pagination into the three listing pages — `src/app/(employee)/my-ideas/page.tsx`, `src/app/(reviewer)/queue/page.tsx`, `src/app/(admin)/admin/ideas/page.tsx`. Depends on T037
 
 **Checkpoint**: US3 complete; listings show totals and respect page size.
 

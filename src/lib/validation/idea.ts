@@ -125,6 +125,7 @@ export type ListingPageSize = (typeof PAGE_SIZES)[number];
  */
 export const ListingQuerySchema = z
   .object({
+    scope: z.enum(["mine", "queue", "all"]).default("mine"),
     q: z.string().trim().max(200, { message: "IDEA_LISTING_SEARCH_TOO_LONG" }).default(""),
     categoryId: z.string().uuid().optional(),
     status: z
@@ -172,6 +173,8 @@ export function parseListingQuery(
 ): ListingQuery {
   const sp = params instanceof URLSearchParams ? params : new URLSearchParams([...params]);
   const obj: Record<string, unknown> = {};
+  const scope = sp.get("scope");
+  if (scope) obj["scope"] = scope;
   const q = sp.get("q");
   if (q !== null) obj["q"] = q;
   const categoryId = sp.get("categoryId");

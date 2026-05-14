@@ -4,11 +4,21 @@ import { parseListingQuery, ListingQuerySchema } from "@/lib/validation/idea";
 describe("parseListingQuery", () => {
   it("applies defaults when no params are supplied", () => {
     const q = parseListingQuery(new URLSearchParams());
+    expect(q.scope).toBe("mine");
     expect(q.q).toBe("");
     expect(q.page).toBe(1);
     expect(q.pageSize).toBe(20);
     expect(q.categoryId).toBeUndefined();
     expect(q.status).toBeUndefined();
+  });
+
+  it("accepts the three scope values", () => {
+    expect(parseListingQuery(new URLSearchParams("scope=queue")).scope).toBe("queue");
+    expect(parseListingQuery(new URLSearchParams("scope=all")).scope).toBe("all");
+  });
+
+  it("rejects unknown scope values", () => {
+    expect(() => parseListingQuery(new URLSearchParams("scope=bogus"))).toThrow();
   });
 
   it("collects repeated status params into an array", () => {

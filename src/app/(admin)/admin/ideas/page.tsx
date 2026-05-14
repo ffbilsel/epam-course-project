@@ -33,17 +33,16 @@ function toSearchParams(searchParams: PageProps["searchParams"]): URLSearchParam
 }
 
 /**
- * Reviewer queue: SUBMITTED + UNDER_REVIEW ideas, with the shared
- * filter bar (US2) and pagination (US3). Status whitelist is
- * enforced by the listing service for `scope=queue`.
+ * Admin all-ideas listing — unrestricted scope, all filters, plus
+ * the CSV export button (US5, wired in a follow-up commit).
  */
-export default async function QueuePage({ searchParams }: PageProps): Promise<JSX.Element> {
+export default async function AdminIdeasPage({ searchParams }: PageProps): Promise<JSX.Element> {
   const session = await auth();
-  if (!session?.user) redirect("/login?callbackUrl=/queue");
-  if (session.user.role === "EMPLOYEE") redirect("/my-ideas");
+  if (!session?.user) redirect("/login?callbackUrl=/admin/ideas");
+  if (session.user.role !== "ADMIN") redirect("/my-ideas");
 
   const sp = toSearchParams(searchParams);
-  sp.set("scope", "queue");
+  sp.set("scope", "all");
   const query = parseListingQuery(sp);
   const page = await runListingQuery(query, {
     id: session.user.id,
@@ -56,30 +55,18 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">All ideas</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Submitted and under-review ideas. Newest first.
+            Cross-tenant view for administrators.
           </p>
         </div>
 
-        <IdeaFilterBar
-          categories={cats.map((c) => ({ id: c.id, name: c.name }))}
-          showStatuses={true}
-        />
+        <IdeaFilterBar categories={cats.map((c) => ({ id: c.id, name: c.name }))} />
 
         {page.total === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-              <div
-                aria-hidden="true"
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-accent-foreground"
-              >
-                ✓
-              </div>
-              <p className="text-base font-medium">All caught up</p>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                No ideas match the current filters.
-              </p>
+            <CardContent className="py-16 text-center text-sm text-muted-foreground">
+              No ideas match the current filters.
             </CardContent>
           </Card>
         ) : (
@@ -92,7 +79,7 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
                     <TableHead>Author</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Submitted</TableHead>
+                    <TableHead>Updated</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -109,7 +96,7 @@ export default async function QueuePage({ searchParams }: PageProps): Promise<JS
                         <StatusBadge status={i.status} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {formatDate(new Date(i.createdAt))}
+                        {formatDate(new Date(i.updatedAt))}
                       </TableCell>
                     </TableRow>
                   ))}
