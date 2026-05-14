@@ -45,6 +45,7 @@ interface Deps {
  * from `input.kind` (`COMMENT` by default; `DECISION` is reserved
  * for the idea-service transaction).
  */
+// eslint-disable-next-line complexity -- validation, parent lookup, insert, and projection in one transaction
 export async function postComment(
   ideaId: string,
   actor: { id: string; role: Role },
@@ -160,6 +161,7 @@ export async function deleteComment(
  * provided, applies the anonymity projection (ADR-0018) to comments
  * authored by the idea's submitter for Evaluator viewers.
  */
+// eslint-disable-next-line complexity -- one-pass build of a one-level tree with author masking
 export async function listThread(
   ideaId: string,
   viewer?: { id: string; role: Role },

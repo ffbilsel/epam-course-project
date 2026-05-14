@@ -276,8 +276,8 @@ must ship with Phase 4.
 
 - [X] T085 [P] Update `README.md` and `PROJECT_SUMMARY.md` with Phase-4 capabilities (Drafts, Ratings, Comments, Anonymity, Insights, Makeover, Hardening)
 - [ ] T086 [P] Update `scripts/seed-demo.ts` to seed: 5 drafts on one Employee, 20 ideas spanning every status, 1 anonymous category, 200 ratings, 80 comments (incl. replies and 1 soft-deleted), 1 concluded idea per terminal status for the History tab
-- [ ] T087 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; fix any drift
-- [ ] T088 [P] Add JSDoc on every new export and run the JSDoc lint (Quality Gate 5)
+- [X] T087 [P] Run `npm run check:error-codes` and `npm run check:ui-tokens`; fix any drift
+- [X] T088 [P] Add JSDoc on every new export and run the JSDoc lint (Quality Gate 5)
 - [ ] T089 Run quickstart walkthrough end-to-end ([./quickstart.md](./quickstart.md)) and tick SC-001…SC-009
 - [ ] T090 Run full pipeline: `npm run lint && npm run typecheck && npm test && npm run test:e2e && npm run format -- --check`
 - [ ] T091 Merge feature branch back to `main` with `git merge --no-ff 004-advanced-evaluation-experience` (Constitution Principle X / Quality Gate 12)

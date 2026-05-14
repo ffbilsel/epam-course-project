@@ -17,7 +17,6 @@ import type { EmployeeHistoryRow } from "@/server/idea-listing";
  * concluded ideas authored by the viewer (APPROVED / REJECTED /
  * IMPLEMENTED) with title, category, concluded date, and final
  * decision. Each row links to the idea detail page.
- *
  * @example
  *   <HistoryTab rows={rows} />
  */

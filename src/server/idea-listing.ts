@@ -149,7 +149,6 @@ export interface EmployeeHistoryRow {
  * status. Excludes DRAFT (drafts live in a separate table) and any
  * idea still in `SUBMITTED` or `UNDER_REVIEW`. Newest concluded
  * first. Used by the Employee dashboard History tab (FR-037).
- *
  * @example
  *   const rows = await listConcludedByAuthor({ id: session.user.id, role: 'EMPLOYEE' });
  */

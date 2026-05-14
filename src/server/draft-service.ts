@@ -81,7 +81,7 @@ async function requireOwnedDraft(
  * inserted. The `id` is returned for the client to keep across
  * subsequent autosaves.
  */
-/* eslint-disable complexity */
+// eslint-disable-next-line complexity -- field-by-field merge of optional draft inputs
 export async function saveDraft(
   input: {
     id?: string | null;
