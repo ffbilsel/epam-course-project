@@ -1,0 +1,690 @@
+openapi: 3.1.0
+info:
+  title: InnovatEPAM Portal — Phase 4 API Delta
+  version: 0.4.0
+  description: |
+    REST surfaces introduced or modified by feature
+    `004-advanced-evaluation-experience`. Authentication is the existing
+    NextAuth session cookie. All non-2xx responses conform to the
+    common error envelope:
+
+    ```json
+    {
+      "error": {
+        "code": "DRAFT_FORBIDDEN",
+        "message": "developer-facing English",
+        "details": { ... }
+      }
+    }
+    ```
+
+    See [data-model.md](../data-model.md) for entity shapes and
+    [research.md](../research.md) for the design rationale behind each
+    endpoint.
+
+servers:
+  - url: https://portal.example.com
+
+tags:
+  - name: drafts
+    description: Author-private work-in-progress ideas (Story 1).
+  - name: ratings
+    description: Per-evaluator, per-dimension 1–5 scores (Story 2).
+  - name: comments
+    description: Idea discussion threads (Story 2).
+  - name: insights
+    description: Submission trend / approval rate / category distribution charts (Story 4).
+  - name: categories
+    description: Admin configuration — rating dimensions + anonymous default.
+  - name: ideas
+    description: Existing idea surfaces touched by Phase 4 (anonymity, queue filter, history).
+
+components:
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:    { type: string }
+            message: { type: string }
+            details: { type: object, additionalProperties: true }
+
+    Draft:
+      type: object
+      required: [id, authorId, title, description, categoryAnswers, createdAt, updatedAt]
+      properties:
+        id:              { type: string, format: uuid }
+        authorId:        { type: string, format: uuid }
+        title:           { type: string, maxLength: 120 }
+        description:     { type: string, maxLength: 5000 }
+        categoryId:      { type: string, format: uuid, nullable: true }
+        categoryAnswers: { type: array, items: { type: object } }
+        createdAt:       { type: string, format: date-time }
+        updatedAt:       { type: string, format: date-time }
+
+    DraftSummary:
+      type: object
+      required: [id, title, updatedAt]
+      properties:
+        id:         { type: string }
+        title:      { type: string }
+        categoryId: { type: string, nullable: true }
+        updatedAt:  { type: string, format: date-time }
+
+    SaveDraftRequest:
+      type: object
+      properties:
+        title:           { type: string, maxLength: 120 }
+        description:     { type: string, maxLength: 5000 }
+        categoryId:      { type: string, format: uuid, nullable: true }
+        categoryAnswers: { type: array, items: { type: object } }
+
+    SubmitDraftRequest:
+      type: object
+      description: Promotes a draft to a SUBMITTED idea. Admin-only `anonymous` override is accepted via query string, not body.
+      properties: {}
+
+    RatingDimension:
+      type: object
+      required: [id, label, position, required, active]
+      properties:
+        id:          { type: string }
+        categoryId:  { type: string, nullable: true, description: "null = default set" }
+        label:       { type: string }
+        description: { type: string, nullable: true }
+        position:    { type: integer }
+        required:    { type: boolean }
+        active:      { type: boolean }
+
+    RatingScore:
+      type: object
+      required: [dimensionId, score]
+      properties:
+        dimensionId: { type: string }
+        score:
+          oneOf:
+            - { type: integer, minimum: 1, maximum: 5 }
+            - { type: 'null' }
+
+    RatingPutRequest:
+      type: object
+      required: [scores]
+      properties:
+        scores:
+          type: array
+          maxItems: 20
+          items: { $ref: '#/components/schemas/RatingScore' }
+
+    Rating:
+      type: object
+      required: [id, ideaId, evaluatorId, dimensionId, score, locked, createdAt, updatedAt]
+      properties:
+        id:          { type: string }
+        ideaId:      { type: string }
+        evaluatorId: { type: string }
+        dimensionId: { type: string }
+        score:
+          oneOf:
+            - { type: integer, minimum: 1, maximum: 5 }
+            - { type: 'null' }
+        locked:      { type: boolean }
+        lockedAt:    { type: string, format: date-time, nullable: true }
+        createdAt:   { type: string, format: date-time }
+        updatedAt:   { type: string, format: date-time }
+
+    Comment:
+      type: object
+      required: [id, ideaId, author, kind, body, createdAt, deleted]
+      properties:
+        id:                { type: string }
+        ideaId:            { type: string }
+        author:
+          type: object
+          required: [id, name]
+          properties:
+            id:        { type: string, nullable: true, description: "null when the comment is masked by anonymity" }
+            name:      { type: string }
+            role:      { type: string, enum: [EMPLOYEE, EVALUATOR, ADMIN, ANONYMOUS] }
+        parentId:          { type: string, nullable: true }
+        kind:              { type: string, enum: [COMMENT, DECISION] }
+        body:              { type: string }
+        createdAt:         { type: string, format: date-time }
+        editedAt:          { type: string, format: date-time, nullable: true }
+        deleted:           { type: boolean }
+        deletedByModerator:{ type: boolean }
+
+    CommentPostRequest:
+      type: object
+      required: [body]
+      properties:
+        body:     { type: string, minLength: 1, maxLength: 2000 }
+        parentId: { type: string, nullable: true }
+
+    SubmissionTrendPoint:
+      type: object
+      required: [bucket, count]
+      properties:
+        bucket: { type: string, description: "ISO date for day/week, YYYY-MM for month" }
+        count:  { type: integer }
+
+    ApprovalRateSummary:
+      type: object
+      required: [approved, rejected, pending, rate, series]
+      properties:
+        approved: { type: integer }
+        rejected: { type: integer }
+        pending:  { type: integer }
+        rate:     { type: number, format: float, minimum: 0, maximum: 1 }
+        series:
+          type: array
+          items: { $ref: '#/components/schemas/SubmissionTrendPoint' }
+
+    CategoryDistributionEntry:
+      type: object
+      required: [categoryId, categoryName, count, share]
+      properties:
+        categoryId:   { type: string }
+        categoryName: { type: string }
+        count:        { type: integer }
+        share:        { type: number, format: float, minimum: 0, maximum: 1 }
+
+    InsightsRangeParams:
+      type: object
+      required: [from, to]
+      properties:
+        from:   { type: string, format: date }
+        to:     { type: string, format: date }
+        bucket:
+          type: string
+          enum: [day, week, month]
+
+security:
+  - SessionCookie: []
+
+paths:
+  # ─── Drafts (Story 1) ──────────────────────────────────────────────
+  /api/drafts:
+    get:
+      tags: [drafts]
+      summary: List the signed-in author's drafts (newest first).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rows]
+                properties:
+                  rows:
+                    type: array
+                    items: { $ref: '#/components/schemas/DraftSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [drafts]
+      summary: Create a new draft.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveDraftRequest' }
+      responses:
+        '201':
+          description: Draft created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Draft' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/drafts/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [drafts]
+      summary: Read the signed-in author's draft.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Draft' }
+        '404': { $ref: '#/components/responses/DraftNotFound' }
+    put:
+      tags: [drafts]
+      summary: Update the draft in place (autosave-friendly).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveDraftRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Draft' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/DraftNotFound' }
+    delete:
+      tags: [drafts]
+      summary: Delete the draft (and any draft-only attachment).
+      responses:
+        '204': { description: Deleted. }
+        '404': { $ref: '#/components/responses/DraftNotFound' }
+
+  /api/drafts/{id}/submit:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+      - in: query
+        name: anonymous
+        description: |
+          Admin-only override of the category's anonymous default.
+          Any non-ADMIN caller passing this parameter receives 403
+          (`AUTH_FORBIDDEN_ROLE`).
+        schema: { type: boolean }
+    post:
+      tags: [drafts]
+      summary: Promote the draft to a SUBMITTED idea.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitDraftRequest' }
+      responses:
+        '201':
+          description: Idea created in SUBMITTED state; draft deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ideaId]
+                properties:
+                  ideaId: { type: string }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/DraftNotFound' }
+
+  # ─── Ratings (Story 2) ────────────────────────────────────────────
+  /api/ideas/{id}/ratings:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [ratings]
+      summary: |
+        Read ratings the signed-in user is allowed to see. Evaluators see
+        their own scores plus other evaluators' *locked* scores; the
+        submitter sees every evaluator's locked scores; ADMIN sees all.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dimensions, ratings]
+                properties:
+                  dimensions:
+                    type: array
+                    items: { $ref: '#/components/schemas/RatingDimension' }
+                  ratings:
+                    type: array
+                    items: { $ref: '#/components/schemas/Rating' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/IdeaNotFound' }
+    put:
+      tags: [ratings]
+      summary: Upsert the signed-in evaluator's per-dimension scores.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RatingPutRequest' }
+      responses:
+        '200':
+          description: Ratings persisted.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Rating' }
+        '400':
+          description: One or more dimension ids are not on the idea's category, or score is out of range.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        '409':
+          description: One or more rows are locked (RATING_LOCKED).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+  # ─── Comments (Story 2) ───────────────────────────────────────────
+  /api/ideas/{id}/comments:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [comments]
+      summary: |
+        List the thread in chronological order. Author identities of the
+        submitter are masked when the idea is anonymous and the viewer
+        is an EVALUATOR (FR-022).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Comment' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/IdeaNotFound' }
+    post:
+      tags: [comments]
+      summary: Post a top-level comment or a one-level reply.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentPostRequest' }
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Comment' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '422':
+          description: Reply nesting exceeded (COMMENT_NESTING_EXCEEDED).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+  /api/ideas/{id}/comments/{commentId}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: commentId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [comments]
+      summary: Edit own comment within 5 minutes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Comment' }
+        '409':
+          description: Edit window expired (COMMENT_EDIT_WINDOW_EXPIRED).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    delete:
+      tags: [comments]
+      summary: |
+        Delete a comment. Author may delete own within 5 minutes (hard delete);
+        ADMIN may soft-delete any comment at any time.
+      responses:
+        '204': { description: Deleted. }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/CommentNotFound' }
+
+  # ─── Insights (Story 4) ───────────────────────────────────────────
+  /api/insights/trend:
+    get:
+      tags: [insights]
+      summary: Submission count per time bucket.
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: bucket
+          schema: { type: string, enum: [day, week, month] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, range, generatedAt]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/SubmissionTrendPoint' }
+                  range:       { $ref: '#/components/schemas/InsightsRangeParams' }
+                  generatedAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/InsightsRangeInvalid' }
+        '403': { $ref: '#/components/responses/InsightsForbidden' }
+
+  /api/insights/approval-rate:
+    get:
+      tags: [insights]
+      summary: Approval-rate KPI plus optional trend series.
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: bucket
+          schema: { type: string, enum: [day, week, month] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, range, generatedAt]
+                properties:
+                  data:        { $ref: '#/components/schemas/ApprovalRateSummary' }
+                  range:       { $ref: '#/components/schemas/InsightsRangeParams' }
+                  generatedAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/InsightsRangeInvalid' }
+        '403': { $ref: '#/components/responses/InsightsForbidden' }
+
+  /api/insights/category-distribution:
+    get:
+      tags: [insights]
+      summary: Submission share per ACTIVE category.
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, range, generatedAt]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CategoryDistributionEntry' }
+                  range:       { $ref: '#/components/schemas/InsightsRangeParams' }
+                  generatedAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/InsightsRangeInvalid' }
+        '403': { $ref: '#/components/responses/InsightsForbidden' }
+
+  # ─── Categories — Admin (rating dimensions + anonymous default) ───
+  /api/categories/{id}/dimensions:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [categories]
+      summary: Read the category's rating dimensions (or the default set when none are configured).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RatingDimension' }
+    put:
+      tags: [categories]
+      summary: Replace the category's dimensions wholesale (ADMIN only). Removed dimensions are soft-deactivated, not destroyed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dimensions]
+              properties:
+                dimensions:
+                  type: array
+                  items:
+                    type: object
+                    required: [label, position, required]
+                    properties:
+                      id:          { type: string, nullable: true, description: "present when updating an existing row" }
+                      label:       { type: string }
+                      description: { type: string, nullable: true }
+                      position:    { type: integer }
+                      required:    { type: boolean }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RatingDimension' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ─── Hardening — review-queue status filter (FR-038) ──────────────
+  /api/ideas:
+    get:
+      tags: [ideas]
+      summary: |
+        Phase-3 listing endpoint, unchanged in shape. Phase 4 fixes the
+        review-queue status filter: `status[]` accepts any of the five
+        `IdeaStatus` values and is applied as an OR set; an empty
+        `status[]` means "no status filter" (not "no results"). The
+        response shape is identical to Phase 3.
+      parameters:
+        - in: query
+          name: scope
+          schema: { type: string, enum: [mine, queue, all] }
+        - in: query
+          name: status
+          style: form
+          explode: true
+          schema:
+            type: array
+            items: { type: string, enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, IMPLEMENTED] }
+      responses:
+        '200':
+          description: OK — see Phase-3 contract for the full schema.
+
+  # ─── Hardening — Employee dashboard History tab (FR-037) ──────────
+  /dashboard:
+    get:
+      tags: [ideas]
+      summary: |
+        Employee dashboard page. The "History" tab is implemented as a
+        page-level RSC that calls `/api/ideas` with
+        `scope=mine&status=APPROVED&status=REJECTED&status=IMPLEMENTED`.
+        No new API surface is introduced.
+      responses:
+        '200':
+          description: HTML page.
+
+  responses:
+    Unauthorized:
+      description: Not authenticated.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Forbidden:
+      description: Authenticated but not authorised.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    ValidationError:
+      description: Request body fails Zod validation.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    DraftNotFound:
+      description: Draft does not exist or is not owned by the caller.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    IdeaNotFound:
+      description: Idea does not exist or is not visible to the caller.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    CommentNotFound:
+      description: Comment does not exist or is not visible to the caller.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    InsightsForbidden:
+      description: Caller is EMPLOYEE; Insights is EVALUATOR/ADMIN-only.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    InsightsRangeInvalid:
+      description: `from > to`, or range exceeds 2 years.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
