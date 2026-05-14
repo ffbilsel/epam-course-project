@@ -1,4 +1,5 @@
 import type { Role } from "@/db/schema";
+import type { NotificationPayload } from "@/lib/validation/notification";
 
 /**
  * Generic shape consumed by {@link maskAuthor}. Phase 4 idea-listing

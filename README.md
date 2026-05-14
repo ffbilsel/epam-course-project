@@ -101,7 +101,8 @@ $env:BOOTSTRAP_ADMIN_PASSWORD = "Passw0rd!2024"
 npm run db:seed:admin
 
 # 5. Run the dev server
-npm run dev
+npm run build
+npm run start
 # open http://localhost:3000
 ```
 

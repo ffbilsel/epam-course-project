@@ -36,18 +36,56 @@ export default async function EmployeeDashboardPage(): Promise<JSX.Element> {
           </TabsList>
 
           <TabsContent value="active">
-            <Card>
-              <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-                <p className="text-base font-medium">Active ideas</p>
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  See your in-flight submissions on the{" "}
-                  <a href="/my-ideas" className="font-medium underline">
-                    My Ideas
-                  </a>{" "}
-                  page.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardContent className="flex flex-col items-start gap-3 py-8">
+                  <p className="text-base font-medium">My active ideas</p>
+                  <p className="text-sm text-muted-foreground">
+                    See your in-flight submissions on the{" "}
+                    <a href="/my-ideas" className="font-medium underline">
+                      My Ideas
+                    </a>{" "}
+                    page.
+                  </p>
+                </CardContent>
+              </Card>
+              {(session.user.role === "EVALUATOR" || session.user.role === "ADMIN") && (
+                <Card>
+                  <CardContent className="flex flex-col items-start gap-3 py-8">
+                    <p className="text-base font-medium">Review queue</p>
+                    <p className="text-sm text-muted-foreground">
+                      Triage submitted ideas from the{" "}
+                      <a href="/queue" className="font-medium underline">
+                        Review queue
+                      </a>
+                      .
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              {session.user.role === "ADMIN" && (
+                <Card>
+                  <CardContent className="flex flex-col items-start gap-3 py-8">
+                    <p className="text-base font-medium">Admin tools</p>
+                    <p className="text-sm text-muted-foreground">
+                      Manage{" "}
+                      <a href="/admin/ideas" className="font-medium underline">
+                        ideas
+                      </a>
+                      ,{" "}
+                      <a href="/admin/users" className="font-medium underline">
+                        users
+                      </a>
+                      , and{" "}
+                      <a href="/admin/categories" className="font-medium underline">
+                        categories
+                      </a>
+                      .
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="history">

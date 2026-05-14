@@ -67,7 +67,7 @@ export default async function IdeaDetailPage({ params }: PageProps): Promise<JSX
   };
 
   return (
-          <main className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+          <main className="mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">{detail.title}</h1>
