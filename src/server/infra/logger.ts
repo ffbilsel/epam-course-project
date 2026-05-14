@@ -39,6 +39,9 @@ export interface SecurityEvent {
     | "category_decision"
     | "category_schema_update"
     | "idea_transition"
+    | "idea_edited"
+    | "idea_deleted"
+    | "idea_export"
     | "internal_error";
   userId: string | null;
   actorRole: Role | null;

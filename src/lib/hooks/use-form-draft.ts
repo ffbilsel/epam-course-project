@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
  * `clear` after a successful submit.
  */
 export function useFormDraft<T extends Record<string, unknown>>(
-  key: string,
+  key: string | null,
   values: T,
   setValues: (next: T) => void,
 ): { clear: () => void } {
@@ -17,6 +17,7 @@ export function useFormDraft<T extends Record<string, unknown>>(
     if (restored.current) return;
     restored.current = true;
     if (typeof window === "undefined") return;
+    if (!key) return;
     try {
       const raw = window.sessionStorage.getItem(key);
       if (raw) {
@@ -31,6 +32,7 @@ export function useFormDraft<T extends Record<string, unknown>>(
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!key) return;
     try {
       window.sessionStorage.setItem(key, JSON.stringify(values));
     } catch {
@@ -41,6 +43,7 @@ export function useFormDraft<T extends Record<string, unknown>>(
   return {
     clear: () => {
       if (typeof window === "undefined") return;
+      if (!key) return;
       window.sessionStorage.removeItem(key);
     },
   };
