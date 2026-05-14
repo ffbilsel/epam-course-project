@@ -4,6 +4,8 @@ import { requireRole } from "@/server/role-guard";
 import { InsightsRangeSchema } from "@/lib/validation/insights";
 import { getApprovalRate } from "@/server/insights-service";
 
+export const dynamic = "force-dynamic";
+
 /** GET /api/insights/approval-rate — Approval-rate KPI + trend. */
 export const GET = withErrorHandler(async (req: NextRequest) => {
   const session = await requireRole(["EVALUATOR", "ADMIN"]);
