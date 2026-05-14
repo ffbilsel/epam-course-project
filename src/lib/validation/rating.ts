@@ -5,6 +5,7 @@ import { z } from "zod";
  * unrated (the evaluator left it blank).
  */
 export const RATING_SCORE_VALUES = [1, 2, 3, 4, 5] as const;
+/** A single rating score: 1-5 or `null` (explicitly unrated). */
 export type RatingScore = (typeof RATING_SCORE_VALUES)[number] | null;
 
 /**

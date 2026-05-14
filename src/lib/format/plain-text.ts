@@ -8,7 +8,6 @@
  * `dangerouslySetInnerHTML` — every character outside the explicit
  * `<br />` markup is HTML-escaped, so no untrusted markup can leak
  * through.
- *
  * @example
  *   escapeAndLinebreak("a < b\nc & d") === "a &lt; b<br />c &amp; d"
  */

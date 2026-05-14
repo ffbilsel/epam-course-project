@@ -36,7 +36,6 @@ export const ANONYMOUS_SUBMITTER_LABEL = "Anonymous Submitter";
  * - Employees never read other authors' rows in the first place;
  *   when they read their own, they are the author so no masking
  *   applies.
- *
  * @example
  *   maskAuthor(
  *     { id: '1', authorId: 'a', authorName: 'Ada', anonymous: true },

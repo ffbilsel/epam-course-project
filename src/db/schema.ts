@@ -270,6 +270,7 @@ export const ratings = sqliteTable(
  * the same transaction as an APPROVE / REJECT transition.
  */
 export const COMMENT_KINDS = ["COMMENT", "DECISION"] as const;
+/** Comment kind: regular comment or decision-note inserted with an APPROVE/REJECT. */
 export type CommentKind = (typeof COMMENT_KINDS)[number];
 
 /**

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+/* eslint-disable jsdoc/require-jsdoc */
+
 /** Allowed bucket granularities for insights aggregations. */
 export const INSIGHTS_BUCKETS = ["day", "week", "month"] as const;
 export type InsightsBucket = (typeof INSIGHTS_BUCKETS)[number];

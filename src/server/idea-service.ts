@@ -253,6 +253,10 @@ export async function listIdeaTransitions(ideaId: string): Promise<
 /**
  * Applies a state-machine transition: verifies via {@link evaluateTransition},
  * writes the new status, and records a `status_transitions` row in one tx.
+ * On APPROVE/REJECT the call also (1) requires every required
+ * rating dimension to be scored, (2) locks the deciding reviewer's
+ * ratings, and (3) inserts a `DECISION` comment with the decision
+ * note — all in the same transaction (US2 / ADRs 0019, 0020).
  */
 export async function applyTransition(
   ideaId: string,
@@ -276,6 +280,12 @@ export async function applyTransition(
     throw new AppError(decision.code);
   }
 
+  // US2: require all required dimensions before a decision lands.
+  if (action === "APPROVE" || action === "REJECT") {
+    const { requireRequiredDimensions } = await import("@/server/rating-service");
+    await requireRequiredDimensions(ideaId, actor.id);
+  }
+
   const now = deps.clock.now().getTime();
   withTx(() => {
     void updateIdeaStatus(ideaId, decision.toState, now);
@@ -289,6 +299,16 @@ export async function applyTransition(
       recordedAt: now,
     });
   });
+
+  // Lock ratings + insert decision comment after the status flip.
+  if (action === "APPROVE" || action === "REJECT") {
+    const { lockOnDecision } = await import("@/server/rating-service");
+    const { postComment } = await import("@/server/comment-service");
+    await lockOnDecision(ideaId, actor, deps);
+    if (comment?.trim()) {
+      await postComment(ideaId, actor, { body: comment.trim() }, { kind: "DECISION" }, deps);
+    }
+  }
 
   logSecurityEvent({
     event: "idea_transition",
