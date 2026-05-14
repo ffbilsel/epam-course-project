@@ -24,6 +24,7 @@
     "db:reset": "node -e \"require('fs').rmSync('./data/innovatepam.db',{force:true})\"",
     "check:error-codes": "tsx scripts/check-error-codes.ts",
     "check:ui-tokens": "tsx scripts/check-ui-tokens.ts",
+    "presentation:pdf": "tsx scripts/presentation-to-pdf.ts",
     "check": "npm run typecheck && npm run lint && npm run format && npm run test:unit",
     "setup:hooks": "pwsh -File scripts/install-hooks.ps1"
   },

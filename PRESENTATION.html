@@ -522,6 +522,68 @@
           </p>
         </section>
 
+        <!-- 20. External Technical Evaluation -->
+        <section id="evaluation">
+          <h2>External Technical Evaluation</h2>
+          <p class="small">
+            Independent code-audit summary (read-only inspection of the
+            repository at <code>main</code>).
+          </p>
+          <div class="two-col">
+            <div>
+              <h3 class="accent">Stats</h3>
+              <ul class="small">
+                <li><strong>Codebase:</strong> 179 TS/TSX files in <code>src</code> (~13.3k LOC)</li>
+                <li><strong>Tests:</strong> 56 files (~3.8k LOC) — 347/347 green</li>
+                <li><strong>Surface:</strong> 43 React components · 31 API route handlers · 5 Drizzle migrations</li>
+                <li><strong>Spec-driven:</strong> 5 SpecKit phases (MVP → Smart Forms → Listing → Advanced Evaluation → Attachments/History/Notifications) each with ADRs</li>
+                <li><strong>Author:</strong> solo (<code>ffbilsel</code>) · <strong>Node:</strong> <code>&gt;=20 &lt;21</code></li>
+              </ul>
+              <h3 class="accent">Architecture</h3>
+              <ul class="small">
+                <li>Service layer in <code>src/server</code>: 20+ pure-ish services (state machine, anonymity, drafts, ratings, comments, notifications, email dispatcher, insights, CSV export, attachments, audit history, role-guard, rate-limit)</li>
+                <li>Route groups <code>(admin)</code>/<code>(employee)</code>/<code>(reviewer)</code>/<code>(public)</code> + <code>api/</code> for RBAC isolation</li>
+                <li>Pure idea state machine (ADR-0004) · local-first SQLite + on-disk uploads</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="accent">Tech stack verdict</h3>
+              <ul class="small">
+                <li>Next.js 14 App Router · React 18 · TS 5.4 strict (<code>noUncheckedIndexedAccess</code>, <code>exactOptionalPropertyTypes</code>)</li>
+                <li>SQLite (<code>better-sqlite3</code>) + Drizzle 0.33 · NextAuth v5 (Credentials + DrizzleAdapter, DB sessions, argon2)</li>
+                <li>Zod + typed <code>ERROR_CODES</code> registry · shadcn/Radix + Tailwind tokens (no hex literals) · Recharts</li>
+                <li><code>pino</code>, <code>rate-limiter-flexible</code>, <code>nodemailer</code>, <code>file-type</code>, <code>diff</code></li>
+                <li>Vitest unit+integration · Playwright e2e + <code>@axe-core/playwright</code> · ESLint + Prettier · custom <code>check:error-codes</code> / <code>check:ui-tokens</code></li>
+                <li>Dockerfile + docker-compose</li>
+              </ul>
+              <h3 class="accent">Capabilities confirmed</h3>
+              <ul class="small">
+                <li>RBAC w/ route-group + server guards; smart per-category JSON schemas → runtime Zod + label snapshots</li>
+                <li>Submit → review → approve/reject with audit-row diffs; soft-edit window</li>
+                <li>Private autosaved evaluator drafts; multi-dim 1–5 ratings with gating + post-decision lock; HTML-escaped comments (5-min edit); per-idea anonymity snapshot</li>
+                <li>Shared server-side filter/search/pagination · streaming RFC-4180 CSV export</li>
+                <li>Attachments ≤10/idea, ≤10 MB, magic-byte MIME sniff, inline preview (PNG/JPEG/GIF/PDF)</li>
+                <li>Unified history timeline + email dispatcher + per-user preferences</li>
+                <li>Insights dashboards (trend, approval rate, category dist) — admin vs aggregate-only evaluator views</li>
+              </ul>
+            </div>
+          </div>
+          <div style="margin-top: 18px">
+            <h3 class="accent">Assessment (verbatim)</h3>
+            <p class="small">
+              “Mature, disciplined SpecKit-driven solo project. Strong
+              separation of concerns (service layer vs route handlers),
+              strict TS, explicit ADRs per decision, custom
+              static-analysis scripts enforcing design-token + error-code
+              hygiene. Test surface is decent (~29% test-to-src LOC) but
+              skews unit/integration; e2e coverage worth verifying.
+              Auth on NextAuth v5 <strong>beta</strong> is the main external
+              risk; SQLite + local disk caps horizontal scale but matches
+              the ‘small-org local-first’ mandate.”
+            </p>
+          </div>
+        </section>
+
         <!-- Thank you -->
         <section class="center" data-background-color="#0d0d0d">
           <h1>Thank you</h1>
