@@ -1,3 +1,5 @@
+Project is incomplete and there are some inconcistencies. Ignore docker-compose & run with npm
+
 # InnovatePAM Portal
 
 A small-org idea-management portal: employees submit, evaluators
